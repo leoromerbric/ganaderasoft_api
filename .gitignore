@@ -1,0 +1,53 @@
+/vendor/
+/node_modules/
+
+# Caché y archivos compilados
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/logs/*.log
+/storage/framework/cache/*
+!/storage/framework/cache/.gitignore
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+/storage/framework/views/*
+!/storage/framework/views/.gitignore
+
+# Variables de entorno
+.env
+.env.*
+!.env.example
+
+# Testing
+.phpunit.result.cache
+
+# IDEs
+/.idea
+/.vscode
+/.fleet
+*.swp
+*~
+
+# Logs
+npm-debug.log
+yarn-error.log
+
+# Bases de datos locales
+*.sqlite
+*.sqlite-journal
+
+# Backups y dumps
+*.sql
+*.backup
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker (si no lo usas)
+# Dockerfile
+# docker-compose*.yml
+# nginx.conf

@@ -1,0 +1,26 @@
+[
+    {
+        "codigo": "aspersion",
+        "nombre": "Aspersión"
+    },
+    {
+        "codigo": "inundacion",
+        "nombre": "Inundación"
+    },
+    {
+        "codigo": "surco_con_salida",
+        "nombre": "Surco con salida"
+    },
+    {
+        "codigo": "surco_sin_salida",
+        "nombre": "Surco sin salida"
+    },
+    {
+        "codigo": "goteo",
+        "nombre": "Goteo"
+    },
+    {
+        "codigo": "otro",
+        "nombre": "Otro"
+    }
+]

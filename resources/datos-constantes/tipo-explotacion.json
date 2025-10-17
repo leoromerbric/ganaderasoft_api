@@ -1,0 +1,18 @@
+[
+    {
+        "codigo": "intensiva",
+        "nombre": "Intensiva"
+    },
+    {
+        "codigo": "extensiva",
+        "nombre": "Extensiva"
+    },
+    {
+        "codigo": "compuesta",
+        "nombre": "Compuesta"
+    },
+    {
+        "codigo": "otro",
+        "nombre": "Otro"
+    }
+]

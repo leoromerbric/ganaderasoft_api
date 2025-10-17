@@ -1,0 +1,22 @@
+[
+    {
+        "id": 1,
+        "valor": "Plano",
+        "descripcion": "Terreno plano sin pendientes significativas"
+    },
+    {
+        "id": 2,
+        "valor": "Ondulado",
+        "descripcion": "Terreno con ondulaciones suaves"
+    },
+    {
+        "id": 3,
+        "valor": "Montañoso",
+        "descripcion": "Terreno con pendientes pronunciadas y elevaciones"
+    },
+    {
+        "id": 4,
+        "valor": "Otro",
+        "descripcion": "Otro tipo de relieve no especificado"
+    }
+]

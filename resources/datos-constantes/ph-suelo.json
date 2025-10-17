@@ -1,0 +1,37 @@
+[
+    {
+        "codigo": "1",
+        "nombre": "1",
+        "descripcion": "Extremadamente ácido"
+    },
+    {
+        "codigo": "2",
+        "nombre": "2",
+        "descripcion": "Muy ácido"
+    },
+    {
+        "codigo": "3",
+        "nombre": "3",
+        "descripcion": "Ácido"
+    },
+    {
+        "codigo": "4",
+        "nombre": "4",
+        "descripcion": "Ligeramente ácido"
+    },
+    {
+        "codigo": "5",
+        "nombre": "5",
+        "descripcion": "Ligeramente ácido"
+    },
+    {
+        "codigo": "6",
+        "nombre": "6",
+        "descripcion": "Ligeramente ácido"
+    },
+    {
+        "codigo": "7",
+        "nombre": "7",
+        "descripcion": "Neutro"
+    }
+]

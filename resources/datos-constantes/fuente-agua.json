@@ -1,0 +1,22 @@
+[
+    {
+        "codigo": "superficial",
+        "nombre": "Superficial"
+    },
+    {
+        "codigo": "subterranea",
+        "nombre": "Subterránea"
+    },
+    {
+        "codigo": "toma_directa_rio",
+        "nombre": "Toma directa de río"
+    },
+    {
+        "codigo": "sistema_riego",
+        "nombre": "Sistema de Riego"
+    },
+    {
+        "codigo": "otro",
+        "nombre": "Otro"
+    }
+]
