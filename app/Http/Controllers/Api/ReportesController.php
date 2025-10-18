@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Animal;
 use App\Models\Finca;
+use App\Models\PersonalFinca;
 use App\Models\Propietario;
 use App\Models\Rebano;
-use App\Models\Animal;
-use App\Models\PersonalFinca;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
@@ -17,14 +17,13 @@ class ReportesController extends Controller
     /**
      * Get statistical reports for farms (fincas).
      * Returns consolidated metrics for all farms of a propietario or a specific farm.
-     * 
-     * @param Request $request
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function estadisticasFincas(Request $request)
     {
         $user = $request->user();
-        
+
         // Get propietario for the user
         $propietario = null;
         if ($user->isAdmin()) {
@@ -32,58 +31,58 @@ class ReportesController extends Controller
             $propietarioId = $request->query('id_propietario');
             if ($propietarioId) {
                 $propietario = Propietario::find($propietarioId);
-                if (!$propietario) {
+                if (! $propietario) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Propietario no encontrado'
+                        'message' => 'Propietario no encontrado',
                     ], Response::HTTP_NOT_FOUND);
                 }
             }
         } else {
             // Non-admin users can only query their own data
             $propietario = $user->propietario;
-            if (!$propietario) {
+            if (! $propietario) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Usuario no es propietario'
+                    'message' => 'Usuario no es propietario',
                 ], Response::HTTP_FORBIDDEN);
             }
         }
 
         // Get optional finca filter
         $fincaId = $request->query('id_finca');
-        
+
         // Build base query for fincas
         $fincasQuery = Finca::active();
-        
+
         if ($propietario) {
             $fincasQuery->forPropietario($propietario->id);
         }
-        
+
         if ($fincaId) {
             $fincasQuery->where('id_Finca', $fincaId);
         }
-        
+
         $fincas = $fincasQuery->get();
-        
+
         if ($fincas->isEmpty()) {
             return response()->json([
                 'success' => false,
-                'message' => 'No se encontraron fincas'
+                'message' => 'No se encontraron fincas',
             ], Response::HTTP_NOT_FOUND);
         }
-        
+
         $fincaIds = $fincas->pluck('id_Finca');
-        
+
         // 1. Get farm statistics
         $totalFincas = $fincas->count();
-        
+
         // 2. Get herds (rebaños) statistics
         $rebanos = Rebano::whereIn('id_Finca', $fincaIds)
             ->active()
             ->get();
         $totalRebanos = $rebanos->count();
-        
+
         // Get rebanos with animal counts grouped by finca
         $rebanosPorFinca = DB::table('rebano')
             ->select('id_Finca', DB::raw('COUNT(*) as cantidad_rebanos'))
@@ -92,14 +91,14 @@ class ReportesController extends Controller
             ->groupBy('id_Finca')
             ->get()
             ->keyBy('id_Finca');
-        
+
         // 3. Get animals statistics
         $rebanoIds = $rebanos->pluck('id_Rebano');
-        
+
         $totalAnimales = Animal::whereIn('id_Rebano', $rebanoIds)
             ->active()
             ->count();
-        
+
         // Animals by sex
         $animalesPorSexo = Animal::whereIn('id_Rebano', $rebanoIds)
             ->active()
@@ -108,7 +107,7 @@ class ReportesController extends Controller
             ->get()
             ->pluck('cantidad', 'Sexo')
             ->toArray();
-        
+
         // Animals per herd
         $animalesPorRebano = Animal::whereIn('id_Rebano', $rebanoIds)
             ->active()
@@ -116,7 +115,7 @@ class ReportesController extends Controller
             ->groupBy('id_Rebano')
             ->get()
             ->keyBy('id_Rebano');
-        
+
         // Animals per finca
         $animalesPorFinca = DB::table('animal')
             ->join('rebano', 'animal.id_Rebano', '=', 'rebano.id_Rebano')
@@ -127,11 +126,11 @@ class ReportesController extends Controller
             ->groupBy('rebano.id_Finca')
             ->get()
             ->keyBy('id_Finca');
-        
+
         // 4. Get personnel statistics
         $totalPersonal = PersonalFinca::whereIn('id_Finca', $fincaIds)
             ->count();
-        
+
         // Personnel by worker type
         $personalPorTipo = PersonalFinca::whereIn('id_Finca', $fincaIds)
             ->select('Tipo_Trabajador', DB::raw('COUNT(*) as cantidad'))
@@ -139,14 +138,14 @@ class ReportesController extends Controller
             ->get()
             ->pluck('cantidad', 'Tipo_Trabajador')
             ->toArray();
-        
+
         // Personnel per finca
         $personalPorFinca = PersonalFinca::whereIn('id_Finca', $fincaIds)
             ->select('id_Finca', DB::raw('COUNT(*) as cantidad_personal'))
             ->groupBy('id_Finca')
             ->get()
             ->keyBy('id_Finca');
-        
+
         // Build detailed statistics per finca
         $fincasDetalle = [];
         foreach ($fincas as $finca) {
@@ -159,7 +158,7 @@ class ReportesController extends Controller
                 'cantidad_personal' => $personalPorFinca->get($fincaId)->cantidad_personal ?? 0,
             ];
         }
-        
+
         // Build detailed statistics per rebano
         $rebanosDetalle = [];
         foreach ($rebanos as $rebano) {
@@ -171,7 +170,7 @@ class ReportesController extends Controller
                 'cantidad_animales' => $animalesPorRebano->get($rebanoId)->cantidad_animales ?? 0,
             ];
         }
-        
+
         // Build response
         $estadisticas = [
             'resumen' => [
@@ -185,11 +184,11 @@ class ReportesController extends Controller
             'fincas' => $fincasDetalle,
             'rebanos' => $rebanosDetalle,
         ];
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Estadísticas de fincas',
-            'data' => $estadisticas
+            'data' => $estadisticas,
         ]);
     }
 }
