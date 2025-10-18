@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\LactanciaController;
 use App\Http\Controllers\Api\LecheController;
 use App\Http\Controllers\Api\MedidasCorporalesController;
 use App\Http\Controllers\Api\CambiosAnimalController;
+use App\Http\Controllers\Api\ReportesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,6 +77,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('fuente-agua', [ConfiguracionController::class, 'fuenteAgua']);
         Route::get('sexo', [ConfiguracionController::class, 'sexo']);
         Route::get('tipo-relieve', [ConfiguracionController::class, 'tipoRelieve']);
+    });
+    
+    // Reports routes
+    Route::prefix('reportes')->group(function () {
+        Route::get('fincas', [ReportesController::class, 'estadisticasFincas']);
     });
     
     // Animal relationship management routes
