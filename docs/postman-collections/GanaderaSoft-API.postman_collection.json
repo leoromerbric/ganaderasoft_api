@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "40334492-12d4-4543-9665-ec909d98a343",
 		"name": "GanaderaSoft API - Complete",
-		"description": "API Gateway for GanaderaSoft - Comprehensive Livestock Management System\n\nThis collection contains all the API endpoints for managing users, authentication, fincas (farms), rebaños (herds), animals, inventories, and more.\n\n## Base URL\n`{{base_url}}/api`\n\n## Authentication\nThis API uses Laravel Sanctum for authentication. Most endpoints require a Bearer token in the Authorization header.\n\n## Environment Variables\n- `base_url`: The base URL of your API (e.g., http://localhost:8000)\n- `auth_token`: Bearer token obtained from login/register\n\n## User Types\n- `admin`: Full access to all resources\n- `propietario`: Can manage their own resources\n- `tecnico`: Limited access for technical support\n\n## Main Endpoints\n- Propietarios (Property Owners)\n- Rebaños (Herds)\n- Animales (Animals)\n- Inventarios de Búfalo (Buffalo Inventories)\n- Tipos de Animal (Animal Types)\n\n## Configuration APIs\n- Tipo Explotación\n- Método Riego\n- pH Suelo\n- Textura Suelo\n- Fuente de Agua\n- Sexo\n- Tipo Relieve\n- Composición Raza\n- Etapas\n\n## New Livestock Management APIs\n- Personal Finca (Farm Personnel)\n- Peso Corporal (Body Weight)\n- Lactancia (Lactation Records)\n- Leche (Milk Production)\n- Medidas Corporales (Body Measurements)\n- Cambios Animal (Animal Changes)\n\n## Enhanced Features\n- Animal relationship management (estado_animal, etapa_animal)\n- Finca terreno data support\n- ComposicionRaza API now returns all records without filtering by fk_tipo_animal_id or fk_id_Finca\n- Complete livestock tracking from birth to production",
+		"description": "API Gateway for GanaderaSoft - Comprehensive Livestock Management System\n\nThis collection contains all the API endpoints for managing users, authentication, fincas (farms), rebaños (herds), animals, inventories, and more.\n\n## Base URL\n`{{base_url}}/api`\n\n## Authentication\nThis API uses Laravel Sanctum for authentication. Most endpoints require a Bearer token in the Authorization header.\n\n## Environment Variables\n- `base_url`: The base URL of your API (e.g., http://localhost:8000)\n- `auth_token`: Bearer token obtained from login/register\n\n## User Types\n- `admin`: Full access to all resources\n- `propietario`: Can manage their own resources\n- `tecnico`: Limited access for technical support\n\n## Main Endpoints\n- Propietarios (Property Owners)\n- Rebaños (Herds)\n- Animales (Animals)\n- Inventarios de Búfalo (Buffalo Inventories)\n- Tipos de Animal (Animal Types)\n\n## Configuration APIs\n- Tipo Explotación\n- Método Riego\n- pH Suelo\n- Textura Suelo\n- Fuente de Agua\n- Sexo\n- Tipo Relieve\n- Composición Raza\n- Etapas\n\n## Reports APIs\n- Reportes de Fincas (Farm Statistics)\n\n## New Livestock Management APIs\n- Personal Finca (Farm Personnel)\n- Peso Corporal (Body Weight)\n- Lactancia (Lactation Records)\n- Leche (Milk Production)\n- Medidas Corporales (Body Measurements)\n- Cambios Animal (Animal Changes)\n\n## Enhanced Features\n- Animal relationship management (estado_animal, etapa_animal)\n- Finca terreno data support\n- ComposicionRaza API now returns all records without filtering by fk_tipo_animal_id or fk_id_Finca\n- Complete livestock tracking from birth to production",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "3234714"
 	},
@@ -3266,6 +3266,188 @@
 								"1"
 							]
 						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "📊 Reportes",
+			"item": [
+				{
+					"name": "Get Farm Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/reportes/fincas",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"reportes",
+								"fincas"
+							],
+							"query": []
+						},
+						"description": "Get consolidated statistical metrics for all farms of the authenticated propietario.\n\nReturns:\n- Total count of farms, herds, animals, and personnel\n- Animals breakdown by sex\n- Personnel breakdown by worker type\n- Detailed statistics per farm (herds count, animals count, personnel count)\n- Detailed statistics per herd (animals count)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Farm Statistics (Filtered by Finca)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/reportes/fincas?id_finca=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"reportes",
+								"fincas"
+							],
+							"query": [
+								{
+									"key": "id_finca",
+									"value": "1",
+									"description": "Optional filter by specific farm ID"
+								}
+							]
+						},
+						"description": "Get consolidated statistical metrics filtered by a specific farm.\n\nQuery Parameters:\n- id_finca: Filter statistics for a specific farm\n\nReturns same structure as the main endpoint but filtered for the specified farm."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Farm Statistics (Admin - Specific Propietario)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/reportes/fincas?id_propietario=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"reportes",
+								"fincas"
+							],
+							"query": [
+								{
+									"key": "id_propietario",
+									"value": "1",
+									"description": "Admin only: Filter by specific propietario ID"
+								}
+							]
+						},
+						"description": "Admin only: Get consolidated statistical metrics for a specific propietario.\n\nQuery Parameters:\n- id_propietario: (Admin only) Filter statistics for a specific propietario\n\nNote: Only users with admin role can use this parameter."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Farm Statistics (Error - No Propietario)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/reportes/fincas",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"reportes",
+								"fincas"
+							]
+						},
+						"description": "Error case: User authenticated but not associated with a propietario profile.\n\nExpected Response (403 Forbidden):\n```json\n{\n    \"success\": false,\n    \"message\": \"Usuario no es propietario\"\n}\n```"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Farm Statistics (Error - No Farms Found)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{auth_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/reportes/fincas?id_finca=999999",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"reportes",
+								"fincas"
+							],
+							"query": [
+								{
+									"key": "id_finca",
+									"value": "999999",
+									"description": "Non-existent farm ID"
+								}
+							]
+						},
+						"description": "Error case: No farms found with the specified filters.\n\nExpected Response (404 Not Found):\n```json\n{\n    \"success\": false,\n    \"message\": \"No se encontraron fincas\"\n}\n```"
 					},
 					"response": []
 				}

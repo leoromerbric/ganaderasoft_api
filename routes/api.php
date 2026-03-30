@@ -1,25 +1,26 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\FincaController;
-use App\Http\Controllers\Api\PropietarioController;
-use App\Http\Controllers\Api\RebanoController;
 use App\Http\Controllers\Api\AnimalController;
-use App\Http\Controllers\Api\InventarioBufaloController;
-use App\Http\Controllers\Api\TipoAnimalController;
-use App\Http\Controllers\Api\EstadoSaludController;
-use App\Http\Controllers\Api\EstadoAnimalController;
-use App\Http\Controllers\Api\ConfiguracionController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CambiosAnimalController;
 use App\Http\Controllers\Api\ComposicionRazaController;
+use App\Http\Controllers\Api\ConfiguracionController;
+use App\Http\Controllers\Api\EstadoAnimalController;
+use App\Http\Controllers\Api\EstadoSaludController;
 use App\Http\Controllers\Api\EtapaController;
-use App\Http\Controllers\Api\PersonalFincaController;
-use App\Http\Controllers\Api\PesoCorporalController;
+use App\Http\Controllers\Api\FincaController;
+use App\Http\Controllers\Api\InventarioBufaloController;
 use App\Http\Controllers\Api\LactanciaController;
 use App\Http\Controllers\Api\LecheController;
 use App\Http\Controllers\Api\MedidasCorporalesController;
-use App\Http\Controllers\Api\CambiosAnimalController;
+use App\Http\Controllers\Api\PersonalFincaController;
+use App\Http\Controllers\Api\PesoCorporalController;
+use App\Http\Controllers\Api\PropietarioController;
+use App\Http\Controllers\Api\RebanoController;
+use App\Http\Controllers\Api\ReportesController;
+use App\Http\Controllers\Api\TipoAnimalController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -46,7 +47,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
-    
+
     // Core entity CRUD routes
     Route::apiResource('fincas', FincaController::class);
     Route::apiResource('propietarios', PropietarioController::class);
@@ -58,7 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('estados-animal', EstadoAnimalController::class);
     Route::apiResource('composicion-raza', ComposicionRazaController::class);
     Route::apiResource('etapas', EtapaController::class);
-    
+
     // New entity CRUD routes
     Route::apiResource('personal-finca', PersonalFincaController::class);
     Route::apiResource('peso-corporal', PesoCorporalController::class);
@@ -66,7 +67,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('leche', LecheController::class);
     Route::apiResource('medidas-corporales', MedidasCorporalesController::class);
     Route::apiResource('cambios-animal', CambiosAnimalController::class);
-    
+
     // Configuration routes (JSON-based)
     Route::prefix('configuracion')->group(function () {
         Route::get('tipo-explotacion', [ConfiguracionController::class, 'tipoExplotacion']);
@@ -77,7 +78,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('sexo', [ConfiguracionController::class, 'sexo']);
         Route::get('tipo-relieve', [ConfiguracionController::class, 'tipoRelieve']);
     });
-    
+
+    // Reports routes
+    Route::prefix('reportes')->group(function () {
+        Route::get('fincas', [ReportesController::class, 'estadisticasFincas']);
+    });
+
     // Animal relationship management routes
     Route::prefix('animales/{animal}')->group(function () {
         Route::post('estado-animal', [AnimalController::class, 'createEstadoAnimal']);
