@@ -3,13 +3,19 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Animal;
 use App\Models\PesoCorporal;
+use App\Services\AnimalEtapaClassifierService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 
 class PesoCorporalController extends Controller
 {
+    public function __construct(private AnimalEtapaClassifierService $etapaClassifier)
+    {
+    }
+
     /**
      * Display a listing of peso corporal.
      */
@@ -71,7 +77,7 @@ class PesoCorporalController extends Controller
             'Peso' => 'required|numeric|min:0',
             'Comentario' => 'nullable|string|max:40',
             'peso_etapa_anid' => 'required|exists:animal,id_Animal',
-            'peso_etapa_etid' => 'required|exists:etapa,etapa_id',
+            'peso_etapa_etid' => 'nullable|exists:etapa,etapa_id',
         ]);
 
         if ($validator->fails()) {
@@ -82,23 +88,18 @@ class PesoCorporalController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        // Check if etapa_animal exists
-        $etapaAnimalExists = \DB::table('etapa_animal')
-            ->where('etan_animal_id', $request->peso_etapa_anid)
-            ->where('etan_etapa_id', $request->peso_etapa_etid)
-            ->exists();
+        $animal = Animal::find($request->peso_etapa_anid);
 
-        if (!$etapaAnimalExists) {
+        if (!$animal) {
             return response()->json([
                 'success' => false,
-                'message' => 'La relación etapa-animal no existe'
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+                'message' => 'Animal no encontrado'
+            ], Response::HTTP_NOT_FOUND);
         }
 
         // Check permissions
         if (!$user->isAdmin()) {
             if ($user->isPropietario()) {
-                $animal = \App\Models\Animal::find($request->peso_etapa_anid);
                 if (!$animal || $animal->rebano->finca->id_Propietario !== $user->propietario->id) {
                     return response()->json([
                         'success' => false,
@@ -113,13 +114,42 @@ class PesoCorporalController extends Controller
             }
         }
 
-        $pesoCorporal = PesoCorporal::create($request->all());
+        $clasificacion = $this->etapaClassifier->syncCurrentEtapa($animal, (float) $request->Peso);
+        $resolvedEtapaId = $clasificacion['target_etapa_id'] ?? $request->peso_etapa_etid;
+
+        if (!$resolvedEtapaId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudo determinar la etapa del animal para registrar el peso',
+                'clasificacion_etaria' => $clasificacion,
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        // Check if etapa_animal exists with the resolved etapa.
+        $etapaAnimalExists = \DB::table('etapa_animal')
+            ->where('etan_animal_id', $request->peso_etapa_anid)
+            ->where('etan_etapa_id', $resolvedEtapaId)
+            ->exists();
+
+        if (!$etapaAnimalExists) {
+            return response()->json([
+                'success' => false,
+                'message' => 'La relación etapa-animal no existe para la etapa objetivo',
+                'clasificacion_etaria' => $clasificacion,
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $payload = $request->only(['Fecha_Peso', 'Peso', 'Comentario', 'peso_etapa_anid']);
+        $payload['peso_etapa_etid'] = $resolvedEtapaId;
+
+        $pesoCorporal = PesoCorporal::create($payload);
         //$pesoCorporal->load(['etapaAnimal.etapa', 'etapaAnimal.animal']);
 
         return response()->json([
             'success' => true,
             'message' => 'Peso corporal registrado exitosamente',
-            'data' => $pesoCorporal
+            'data' => $pesoCorporal,
+            'clasificacion_etaria' => $clasificacion,
         ], Response::HTTP_CREATED);
     }
 
@@ -212,10 +242,19 @@ class PesoCorporalController extends Controller
         $pesoCorporal->update($request->all());
         //$pesoCorporal->load(['etapaAnimal.etapa', 'etapaAnimal.animal']);
 
+        $animal = $pesoCorporal->animal;
+        $latestWeight = PesoCorporal::where('peso_etapa_anid', $pesoCorporal->peso_etapa_anid)
+            ->orderByDesc('Fecha_Peso')
+            ->value('Peso');
+        $clasificacion = $animal
+            ? $this->etapaClassifier->syncCurrentEtapa($animal, $latestWeight !== null ? (float) $latestWeight : null)
+            : null;
+
         return response()->json([
             'success' => true,
             'message' => 'Peso corporal actualizado exitosamente',
-            'data' => $pesoCorporal
+            'data' => $pesoCorporal,
+            'clasificacion_etaria' => $clasificacion,
         ], Response::HTTP_OK);
     }
 

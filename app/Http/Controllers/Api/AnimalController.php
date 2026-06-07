@@ -7,12 +7,18 @@ use App\Models\Animal;
 use App\Models\Rebano;
 use App\Models\EstadoAnimal;
 use App\Models\EtapaAnimal;
+use App\Models\PesoCorporal;
+use App\Services\AnimalEtapaClassifierService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 
 class AnimalController extends Controller
 {
+    public function __construct(private AnimalEtapaClassifierService $etapaClassifier)
+    {
+    }
+
     /**
      * Display a listing of animals.
      */
@@ -139,6 +145,12 @@ class AnimalController extends Controller
             ]);
         }
 
+        // Always sync etapa by business rules after create.
+        $lastWeight = PesoCorporal::where('peso_etapa_anid', $animal->id_Animal)
+            ->orderByDesc('Fecha_Peso')
+            ->value('Peso');
+        $clasificacion = $this->etapaClassifier->syncCurrentEtapa($animal, $lastWeight !== null ? (float) $lastWeight : null);
+
         $animal->load([
             'rebano.finca.propietario', 
             'composicionRaza',
@@ -149,7 +161,8 @@ class AnimalController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Animal creado exitosamente',
-            'data' => $animal
+            'data' => $animal,
+            'clasificacion_etaria' => $clasificacion,
         ], Response::HTTP_CREATED);
     }
 
@@ -258,13 +271,19 @@ class AnimalController extends Controller
             'id_Rebano', 'Nombre', 'codigo_animal', 'Sexo', 
             'fecha_nacimiento', 'Procedencia', 'fk_composicion_raza'
         ]));
+
+        $lastWeight = PesoCorporal::where('peso_etapa_anid', $animal->id_Animal)
+            ->orderByDesc('Fecha_Peso')
+            ->value('Peso');
+        $clasificacion = $this->etapaClassifier->syncCurrentEtapa($animal, $lastWeight !== null ? (float) $lastWeight : null);
         
-        $animal->load(['rebano.finca.propietario', 'composicionRaza']);
+        $animal->load(['rebano.finca.propietario', 'composicionRaza', 'etapaActual.etapa']);
 
         return response()->json([
             'success' => true,
             'message' => 'Animal actualizado exitosamente',
-            'data' => $animal
+            'data' => $animal,
+            'clasificacion_etaria' => $clasificacion,
         ]);
     }
 

@@ -3,22 +3,37 @@
 use App\Http\Controllers\Api\AnimalController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CambiosAnimalController;
+use App\Http\Controllers\Api\CasaComercialController;
 use App\Http\Controllers\Api\ComposicionRazaController;
 use App\Http\Controllers\Api\ConfiguracionController;
+use App\Http\Controllers\Api\DiagnosticoController;
+use App\Http\Controllers\Api\DosisController;
 use App\Http\Controllers\Api\EstadoAnimalController;
 use App\Http\Controllers\Api\EstadoSaludController;
 use App\Http\Controllers\Api\EtapaController;
 use App\Http\Controllers\Api\FincaController;
+use App\Http\Controllers\Api\HistoricoAplicacionController;
 use App\Http\Controllers\Api\InventarioBufaloController;
+use App\Http\Controllers\Api\InventarioGeneralController;
+use App\Http\Controllers\Api\InventarioVacunoController;
 use App\Http\Controllers\Api\LactanciaController;
 use App\Http\Controllers\Api\LecheController;
 use App\Http\Controllers\Api\MedidasCorporalesController;
+use App\Http\Controllers\Api\MovimientoRebanoController;
+use App\Http\Controllers\Api\PalpacionController;
 use App\Http\Controllers\Api\PersonalFincaController;
 use App\Http\Controllers\Api\PesoCorporalController;
 use App\Http\Controllers\Api\PropietarioController;
 use App\Http\Controllers\Api\RebanoController;
+use App\Http\Controllers\Api\RegistroCeloController;
 use App\Http\Controllers\Api\ReportesController;
+use App\Http\Controllers\Api\ReproduccionAnimalController;
+use App\Http\Controllers\Api\SemenToroController;
+use App\Http\Controllers\Api\ServicioAnimalController;
+use App\Http\Controllers\Api\TerrenoController;
 use App\Http\Controllers\Api\TipoAnimalController;
+use App\Http\Controllers\Api\TratamientoController;
+use App\Http\Controllers\Api\VacunaController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -83,6 +98,31 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('reportes')->group(function () {
         Route::get('fincas', [ReportesController::class, 'estadisticasFincas']);
     });
+
+    // Terreno
+    Route::apiResource('terrenos', TerrenoController::class);
+
+    // Reproducción
+    Route::apiResource('registro-celo', RegistroCeloController::class);
+    Route::apiResource('servicio-animal', ServicioAnimalController::class);
+    Route::apiResource('reproduccion-animal', ReproduccionAnimalController::class);
+    Route::apiResource('palpacion', PalpacionController::class);
+    Route::apiResource('semen-toro', SemenToroController::class);
+
+    // Salud animal
+    Route::apiResource('diagnostico', DiagnosticoController::class);
+    Route::apiResource('tratamiento', TratamientoController::class);
+    Route::apiResource('vacunas', VacunaController::class);
+    Route::apiResource('casas-comerciales', CasaComercialController::class);
+    Route::apiResource('dosis', DosisController::class);
+    Route::apiResource('historico-aplicacion', HistoricoAplicacionController::class);
+
+    // Inventario
+    Route::apiResource('inventario-general', InventarioGeneralController::class);
+    Route::apiResource('inventario-vacuno', InventarioVacunoController::class);
+
+    // Movimientos de rebaño
+    Route::apiResource('movimiento-rebano', MovimientoRebanoController::class);
 
     // Animal relationship management routes
     Route::prefix('animales/{animal}')->group(function () {

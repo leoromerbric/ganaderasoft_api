@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+// Relationships resolved via same namespace — no explicit imports needed in PHP 8
+
 class Animal extends Model
 {
     use HasFactory;
@@ -57,7 +59,7 @@ class Animal extends Model
      */
     public function pesosCorporales()
     {
-        return $this->hasMany(PesoCorporal::class, 'id_Animal', 'id_Animal');
+        return $this->hasMany(PesoCorporal::class, 'peso_etapa_anid', 'id_Animal');
     }
 
     /**
