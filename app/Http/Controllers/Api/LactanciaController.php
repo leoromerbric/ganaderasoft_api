@@ -17,7 +17,7 @@ class LactanciaController extends Controller
     {
         $user = $request->user();
         
-	$query = Lactancia::query();
+    $query = Lactancia::with(['animal']);
 
 	//$query = Lactancia::with(['etapaAnimal.etapa', 'etapaAnimal.animal', 'lecheRecords']);
 
@@ -136,7 +136,7 @@ class LactanciaController extends Controller
     public function show(Request $request, $id)
     {
         $user = $request->user();
-        $lactancia = Lactancia::with(['etapaAnimal.etapa', 'etapaAnimal.animal', 'lecheRecords'])->find($id);
+        $lactancia = Lactancia::with(['animal', 'etapaAnimal.etapa', 'etapaAnimal.animal', 'lecheRecords'])->find($id);
 
         if (!$lactancia) {
             return response()->json([
@@ -148,7 +148,8 @@ class LactanciaController extends Controller
         // Check permissions
         if (!$user->isAdmin()) {
             if ($user->isPropietario()) {
-                if ($lactancia->etapaAnimal->animal->rebano->finca->id_Propietario !== $user->propietario->id) {
+                $ownerId = optional(optional(optional($lactancia->animal)->rebano)->finca)->id_Propietario;
+                if (!$ownerId || $ownerId !== $user->propietario->id) {
                     return response()->json([
                         'success' => false,
                         'message' => 'No tiene permisos para ver esta lactancia'
@@ -187,8 +188,9 @@ class LactanciaController extends Controller
         // Check permissions
         if (!$user->isAdmin()) {
             if ($user->isPropietario()) {
-                $lactancia->load(['etapaAnimal.animal.rebano.finca']);
-                if ($lactancia->etapaAnimal->animal->rebano->finca->id_Propietario !== $user->propietario->id) {
+                $lactancia->load(['animal.rebano.finca']);
+                $ownerId = optional(optional(optional($lactancia->animal)->rebano)->finca)->id_Propietario;
+                if (!$ownerId || $ownerId !== $user->propietario->id) {
                     return response()->json([
                         'success' => false,
                         'message' => 'No tiene permisos para editar esta lactancia'
@@ -244,8 +246,9 @@ class LactanciaController extends Controller
         // Check permissions
         if (!$user->isAdmin()) {
             if ($user->isPropietario()) {
-                $lactancia->load(['etapaAnimal.animal.rebano.finca']);
-                if ($lactancia->etapaAnimal->animal->rebano->finca->id_Propietario !== $user->propietario->id) {
+                $lactancia->load(['animal.rebano.finca']);
+                $ownerId = optional(optional(optional($lactancia->animal)->rebano)->finca)->id_Propietario;
+                if (!$ownerId || $ownerId !== $user->propietario->id) {
                     return response()->json([
                         'success' => false,
                         'message' => 'No tiene permisos para eliminar esta lactancia'

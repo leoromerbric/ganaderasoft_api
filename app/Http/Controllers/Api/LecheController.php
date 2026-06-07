@@ -17,8 +17,7 @@ class LecheController extends Controller
     {
         $user = $request->user();
         
-	//$query = Leche::with(['lactancia.etapaAnimal.animal']);
-	$query = Leche::query();
+    $query = Leche::with(['lactancia.animal']);
 
         // Apply filters
         if ($request->has('lactancia_id')) {
@@ -138,7 +137,8 @@ class LecheController extends Controller
         // Check permissions
         if (!$user->isAdmin()) {
             if ($user->isPropietario()) {
-                if ($leche->lactancia->etapaAnimal->animal->rebano->finca->id_Propietario !== $user->propietario->id) {
+                $ownerId = optional(optional(optional(optional($leche->lactancia)->animal)->rebano)->finca)->id_Propietario;
+                if (!$ownerId || $ownerId !== $user->propietario->id) {
                     return response()->json([
                         'success' => false,
                         'message' => 'No tiene permisos para ver este registro de leche'
@@ -177,8 +177,9 @@ class LecheController extends Controller
         // Check permissions
         if (!$user->isAdmin()) {
             if ($user->isPropietario()) {
-                $leche->load(['lactancia.etapaAnimal.animal.rebano.finca']);
-                if ($leche->lactancia->etapaAnimal->animal->rebano->finca->id_Propietario !== $user->propietario->id) {
+                $leche->load(['lactancia.animal.rebano.finca']);
+                $ownerId = optional(optional(optional(optional($leche->lactancia)->animal)->rebano)->finca)->id_Propietario;
+                if (!$ownerId || $ownerId !== $user->propietario->id) {
                     return response()->json([
                         'success' => false,
                         'message' => 'No tiene permisos para editar este registro de leche'
@@ -233,8 +234,9 @@ class LecheController extends Controller
         // Check permissions
         if (!$user->isAdmin()) {
             if ($user->isPropietario()) {
-                $leche->load(['lactancia.etapaAnimal.animal.rebano.finca']);
-                if ($leche->lactancia->etapaAnimal->animal->rebano->finca->id_Propietario !== $user->propietario->id) {
+                $leche->load(['lactancia.animal.rebano.finca']);
+                $ownerId = optional(optional(optional(optional($leche->lactancia)->animal)->rebano)->finca)->id_Propietario;
+                if (!$ownerId || $ownerId !== $user->propietario->id) {
                     return response()->json([
                         'success' => false,
                         'message' => 'No tiene permisos para eliminar este registro de leche'
