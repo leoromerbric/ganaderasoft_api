@@ -32,8 +32,8 @@ class Lactancia extends Model
      */
     public function etapaAnimal()
     {
-        return $this->hasOne(EtapaAnimal::class)
-                    ->whereRaw('etan_animal_id = lactancia_etapa_anid AND etan_etapa_id = lactancia_etapa_etid');
+        return $this->hasOne(EtapaAnimal::class, 'etan_animal_id', 'lactancia_etapa_anid')
+            ->whereColumn('etapa_animal.etan_etapa_id', 'lactancia.lactancia_etapa_etid');
     }
 
     /**

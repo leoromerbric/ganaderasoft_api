@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Animal;
 use App\Models\MovimientoRebano;
 use App\Models\MovimientoRebanoAnimal;
 use Illuminate\Http\Request;
@@ -47,12 +48,29 @@ class MovimientoRebanoController extends Controller
             'id_Finca_Destino'  => 'required|exists:finca,id_Finca',
             'id_Rebano_Destino' => 'required|exists:rebano,id_Rebano',
             'Comentario'        => 'nullable|string|max:40',
-            'animales'          => 'nullable|array',
+            'animales'          => 'required|array|min:1',
             'animales.*'        => 'exists:animal,id_Animal',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['success' => false, 'errors' => $validator->errors()], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        if ((int) $request->id_Finca === (int) $request->id_Finca_Destino) {
+            return response()->json(['success' => false, 'message' => 'La finca de destino debe ser diferente a la de origen'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        if ((int) $request->id_Rebano === (int) $request->id_Rebano_Destino) {
+            return response()->json(['success' => false, 'message' => 'El rebaño de destino debe ser diferente al de origen'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $animalIds = collect($request->animales)->map(fn ($id) => (int) $id)->unique()->values()->all();
+        $animalesOrigenCount = Animal::whereIn('id_Animal', $animalIds)
+            ->where('id_Rebano', (int) $request->id_Rebano)
+            ->count();
+
+        if ($animalesOrigenCount !== count($animalIds)) {
+            return response()->json(['success' => false, 'message' => 'Todos los animales seleccionados deben pertenecer al rebaño de origen'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $movimiento = DB::transaction(function () use ($request) {
@@ -61,14 +79,18 @@ class MovimientoRebanoController extends Controller
                 'id_Finca_Destino', 'id_Rebano_Destino', 'Comentario',
             ]));
 
-            if ($request->has('animales') && is_array($request->animales)) {
-                foreach ($request->animales as $animalId) {
+            $animalIds = collect($request->animales)->map(fn ($id) => (int) $id)->unique()->values()->all();
+            if (!empty($animalIds)) {
+                foreach ($animalIds as $animalId) {
                     MovimientoRebanoAnimal::create([
                         'id_Animal'    => $animalId,
                         'id_Movimiento'=> $mov->id_Movimiento,
                         'Estado'       => 'activo',
                     ]);
                 }
+
+                Animal::whereIn('id_Animal', $animalIds)
+                    ->update(['id_Rebano' => (int) $request->id_Rebano_Destino]);
             }
 
             return $mov;
