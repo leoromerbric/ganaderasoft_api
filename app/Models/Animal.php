@@ -100,8 +100,10 @@ class Animal extends Model
     public function estadoActual()
     {
         return $this->hasOne(EstadoAnimal::class, 'esan_fk_id_animal', 'id_Animal')
-            ->whereNull('esan_fecha_fin')
-            ->orWhere('esan_fecha_fin', '>', now()->toDateString())
+            ->where(function ($query) {
+                $query->whereNull('esan_fecha_fin')
+                    ->orWhere('esan_fecha_fin', '>', now()->toDateString());
+            })
             ->latest('esan_fecha_ini');
     }
 
@@ -119,8 +121,10 @@ class Animal extends Model
     public function etapaActual()
     {
         return $this->hasOne(EtapaAnimal::class, 'etan_animal_id', 'id_Animal')
-            ->whereNull('etan_fecha_fin')
-            ->orWhere('etan_fecha_fin', '>', now()->toDateString())
+            ->where(function ($query) {
+                $query->whereNull('etan_fecha_fin')
+                    ->orWhere('etan_fecha_fin', '>', now()->toDateString());
+            })
             ->latest('etan_fecha_ini');
     }
 

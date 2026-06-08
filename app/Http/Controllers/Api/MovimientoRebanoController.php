@@ -15,7 +15,7 @@ class MovimientoRebanoController extends Controller
 {
     public function index(Request $request)
     {
-        $query = MovimientoRebano::with('fincaOrigen', 'rebanoOrigen', 'fincaDestino', 'rebanoDestino');
+        $query = MovimientoRebano::with('fincaOrigen', 'rebanoOrigen', 'fincaDestino', 'rebanoDestino', 'animales.animal');
 
         if ($request->has('id_finca')) {
             $query->forFinca($request->id_finca);
