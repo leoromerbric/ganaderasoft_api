@@ -43,7 +43,7 @@ class PalpacionController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'id_Tecnico'          => 'nullable|exists:personal_finca,id_Personal',
+            'id_Tecnico'          => 'nullable|exists:personal_finca,id_Tecnico',
             'palpacion_tipo'      => 'nullable|string|max:11',
             'palpacion_fecha'     => 'nullable|date',
             'palpacion_etapa_anid'=> 'required|exists:animal,id_Animal',
@@ -88,7 +88,7 @@ class PalpacionController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'id_Tecnico'     => 'nullable|exists:personal_finca,id_Personal',
+            'id_Tecnico'     => 'nullable|exists:personal_finca,id_Tecnico',
             'palpacion_tipo' => 'nullable|string|max:11',
             'palpacion_fecha'=> 'nullable|date',
         ]);
