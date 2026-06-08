@@ -44,7 +44,7 @@ class ServicioAnimalController extends Controller
         $validator = Validator::make($request->all(), [
             'servicio_id_Animal'  => 'required|exists:animal,id_Animal',
             'servicio_semen_id'   => 'nullable|exists:semen_toro,semen_id',
-            'servicio_id_Tecnico' => 'nullable|exists:personal_finca,id_Personal',
+            'servicio_id_Tecnico' => 'nullable|exists:personal_finca,id_Tecnico',
             'servicio_tipo'       => 'nullable|string|max:11',
             'servicio_fecha'      => 'nullable|date',
             'servicio_observacion'=> 'nullable|string|max:100',
@@ -81,7 +81,7 @@ class ServicioAnimalController extends Controller
 
         $validator = Validator::make($request->all(), [
             'servicio_semen_id'   => 'nullable|exists:semen_toro,semen_id',
-            'servicio_id_Tecnico' => 'nullable|exists:personal_finca,id_Personal',
+            'servicio_id_Tecnico' => 'nullable|exists:personal_finca,id_Tecnico',
             'servicio_tipo'       => 'nullable|string|max:11',
             'servicio_fecha'      => 'nullable|date',
             'servicio_observacion'=> 'nullable|string|max:100',

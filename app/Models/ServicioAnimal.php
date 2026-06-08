@@ -38,7 +38,7 @@ class ServicioAnimal extends Model
 
     public function tecnico()
     {
-        return $this->belongsTo(PersonalFinca::class, 'servicio_id_Tecnico', 'id_Personal');
+        return $this->belongsTo(PersonalFinca::class, 'servicio_id_Tecnico', 'id_Tecnico');
     }
 
     public function registroCelo()
