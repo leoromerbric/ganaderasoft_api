@@ -36,7 +36,7 @@ class Palpacion extends Model
 
     public function tecnico()
     {
-        return $this->belongsTo(PersonalFinca::class, 'id_Tecnico', 'id_Personal');
+        return $this->belongsTo(PersonalFinca::class, 'id_Tecnico', 'id_Tecnico');
     }
 
     public function scopeForAnimal($query, $animalId)
