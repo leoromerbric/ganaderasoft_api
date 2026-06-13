@@ -13,6 +13,44 @@ use Illuminate\Support\Facades\Validator;
 
 class HistoricoAplicacionController extends Controller
 {
+    public function previewCampana(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'ha_dosis_id' => 'required|exists:dosis,dosis_id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $dosis = Dosis::with(['vacuna', 'casaComercial', 'rebano'])->find($request->integer('ha_dosis_id'));
+        if (!$dosis) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Dosis no encontrada',
+            ], Response::HTTP_NOT_FOUND);
+        }
+
+        $animalIds = $this->resolveAnimalIdsFromDosis($dosis);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Previsualización de campaña',
+            'data' => [
+                'dosis_id' => (int) $dosis->dosis_id,
+                'objetivo_tipo' => $dosis->dosis_objetivo_tipo,
+                'vacuna' => $dosis->vacuna?->vacuna_nombre,
+                'casa_comercial' => $dosis->casaComercial?->laboratorio,
+                'rebano' => $dosis->rebano?->Nombre,
+                'animales_count' => count($animalIds),
+                'animal_ids_sample' => array_slice($animalIds, 0, 25),
+            ],
+        ]);
+    }
+
     public function index(Request $request)
     {
         $query = HistoricoAplicacion::with([
