@@ -19,7 +19,7 @@ class CambiosAnimalController extends Controller
         
         //$query = CambiosAnimal::with(['etapaAnimal.etapa', 'etapaAnimal.animal']);
 
-	$query = CambiosAnimal::query();
+	$query = CambiosAnimal::with(['animal']);
         // Apply filters
         if ($request->has('animal_id')) {
             $query->forAnimal($request->animal_id);
@@ -39,16 +39,12 @@ class CambiosAnimalController extends Controller
         }
 
         // If user is not admin, only show cambios from their animals
-        if (!$user->isAdmin()) {
-            if ($user->isPropietario()) {
-                /*$query->whereHas('etapaAnimal.animal.rebano.finca', function ($q) use ($user) {
-                    $q->where('id_Propietario', $user->propietario->id);
-		});*/
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No tiene permisos para ver esta información'
-                ], Response::HTTP_FORBIDDEN);
+        if (!$user->isAdmin() && $user->isPropietario()) {
+            $propietario = $user->propietario;
+            if ($propietario) {
+                $query->whereHas('animal.rebano.finca', function ($q) use ($propietario) {
+                    $q->where('id_Propietario', $propietario->id);
+                });
             }
         }
 
