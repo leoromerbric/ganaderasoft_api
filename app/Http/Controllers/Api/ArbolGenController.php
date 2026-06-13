@@ -122,7 +122,8 @@ class ArbolGenController extends Controller
     public function disponibles(Request $request, Animal $animal)
     {
         $tipo = $request->query('tipo');
-        $query = Animal::active()->where('id_Animal', '!=', $animal->id_Animal);
+        $query = Animal::where('archivado', false)
+            ->where('id_Animal', '!=', $animal->id_Animal);
 
         if ($tipo === 'Padre') {
             $query->where('Sexo', 'M');
@@ -131,7 +132,7 @@ class ArbolGenController extends Controller
         }
 
         $animales = $query->orderBy('Nombre')
-            ->get(['id_Animal', 'Nombre', 'codigo_animal', 'Sexo', 'id_Rebano']);
+            ->get(['id_Animal', 'Nombre', 'codigo_animal', 'Sexo']);
 
         return response()->json(['success' => true, 'data' => $animales]);
     }
