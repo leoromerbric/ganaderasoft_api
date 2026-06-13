@@ -123,12 +123,48 @@ class ArbolGenController extends Controller
 
     /**
      * Lista animales disponibles para asignar como progenitor (filtra por sexo coherente).
+     * Excluye: el propio animal, sus padres/abuelos actuales y sus hijos directos.
      */
     public function disponibles(Request $request, Animal $animal)
     {
         $tipo = $request->query('tipo');
+
+        // Cargar relaciones para calcular los excluidos
+        $animal->load([
+            'registroPadre.progenitor.registroPadre.progenitor',
+            'registroPadre.progenitor.registroMadre.progenitor',
+            'registroMadre.progenitor.registroPadre.progenitor',
+            'registroMadre.progenitor.registroMadre.progenitor',
+            'hijos',
+        ]);
+
+        $excluidos = collect([$animal->id_Animal]);
+
+        // Padre y madre directos
+        $padre = optional($animal->registroPadre)->progenitor;
+        $madre = optional($animal->registroMadre)->progenitor;
+        if ($padre) $excluidos->push($padre->id_Animal);
+        if ($madre) $excluidos->push($madre->id_Animal);
+
+        // Abuelos
+        if ($padre) {
+            $abueloP = optional($padre->registroPadre)->progenitor;
+            $abuelaP = optional($padre->registroMadre)->progenitor;
+            if ($abueloP) $excluidos->push($abueloP->id_Animal);
+            if ($abuelaP) $excluidos->push($abuelaP->id_Animal);
+        }
+        if ($madre) {
+            $abueloM = optional($madre->registroPadre)->progenitor;
+            $abuelaM = optional($madre->registroMadre)->progenitor;
+            if ($abueloM) $excluidos->push($abueloM->id_Animal);
+            if ($abuelaM) $excluidos->push($abuelaM->id_Animal);
+        }
+
+        // Hijos directos
+        $animal->hijos->each(fn($rel) => $excluidos->push($rel->id_hijo));
+
         $query = Animal::where('archivado', false)
-            ->where('id_Animal', '!=', $animal->id_Animal);
+            ->whereNotIn('id_Animal', $excluidos->unique()->values());
 
         if ($tipo === 'Padre') {
             $query->where('Sexo', 'M');
