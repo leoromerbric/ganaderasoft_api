@@ -12,6 +12,7 @@ class SemenToroController extends Controller
 {
     public function index(Request $request)
     {
+        $user = $request->user();
         $query = SemenToro::with('toro');
 
         if ($request->has('toro_id')) {
@@ -20,6 +21,15 @@ class SemenToroController extends Controller
         if ($request->has('activo')) {
             if ($request->activo == '1') {
                 $query->activo();
+            }
+        }
+
+        if (!$user->isAdmin() && $user->isPropietario()) {
+            $propietario = $user->propietario;
+            if ($propietario) {
+                $query->whereHas('toro.rebano.finca', function ($q) use ($propietario) {
+                    $q->where('id_Propietario', $propietario->id);
+                });
             }
         }
 
