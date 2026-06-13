@@ -113,7 +113,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('tratamiento', TratamientoController::class);
     Route::apiResource('vacunas', VacunaController::class);
     Route::apiResource('casas-comerciales', CasaComercialController::class);
-    Route::post('vacunaciones/preview', [VacunacionController::class, 'preview']);
+    Route::get('vacunaciones/animales-elegibles', [VacunacionController::class, 'animalesElegibles']);
     Route::apiResource('vacunaciones', VacunacionController::class);
 
     // Inventario

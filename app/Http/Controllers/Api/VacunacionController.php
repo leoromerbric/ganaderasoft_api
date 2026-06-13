@@ -6,18 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Animal;
 use App\Models\Vacunacion;
 use App\Models\VacunacionAnimal;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class VacunacionController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Vacunacion::with(['vacuna', 'casaComercial', 'rebano'])
+        $query = Vacunacion::with(['vacuna', 'rebano'])
             ->withCount('animales as animales_count');
 
         if ($request->filled('vacuna_id')) {
@@ -51,32 +49,33 @@ class VacunacionController extends Controller
         ]);
     }
 
-    public function preview(Request $request)
+    /**
+     * Lista de animales elegibles para vacunar segun filtros de rebano, sexo y etapa.
+     */
+    public function animalesElegibles(Request $request)
     {
-        $validator = $this->validator($request->all());
+        $validator = Validator::make($request->all(), [
+            'rebano_id' => 'required|exists:rebano,id_Rebano',
+            'sexo' => 'nullable|in:M,H',
+            'etapa_id' => 'nullable|integer|exists:etapa,etapa_id',
+        ]);
 
         if ($validator->fails()) {
             return response()->json(['success' => false, 'errors' => $validator->errors()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $animalIds = $this->resolveAnimalIds($request->all());
-        if (empty($animalIds)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No hay animales elegibles con la selección indicada.',
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
-        $costo = (float) $request->input('vacunacion_costo_dosis');
+        $animales = $this->eligibleAnimalsQuery(
+            (int) $request->input('rebano_id'),
+            $request->input('sexo'),
+            $request->filled('etapa_id') ? (int) $request->input('etapa_id') : null
+        )
+            ->orderBy('Nombre')
+            ->get(['id_Animal', 'id_Rebano', 'Nombre', 'codigo_animal', 'Sexo']);
 
         return response()->json([
             'success' => true,
-            'message' => 'Previsualización de vacunación',
-            'data' => [
-                'animales_count' => count($animalIds),
-                'monto_total' => round(count($animalIds) * $costo, 2),
-                'animal_ids_sample' => array_slice($animalIds, 0, 50),
-            ],
+            'message' => 'Animales elegibles',
+            'data' => $animales,
         ]);
     }
 
@@ -88,11 +87,11 @@ class VacunacionController extends Controller
             return response()->json(['success' => false, 'errors' => $validator->errors()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $animalIds = $this->resolveAnimalIds($request->all());
+        $animalIds = $this->confirmedAnimalIds($request->all());
         if (empty($animalIds)) {
             return response()->json([
                 'success' => false,
-                'message' => 'No hay animales elegibles con la selección indicada.',
+                'message' => 'Debe seleccionar al menos un animal para vacunar.',
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
@@ -101,9 +100,9 @@ class VacunacionController extends Controller
 
             $vacunacion = Vacunacion::create([
                 'vacunacion_vacuna_id' => (int) $request->input('vacunacion_vacuna_id'),
-                'vacunacion_casa_id' => $request->filled('vacunacion_casa_id') ? (int) $request->input('vacunacion_casa_id') : null,
+                'vacunacion_casa_id' => null,
                 'vacunacion_rebano_id' => (int) $request->input('vacunacion_rebano_id'),
-                'vacunacion_modo_seleccion' => $request->input('vacunacion_modo_seleccion'),
+                'vacunacion_modo_seleccion' => 'lista_animales',
                 'vacunacion_filtros' => $request->input('vacunacion_filtros'),
                 'vacunacion_fecha' => $request->input('vacunacion_fecha'),
                 'vacunacion_costo_dosis' => $costo,
@@ -112,14 +111,7 @@ class VacunacionController extends Controller
                 'vacunacion_observacion' => $request->input('vacunacion_observacion'),
             ]);
 
-            $rows = collect($animalIds)->map(fn ($animalId) => [
-                'va_vacunacion_id' => $vacunacion->vacunacion_id,
-                'va_animal_id' => $animalId,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ])->all();
-
-            VacunacionAnimal::insert($rows);
+            $this->syncAnimales($vacunacion->vacunacion_id, $animalIds);
 
             return $vacunacion;
         });
@@ -156,11 +148,11 @@ class VacunacionController extends Controller
             return response()->json(['success' => false, 'errors' => $validator->errors()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $animalIds = $this->resolveAnimalIds($request->all());
+        $animalIds = $this->confirmedAnimalIds($request->all());
         if (empty($animalIds)) {
             return response()->json([
                 'success' => false,
-                'message' => 'No hay animales elegibles con la selección indicada.',
+                'message' => 'Debe seleccionar al menos un animal para vacunar.',
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
@@ -169,9 +161,9 @@ class VacunacionController extends Controller
 
             $vacunacion->update([
                 'vacunacion_vacuna_id' => (int) $request->input('vacunacion_vacuna_id'),
-                'vacunacion_casa_id' => $request->filled('vacunacion_casa_id') ? (int) $request->input('vacunacion_casa_id') : null,
+                'vacunacion_casa_id' => null,
                 'vacunacion_rebano_id' => (int) $request->input('vacunacion_rebano_id'),
-                'vacunacion_modo_seleccion' => $request->input('vacunacion_modo_seleccion'),
+                'vacunacion_modo_seleccion' => 'lista_animales',
                 'vacunacion_filtros' => $request->input('vacunacion_filtros'),
                 'vacunacion_fecha' => $request->input('vacunacion_fecha'),
                 'vacunacion_costo_dosis' => $costo,
@@ -181,15 +173,7 @@ class VacunacionController extends Controller
             ]);
 
             VacunacionAnimal::where('va_vacunacion_id', $vacunacion->vacunacion_id)->delete();
-
-            $rows = collect($animalIds)->map(fn ($animalId) => [
-                'va_vacunacion_id' => $vacunacion->vacunacion_id,
-                'va_animal_id' => $animalId,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ])->all();
-
-            VacunacionAnimal::insert($rows);
+            $this->syncAnimales($vacunacion->vacunacion_id, $animalIds);
         });
 
         return response()->json([
@@ -214,99 +198,82 @@ class VacunacionController extends Controller
 
     private function validator(array $data)
     {
-        $validator = Validator::make($data, [
+        return Validator::make($data, [
             'vacunacion_vacuna_id' => 'required|exists:vacuna,vacuna_id',
-            'vacunacion_casa_id' => 'nullable|exists:casa_comercial,casa_id',
             'vacunacion_rebano_id' => 'required|exists:rebano,id_Rebano',
-            'vacunacion_modo_seleccion' => ['required', Rule::in(['todos_rebano', 'lista_animales', 'filtros'])],
-            'vacunacion_animal_ids' => 'nullable|array',
+            'vacunacion_animal_ids' => 'required|array|min:1',
             'vacunacion_animal_ids.*' => 'integer|exists:animal,id_Animal',
             'vacunacion_filtros' => 'nullable|array',
+            'vacunacion_filtros.sexo' => 'nullable|in:M,H',
+            'vacunacion_filtros.etapa_id' => 'nullable|integer|exists:etapa,etapa_id',
             'vacunacion_costo_dosis' => 'required|numeric|min:0',
             'vacunacion_fecha' => 'required|date',
             'vacunacion_observacion' => 'nullable|string',
         ]);
-
-        $validator->after(function ($validator) use ($data) {
-            $modo = $data['vacunacion_modo_seleccion'] ?? null;
-
-            if ($modo === 'lista_animales' && empty($data['vacunacion_animal_ids'])) {
-                $validator->errors()->add('vacunacion_animal_ids', 'Debe seleccionar al menos un animal.');
-            }
-        });
-
-        return $validator;
     }
 
-    private function resolveAnimalIds(array $data): array
+    /**
+     * Solo se guardan los animales marcados que realmente pertenecen al rebano indicado.
+     */
+    private function confirmedAnimalIds(array $data): array
     {
-        $modo = $data['vacunacion_modo_seleccion'];
-        $rebanoId = (int) $data['vacunacion_rebano_id'];
+        $rebanoId = (int) ($data['vacunacion_rebano_id'] ?? 0);
 
-        if ($modo === 'lista_animales') {
-            $ids = collect($data['vacunacion_animal_ids'] ?? [])
-                ->map(fn ($id) => (int) $id)
-                ->unique()
-                ->values();
+        $ids = collect($data['vacunacion_animal_ids'] ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
 
-            return Animal::query()
-                ->where('id_Rebano', $rebanoId)
-                ->whereIn('id_Animal', $ids)
-                ->pluck('id_Animal')
-                ->map(fn ($id) => (int) $id)
-                ->values()
-                ->all();
-        }
+        return Animal::query()
+            ->where('id_Rebano', $rebanoId)
+            ->whereIn('id_Animal', $ids)
+            ->pluck('id_Animal')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+    }
 
+    private function eligibleAnimalsQuery(int $rebanoId, ?string $sexo, ?int $etapaId)
+    {
         $query = Animal::query()->where('id_Rebano', $rebanoId);
 
-        if ($modo === 'filtros') {
-            $filters = is_array($data['vacunacion_filtros'] ?? null) ? $data['vacunacion_filtros'] : [];
-
-            if (!empty($filters['sexo'])) {
-                $query->where('Sexo', $filters['sexo']);
-            }
-
-            if (!empty($filters['nombre_like'])) {
-                $query->where('Nombre', 'like', '%' . $filters['nombre_like'] . '%');
-            }
-
-            if (!empty($filters['codigo_like'])) {
-                $query->where('codigo_animal', 'like', '%' . $filters['codigo_like'] . '%');
-            }
-
-            if (!empty($filters['edad_min_dias']) || !empty($filters['edad_max_dias'])) {
-                $today = Carbon::today();
-                if (!empty($filters['edad_min_dias'])) {
-                    $maxBirthDate = $today->copy()->subDays((int) $filters['edad_min_dias'])->toDateString();
-                    $query->where('fecha_nacimiento', '<=', $maxBirthDate);
-                }
-                if (!empty($filters['edad_max_dias'])) {
-                    $minBirthDate = $today->copy()->subDays((int) $filters['edad_max_dias'])->toDateString();
-                    $query->where('fecha_nacimiento', '>=', $minBirthDate);
-                }
-            }
-
-            if (!empty($filters['etapa_id'])) {
-                $etapaId = (int) $filters['etapa_id'];
-                $query->whereHas('etapaAnimales', function ($q) use ($etapaId) {
-                    $q->where('etan_etapa_id', $etapaId)
-                        ->where(function ($sq) {
-                            $sq->whereNull('etan_fecha_fin')
-                                ->orWhere('etan_fecha_fin', '>', now()->toDateString());
-                        });
-                });
-            }
+        if (method_exists(Animal::class, 'scopeActive')) {
+            $query->active();
         }
 
-        return $query->pluck('id_Animal')->map(fn ($id) => (int) $id)->values()->all();
+        if (!empty($sexo)) {
+            $query->where('Sexo', $sexo);
+        }
+
+        if (!empty($etapaId)) {
+            $query->whereHas('etapaAnimales', function ($q) use ($etapaId) {
+                $q->where('etan_etapa_id', $etapaId)
+                    ->where(function ($sq) {
+                        $sq->whereNull('etan_fecha_fin')
+                            ->orWhere('etan_fecha_fin', '>', now()->toDateString());
+                    });
+            });
+        }
+
+        return $query;
+    }
+
+    private function syncAnimales(int $vacunacionId, array $animalIds): void
+    {
+        $rows = collect($animalIds)->map(fn ($animalId) => [
+            'va_vacunacion_id' => $vacunacionId,
+            'va_animal_id' => $animalId,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ])->all();
+
+        VacunacionAnimal::insert($rows);
     }
 
     private function loadVacunacion(int $id): ?Vacunacion
     {
         return Vacunacion::with([
             'vacuna',
-            'casaComercial',
             'rebano',
             'animales.animal',
         ])->withCount('animales as animales_count')->find($id);
