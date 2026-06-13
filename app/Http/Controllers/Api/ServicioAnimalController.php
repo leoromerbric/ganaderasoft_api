@@ -12,6 +12,7 @@ class ServicioAnimalController extends Controller
 {
     public function index(Request $request)
     {
+        $user = $request->user();
         $query = ServicioAnimal::with('animal', 'semen', 'tecnico', 'registroCelo');
 
         if ($request->has('animal_id')) {
@@ -22,6 +23,15 @@ class ServicioAnimalController extends Controller
         }
         if ($request->has('fecha_inicio')) {
             $query->byDateRange($request->fecha_inicio, $request->get('fecha_fin'));
+        }
+
+        if (!$user->isAdmin() && $user->isPropietario()) {
+            $propietario = $user->propietario;
+            if ($propietario) {
+                $query->whereHas('animal.rebano.finca', function ($q) use ($propietario) {
+                    $q->where('id_Propietario', $propietario->id);
+                });
+            }
         }
 
         $records = $query->paginate(15);
