@@ -7,12 +7,10 @@ use App\Http\Controllers\Api\CasaComercialController;
 use App\Http\Controllers\Api\ComposicionRazaController;
 use App\Http\Controllers\Api\ConfiguracionController;
 use App\Http\Controllers\Api\DiagnosticoController;
-use App\Http\Controllers\Api\DosisController;
 use App\Http\Controllers\Api\EstadoAnimalController;
 use App\Http\Controllers\Api\EstadoSaludController;
 use App\Http\Controllers\Api\EtapaController;
 use App\Http\Controllers\Api\FincaController;
-use App\Http\Controllers\Api\HistoricoAplicacionController;
 use App\Http\Controllers\Api\InventarioBufaloController;
 use App\Http\Controllers\Api\InventarioGeneralController;
 use App\Http\Controllers\Api\InventarioVacunoController;
@@ -34,6 +32,7 @@ use App\Http\Controllers\Api\TerrenoController;
 use App\Http\Controllers\Api\TipoAnimalController;
 use App\Http\Controllers\Api\TratamientoController;
 use App\Http\Controllers\Api\VacunaController;
+use App\Http\Controllers\Api\VacunacionController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -114,9 +113,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('tratamiento', TratamientoController::class);
     Route::apiResource('vacunas', VacunaController::class);
     Route::apiResource('casas-comerciales', CasaComercialController::class);
-    Route::apiResource('dosis', DosisController::class);
-    Route::post('historico-aplicacion/preview-campana', [HistoricoAplicacionController::class, 'previewCampana']);
-    Route::apiResource('historico-aplicacion', HistoricoAplicacionController::class);
+    Route::post('vacunaciones/preview', [VacunacionController::class, 'preview']);
+    Route::apiResource('vacunaciones', VacunacionController::class);
 
     // Inventario
     Route::apiResource('inventario-general', InventarioGeneralController::class);
