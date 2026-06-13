@@ -136,7 +136,7 @@ class LactanciaController extends Controller
     public function show(Request $request, $id)
     {
         $user = $request->user();
-        $lactancia = Lactancia::with(['animal', 'etapaAnimal.etapa', 'etapaAnimal.animal', 'lecheRecords'])->find($id);
+        $lactancia = Lactancia::with(['animal', 'etapa', 'lecheRecords'])->find($id);
 
         if (!$lactancia) {
             return response()->json([
@@ -219,7 +219,7 @@ class LactanciaController extends Controller
         }
 
         $lactancia->update($request->all());
-        $lactancia->load(['etapaAnimal.etapa', 'etapaAnimal.animal']);
+        $lactancia->load(['animal', 'etapa', 'lecheRecords']);
 
         return response()->json([
             'success' => true,

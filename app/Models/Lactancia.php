@@ -28,12 +28,21 @@ class Lactancia extends Model
 
     /**
      * Get the etapa animal relationship.
-     * Using whereRaw to handle composite keys properly.
+     * NOTE: this relation should be used only for single-record lazy loading.
+     * Composite eager loading is handled through direct animal + etapa relations.
      */
     public function etapaAnimal()
     {
         return $this->hasOne(EtapaAnimal::class, 'etan_animal_id', 'lactancia_etapa_anid')
-            ->whereColumn('etapa_animal.etan_etapa_id', 'lactancia.lactancia_etapa_etid');
+            ->where('etan_etapa_id', $this->lactancia_etapa_etid);
+    }
+
+    /**
+     * Get the etapa referenced by lactancia_etapa_etid.
+     */
+    public function etapa()
+    {
+        return $this->belongsTo(Etapa::class, 'lactancia_etapa_etid', 'etapa_id');
     }
 
     /**

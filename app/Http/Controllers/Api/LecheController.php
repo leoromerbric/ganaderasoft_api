@@ -125,7 +125,7 @@ class LecheController extends Controller
     public function show(Request $request, $id)
     {
         $user = $request->user();
-        $leche = Leche::with(['lactancia.etapaAnimal.animal'])->find($id);
+        $leche = Leche::with(['lactancia.animal', 'lactancia.etapa'])->find($id);
 
         if (!$leche) {
             return response()->json([
@@ -207,7 +207,7 @@ class LecheController extends Controller
         }
 
         $leche->update($request->all());
-        $leche->load(['lactancia.etapaAnimal.animal']);
+        $leche->load(['lactancia.animal', 'lactancia.etapa']);
 
         return response()->json([
             'success' => true,
