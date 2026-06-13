@@ -66,8 +66,8 @@ return new class extends Migration
                 $table->unsignedInteger('dosis_vacuna_id');
                 $table->unsignedInteger('dosis_casa_id');
                 $table->enum('dosis_objetivo_tipo', ['animal', 'rebano', 'subgrupo']);
-                $table->unsignedInteger('dosis_objetivo_animal_id')->nullable();
-                $table->unsignedInteger('dosis_objetivo_rebano_id')->nullable();
+                $table->integer('dosis_objetivo_animal_id')->nullable();
+                $table->integer('dosis_objetivo_rebano_id')->nullable();
                 $table->json('dosis_objetivo_filtros')->nullable();
                 $table->unsignedInteger('dosis_frecuencia');
                 $table->decimal('dosis_costo', 20, 2)->nullable();
@@ -94,7 +94,7 @@ return new class extends Migration
                 $table->unsignedInteger('ha_vacuna_id');
                 $table->unsignedInteger('ha_casa_id');
                 $table->unsignedInteger('ha_dosis_id')->nullable();
-                $table->unsignedInteger('ha_animal_id');
+                $table->integer('ha_animal_id');
                 $table->enum('ha_origen_tipo', ['manual', 'dosis_animal', 'dosis_rebano', 'dosis_subgrupo'])->default('manual');
                 $table->date('fecha_inyeccion');
                 $table->text('observacion')->nullable();
