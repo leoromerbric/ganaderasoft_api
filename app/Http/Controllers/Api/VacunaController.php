@@ -18,6 +18,10 @@ class VacunaController extends Controller
             $query->byNombre($request->nombre);
         }
 
+        if ($request->filled('activa')) {
+            $query->where('activa', filter_var($request->activa, FILTER_VALIDATE_BOOLEAN));
+        }
+
         $records = $query->paginate(15);
 
         return response()->json([
@@ -36,14 +40,16 @@ class VacunaController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'vacuna_nombre' => 'nullable|string|max:50',
+            'vacuna_nombre' => 'required|string|max:80',
+            'vacuna_descripcion' => 'nullable|string',
+            'activa' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['success' => false, 'errors' => $validator->errors()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $vacuna = Vacuna::create($request->only(['vacuna_nombre']));
+        $vacuna = Vacuna::create($request->only(['vacuna_nombre', 'vacuna_descripcion', 'activa']));
 
         return response()->json(['success' => true, 'message' => 'Vacuna creada', 'data' => $vacuna], Response::HTTP_CREATED);
     }
@@ -65,14 +71,16 @@ class VacunaController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'vacuna_nombre' => 'nullable|string|max:50',
+            'vacuna_nombre' => 'sometimes|string|max:80',
+            'vacuna_descripcion' => 'nullable|string',
+            'activa' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['success' => false, 'errors' => $validator->errors()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $vacuna->update($request->only(['vacuna_nombre']));
+        $vacuna->update($request->only(['vacuna_nombre', 'vacuna_descripcion', 'activa']));
 
         return response()->json(['success' => true, 'message' => 'Vacuna actualizada', 'data' => $vacuna]);
     }

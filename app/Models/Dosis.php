@@ -15,16 +15,20 @@ class Dosis extends Model
     protected $fillable = [
         'dosis_vacuna_id',
         'dosis_casa_id',
+        'dosis_objetivo_tipo',
+        'dosis_objetivo_animal_id',
+        'dosis_objetivo_rebano_id',
+        'dosis_objetivo_filtros',
         'dosis_frecuencia',
         'dosis_costo',
         'dosis_costo_frasco',
         'dosis_fecha_uso_ini',
         'dosis_fecha_uso_fin',
-        'dosis_etapa_animal_anid',
-        'dosis_etapa_animal_etid',
+        'dosis_observacion',
     ];
 
     protected $casts = [
+        'dosis_objetivo_filtros' => 'array',
         'dosis_frecuencia'    => 'integer',
         'dosis_costo'         => 'float',
         'dosis_costo_frasco'  => 'float',
@@ -42,11 +46,14 @@ class Dosis extends Model
         return $this->belongsTo(CasaComercial::class, 'dosis_casa_id', 'casa_id');
     }
 
-    // Note: dosis_etapa_animal_anid/etid columns are swapped in DB (known inconsistency).
-    // Using dosis_etapa_animal_etid as the actual animal FK.
     public function animal()
     {
-        return $this->belongsTo(Animal::class, 'dosis_etapa_animal_etid', 'id_Animal');
+        return $this->belongsTo(Animal::class, 'dosis_objetivo_animal_id', 'id_Animal');
+    }
+
+    public function rebano()
+    {
+        return $this->belongsTo(Rebano::class, 'dosis_objetivo_rebano_id', 'id_Rebano');
     }
 
     public function historicoAplicaciones()
@@ -66,5 +73,10 @@ class Dosis extends Model
                          $q->whereNull('dosis_fecha_uso_fin')
                            ->orWhere('dosis_fecha_uso_fin', '>=', now()->toDateString());
                      });
+    }
+
+    public function scopeByObjetivoTipo($query, $tipo)
+    {
+        return $query->where('dosis_objetivo_tipo', $tipo);
     }
 }

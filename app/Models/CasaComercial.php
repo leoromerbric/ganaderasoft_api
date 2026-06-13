@@ -15,6 +15,11 @@ class CasaComercial extends Model
     protected $fillable = [
         'laboratorio',
         'marca_comercial',
+        'activa',
+    ];
+
+    protected $casts = [
+        'activa' => 'boolean',
     ];
 
     public function vacunas()
@@ -35,5 +40,10 @@ class CasaComercial extends Model
     public function scopeByLaboratorio($query, $laboratorio)
     {
         return $query->where('laboratorio', 'like', "%{$laboratorio}%");
+    }
+
+    public function scopeActivas($query)
+    {
+        return $query->where('activa', true);
     }
 }

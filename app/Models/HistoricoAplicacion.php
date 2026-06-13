@@ -11,18 +11,26 @@ class HistoricoAplicacion extends Model
 
     protected $table = 'historico_aplicacion';
     protected $primaryKey = 'id_ha';
-    public $timestamps = false;
+    protected $appends = ['ha_id'];
 
     protected $fillable = [
         'ha_vacuna_id',
         'ha_casa_id',
         'ha_dosis_id',
+        'ha_animal_id',
+        'ha_origen_tipo',
         'fecha_inyeccion',
+        'observacion',
     ];
 
     protected $casts = [
         'fecha_inyeccion' => 'date',
     ];
+
+    public function getHaIdAttribute(): int
+    {
+        return (int) $this->id_ha;
+    }
 
     public function vacuna()
     {
@@ -39,6 +47,11 @@ class HistoricoAplicacion extends Model
         return $this->belongsTo(Dosis::class, 'ha_dosis_id', 'dosis_id');
     }
 
+    public function animal()
+    {
+        return $this->belongsTo(Animal::class, 'ha_animal_id', 'id_Animal');
+    }
+
     public function scopeByVacuna($query, $vacunaId)
     {
         return $query->where('ha_vacuna_id', $vacunaId);
@@ -50,5 +63,10 @@ class HistoricoAplicacion extends Model
             return $query->whereBetween('fecha_inyeccion', [$startDate, $endDate]);
         }
         return $query->where('fecha_inyeccion', '>=', $startDate);
+    }
+
+    public function scopeForAnimal($query, $animalId)
+    {
+        return $query->where('ha_animal_id', $animalId);
     }
 }

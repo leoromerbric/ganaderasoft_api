@@ -18,6 +18,10 @@ class CasaComercialController extends Controller
             $query->byLaboratorio($request->laboratorio);
         }
 
+        if ($request->filled('activa')) {
+            $query->where('activa', filter_var($request->activa, FILTER_VALIDATE_BOOLEAN));
+        }
+
         $records = $query->paginate(15);
 
         return response()->json([
@@ -36,15 +40,16 @@ class CasaComercialController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'laboratorio'    => 'required|string|max:30',
-            'marca_comercial'=> 'required|string|max:25',
+            'laboratorio'    => 'required|string|max:60',
+            'marca_comercial'=> 'required|string|max:60',
+            'activa'         => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['success' => false, 'errors' => $validator->errors()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $casa = CasaComercial::create($request->only(['laboratorio', 'marca_comercial']));
+        $casa = CasaComercial::create($request->only(['laboratorio', 'marca_comercial', 'activa']));
 
         return response()->json(['success' => true, 'message' => 'Casa comercial creada', 'data' => $casa], Response::HTTP_CREATED);
     }
@@ -66,15 +71,16 @@ class CasaComercialController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'laboratorio'    => 'sometimes|string|max:30',
-            'marca_comercial'=> 'sometimes|string|max:25',
+            'laboratorio'    => 'sometimes|string|max:60',
+            'marca_comercial'=> 'sometimes|string|max:60',
+            'activa'         => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['success' => false, 'errors' => $validator->errors()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $casa->update($request->only(['laboratorio', 'marca_comercial']));
+        $casa->update($request->only(['laboratorio', 'marca_comercial', 'activa']));
 
         return response()->json(['success' => true, 'message' => 'Casa comercial actualizada', 'data' => $casa]);
     }
