@@ -28,15 +28,20 @@ class ArbolGenController extends Controller
         $padre = optional($animal->registroPadre)->progenitor;
         $madre = optional($animal->registroMadre)->progenitor;
 
+        $abueloPaterno  = $padre ? optional($padre->registroPadre)->progenitor : null;
+        $abuelaPaterna  = $padre ? optional($padre->registroMadre)->progenitor : null;
+        $abueloMaterno  = $madre ? optional($madre->registroPadre)->progenitor : null;
+        $abuelaMaterna  = $madre ? optional($madre->registroMadre)->progenitor : null;
+
         $data = [
             'animal' => $this->animalBasic($animal),
             'padre'  => $padre ? array_merge($this->animalBasic($padre), [
-                'abuelo_paterno' => optional(optional($padre->registroPadre)->progenitor) ? $this->animalBasic($padre->registroPadre->progenitor) : null,
-                'abuela_paterna' => optional(optional($padre->registroMadre)->progenitor) ? $this->animalBasic($padre->registroMadre->progenitor) : null,
+                'abuelo_paterno' => $abueloPaterno ? $this->animalBasic($abueloPaterno) : null,
+                'abuela_paterna' => $abuelaPaterna ? $this->animalBasic($abuelaPaterna) : null,
             ]) : null,
             'madre'  => $madre ? array_merge($this->animalBasic($madre), [
-                'abuelo_materno' => optional(optional($madre->registroPadre)->progenitor) ? $this->animalBasic($madre->registroPadre->progenitor) : null,
-                'abuela_materna' => optional(optional($madre->registroMadre)->progenitor) ? $this->animalBasic($madre->registroMadre->progenitor) : null,
+                'abuelo_materno' => $abueloMaterno ? $this->animalBasic($abueloMaterno) : null,
+                'abuela_materna' => $abuelaMaterna ? $this->animalBasic($abuelaMaterna) : null,
             ]) : null,
             'hijos'  => $animal->hijos->map(function ($rel) {
                 return $rel->hijo ? $this->animalBasic($rel->hijo) : null;
