@@ -34,16 +34,12 @@ class LecheController extends Controller
         }
 
         // If user is not admin, only show leche from their animals
-        if (!$user->isAdmin()) {
-            if ($user->isPropietario()) {
-                /*$query->whereHas('lactancia.etapaAnimal.animal.rebano.finca', function ($q) use ($user) {
-                    $q->where('id_Propietario', $user->propietario->id);
-		});*/
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No tiene permisos para ver esta información'
-                ], Response::HTTP_FORBIDDEN);
+        if (!$user->isAdmin() && $user->isPropietario()) {
+            $propietario = $user->propietario;
+            if ($propietario) {
+                $query->whereHas('lactancia.animal.rebano.finca', function ($q) use ($propietario) {
+                    $q->where('id_Propietario', $propietario->id);
+                });
             }
         }
 

@@ -15,6 +15,7 @@ class VacunacionController extends Controller
 {
     public function index(Request $request)
     {
+        $user = $request->user();
         $query = Vacunacion::with(['vacuna', 'rebano'])
             ->withCount('animales as animales_count');
 
@@ -32,6 +33,15 @@ class VacunacionController extends Controller
 
         if ($request->filled('fecha_fin')) {
             $query->where('vacunacion_fecha', '<=', $request->input('fecha_fin'));
+        }
+
+        if (!$user->isAdmin() && $user->isPropietario()) {
+            $propietario = $user->propietario;
+            if ($propietario) {
+                $query->whereHas('rebano.finca', function ($q) use ($propietario) {
+                    $q->where('id_Propietario', $propietario->id);
+                });
+            }
         }
 
         $records = $query->orderByDesc('vacunacion_id')->paginate(15);
