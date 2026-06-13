@@ -161,4 +161,50 @@ class Animal extends Model
     {
         return $query->where('Sexo', $sex);
     }
+
+    // ─── Árbol genealógico ────────────────────────────────────────────────────
+
+    /** Registro ArbolGen donde este animal es hijo y tipo = 'Padre'. */
+    public function registroPadre()
+    {
+        return $this->hasOne(ArbolGen::class, 'id_hijo', 'id_Animal')->where('tipo', 'Padre');
+    }
+
+    /** Registro ArbolGen donde este animal es hijo y tipo = 'Madre'. */
+    public function registroMadre()
+    {
+        return $this->hasOne(ArbolGen::class, 'id_hijo', 'id_Animal')->where('tipo', 'Madre');
+    }
+
+    /** Animal padre de este animal. */
+    public function padre()
+    {
+        return $this->hasOneThrough(
+            Animal::class,
+            ArbolGen::class,
+            'id_hijo',   // FK en arbol_gen → este animal
+            'id_Animal', // FK en animal
+            'id_Animal', // PK de este animal
+            'id_padre'   // columna en arbol_gen con el id del progenitor
+        )->where('arbol_gen.tipo', 'Padre');
+    }
+
+    /** Animal madre de este animal. */
+    public function madre()
+    {
+        return $this->hasOneThrough(
+            Animal::class,
+            ArbolGen::class,
+            'id_hijo',
+            'id_Animal',
+            'id_Animal',
+            'id_padre'
+        )->where('arbol_gen.tipo', 'Madre');
+    }
+
+    /** Hijos donde este animal aparece como progenitor. */
+    public function hijos()
+    {
+        return $this->hasMany(ArbolGen::class, 'id_padre', 'id_Animal');
+    }
 }

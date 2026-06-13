@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ArbolGenController;
 use App\Http\Controllers\Api\AnimalController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CambiosAnimalController;
@@ -129,5 +130,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('estado-animal/{estado}', [AnimalController::class, 'updateEstadoAnimal']);
         Route::post('etapa-animal', [AnimalController::class, 'createEtapaAnimal']);
         Route::put('etapa-animal/{etapa}', [AnimalController::class, 'updateEtapaAnimal']);
+
+        // Árbol genealógico
+        Route::get('arbol', [ArbolGenController::class, 'arbol']);
+        Route::post('progenitor', [ArbolGenController::class, 'setProgenitor']);
+        Route::delete('progenitor/{tipo}', [ArbolGenController::class, 'removeProgenitor']);
+        Route::get('progenitores-disponibles', [ArbolGenController::class, 'disponibles']);
     });
 });
