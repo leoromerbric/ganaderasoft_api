@@ -76,7 +76,7 @@ class ArbolGenController extends Controller
 
         // Validar sexo coherente con el tipo
         $progenitor = Animal::find($request->id_padre);
-        if ($request->tipo === 'Padre' && $progenitor->Sexo === 'H') {
+        if ($request->tipo === 'Padre' && $progenitor->Sexo === 'F') {
             return response()->json(['success' => false, 'message' => 'El Padre debe ser un animal macho (M).'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
         if ($request->tipo === 'Madre' && $progenitor->Sexo === 'M') {
@@ -128,7 +128,7 @@ class ArbolGenController extends Controller
         if ($tipo === 'Padre') {
             $query->where('Sexo', 'M');
         } elseif ($tipo === 'Madre') {
-            $query->where('Sexo', 'H');
+            $query->where('Sexo', 'F');
         }
 
         $animales = $query->orderBy('Nombre')
