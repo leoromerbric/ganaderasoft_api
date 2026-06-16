@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('palpacions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('personal_finca_id')->nullable()->constrained('personal_fincas')->onDelete('set null');
-            $table->string('tipo', 11)->nullable();
+            $table->string('tipo', 16)->nullable();
             $table->date('fecha')->nullable();
             $table->foreignId('animal_etapa_id')->constrained('animal_etapa')->onDelete('cascade');
             $table->timestamps();
