@@ -15,6 +15,16 @@ return new class extends Migration
     {
         Schema::create('vacunacions', function (Blueprint $table) {
             $table->id();
+            // NOTA IMPORTANTE PARA EL BACKEND:
+            // Si el usuario envía 'casa_comercial_id' junto con 'vacuna_id', 
+            // o ya previamente se inseto alguno de los dos pero se esta insertando el que falta,
+            // se DEBE validar a nivel de aplicación (FormRequest u Observer) que dicha combinación
+            // exista previamente en la tabla pivote 'casa_comercial_vacuna'.
+            // Tambien se puede solucionar usando un trigger en la base de datos
+            // pero no es lo mas recomendable crearlo desde laravel, si no en mysql directamete.
+            // El motivo de esto es para evitar que se puedan crear vacunacions con combinaciones
+            // de casa_comercial_id y vacuna_id que no existan en la tabla pivote.
+            
             $table->foreignId('vacuna_id')->constrained('vacunas')->onDelete('cascade');
             $table->foreignId('casa_comercial_id')->nullable()->constrained('casa_comercials')->onDelete('set null');
             $table->foreignId('rebano_id')->nullable()->constrained('rebanos')->onDelete('set null');

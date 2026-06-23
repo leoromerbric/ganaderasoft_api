@@ -14,6 +14,9 @@ return new class extends Migration
             $table->foreignId('ovario_id')->constrained('ovarios')->onDelete('cascade');
             $table->decimal('tamano', 6, 2);
             $table->string('fase', 10);
+            $table->integer('cantidad')->default(1);
+            
+            $table->unique(['foliculo_id', 'ovario_id', 'tamano', 'fase'], 'idx_foliculo_ovario_unique');
             
             $table->timestamps();
         });
