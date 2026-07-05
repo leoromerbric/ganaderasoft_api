@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('finca_id')->constrained()->onDelete('cascade');
             $table->foreignId('persona_id')->constrained('personas')->onDelete('cascade');
             $table->foreignId('tipo_trabajador_id')->constrained('tipo_trabajadors')->onDelete('cascade');
-            $table->string('status', 20)->default('active');
+            $table->enum('status', ['activo', 'inactivo'])->default('activo');
             $table->date('fecha_ingreso')->nullable();
             $table->unique(['finca_id', 'persona_id']);
             $table->timestamps();

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('code')->unique();
             $table->string('module');
-            $table->string('action');
+            $table->enum('action', ['create', 'read', 'update', 'delete', 'assign', 'approve']);
             $table->timestamps();
         });
     }

@@ -63,7 +63,7 @@ class DemoDataSeeder extends Seeder
             'finca_id' => $fincaId,
             'persona_id' => $personaId,
             'tipo_trabajador_id' => $tipoTrabajadorId,
-            'status' => 'active',
+            'status' => 'activo',
             'fecha_ingreso' => '2020-01-15',
             'created_at' => now(),
             'updated_at' => now()
@@ -207,29 +207,7 @@ class DemoDataSeeder extends Seeder
             // ==========================================
             // Sanidad y Salud
             // ==========================================
-            // 1. Dosis (Requiere casa_comercial_vacuna_id)
-            $dosisId = DB::table('dosis')->insertGetId([
-                'casa_comercial_vacuna_id' => 1,
-                'frecuencia' => 365,
-                'costo' => 2.50,
-                'costo_frasco' => 25.00,
-                'fecha_uso_ini' => Carbon::now()->subMonths(6)->format('Y-m-d'),
-                'animal_etapa_id' => $animalEtapaId,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-            
-            // 2. Histórico de aplicación
-            DB::table('historico_aplicacions')->insert([
-                'dosis_id' => $dosisId,
-                'origen_tipo' => 'manual',
-                'fecha_inyeccion' => Carbon::now()->subMonths(6)->format('Y-m-d'),
-                'observacion' => 'Aplicación anual programada',
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-            
-            // 3. Evento de Vacunación (Evento masivo)
+            // 1. Evento de Vacunación (Evento masivo)
             $vacunacionId = DB::table('vacunacions')->insertGetId([
                 'vacuna_id' => 1,
                 'casa_comercial_id' => 1,

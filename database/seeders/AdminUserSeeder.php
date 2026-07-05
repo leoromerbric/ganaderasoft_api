@@ -15,7 +15,7 @@ class AdminUserSeeder extends Seeder
             'nombre'     => 'Admin',
             'apellido'   => 'Global',
             'telefono'   => '0000000000',
-            'status'     => 'active',
+            'status'     => 'activo',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -106,7 +106,7 @@ class AdminUserSeeder extends Seeder
                 'nombre'     => $data['nombre'],
                 'apellido'   => $data['apellido'],
                 'telefono'   => '04140659739',
-                'status'     => 'active',
+                'status'     => 'activo',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

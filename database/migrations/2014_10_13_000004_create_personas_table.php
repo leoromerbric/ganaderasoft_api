@@ -18,8 +18,8 @@ return new class extends Migration
             $table->string('apellido')->nullable();
             $table->string('telefono')->nullable();
             $table->string('correo')->unique()->nullable();
-            $table->string('status', 20)->default('active');
-            $table->timestamps();
+            $table->enum('status', ['activo', 'inactivo'])->default('activo');
+             $table->timestamps();
         });
 
         // Add domain constraint (MySQL 8.0.16+ / MariaDB 10.2.1+)
