@@ -9,12 +9,9 @@ class Vacuna extends Model
 {
     use HasFactory;
 
-    protected $table = 'vacuna';
-    protected $primaryKey = 'vacuna_id';
-
     protected $fillable = [
-        'vacuna_nombre',
-        'vacuna_descripcion',
+        'nombre',
+        'descripcion',
         'activa',
     ];
 
@@ -22,26 +19,30 @@ class Vacuna extends Model
         'activa' => 'boolean',
     ];
 
+    /**
+     * Obtener las casas comerciales asociadas a esta vacuna.
+     */
     public function casasComerciales()
     {
         return $this->belongsToMany(
             CasaComercial::class,
-            'vacuna_casa',
-            'vc_vacuna_id',
-            'vc_casa_id'
+            'casa_comercial_vacuna',
+            'vacuna_id',
+            'casa_comercial_id'
         )->withPivot('dosis_cantidad');
     }
 
-    public function dosis()
-    {
-        return $this->hasMany(Dosis::class, 'dosis_vacuna_id', 'vacuna_id');
-    }
-
+    /**
+     * Filtro para buscar por nombre de vacuna.
+     */
     public function scopeByNombre($query, $nombre)
     {
-        return $query->where('vacuna_nombre', 'like', "%{$nombre}%");
+        return $query->where('nombre', 'like', "%{$nombre}%");
     }
 
+    /**
+     * Filtro para incluir solo las vacunas activas.
+     */
     public function scopeActivas($query)
     {
         return $query->where('activa', true);

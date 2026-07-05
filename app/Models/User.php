@@ -13,7 +13,7 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable;
 
     /**
-     * The attributes that are mass assignable.
+     * Los atributos que se pueden asignar masivamente.
      *
      * @var array<int, string>
      */
@@ -21,12 +21,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'type_user',
-        'image',
+        'google_id',
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
+     * Los atributos que deben ocultarse para la serialización.
      *
      * @var array<int, string>
      */
@@ -36,7 +35,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * The attributes that should be cast.
+     * Los atributos que deben ser casteados.
      *
      * @var array<string, string>
      */
@@ -46,34 +45,53 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the propietario associated with the user.
+     * Obtener las fincas asociadas a este usuario.
      */
-    public function propietario()
+    public function fincas()
     {
-        return $this->hasOne(Propietario::class, 'id', 'id');
+        return $this->belongsToMany(Finca::class, 'finca_user')
+            ->withPivot(['access_level', 'is_default', 'status'])
+            ->withTimestamps();
     }
 
     /**
-     * Check if the user is an admin.
+     * Obtener las personas asociadas a este usuario.
+     */
+    public function personas()
+    {
+        return $this->belongsToMany(Persona::class, 'persona_user')
+            ->withTimestamps();
+    }
+
+    /**
+     * Obtener los roles asociados a este usuario.
+     */
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'role_user');
+    }
+
+    /**
+     * Verificar si el usuario es administrador.
      */
     public function isAdmin(): bool
     {
-        return $this->type_user === 'admin';
+        return $this->roles()->where('code', 'admin')->exists();
     }
 
     /**
-     * Check if the user is a propietario.
+     * Verificar si el usuario es un propietario.
      */
     public function isPropietario(): bool
     {
-        return $this->type_user === 'propietario';
+        return $this->roles()->where('code', 'propietario')->exists();
     }
 
     /**
-     * Check if the user is a tecnico.
+     * Verificar si el usuario es un técnico.
      */
     public function isTecnico(): bool
     {
-        return $this->type_user === 'tecnico';
+        return $this->roles()->where('code', 'tecnico')->exists();
     }
 }

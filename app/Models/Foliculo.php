@@ -5,19 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TipoAnimal extends Model
+class Foliculo extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'nombre',
+        'siglas',
     ];
 
     /**
-     * Filtro para buscar por nombre.
+     * Obtener los ovarios asociados a este folículo.
      */
-    public function scopeByName($query, $name)
+    public function ovarios()
     {
-        return $query->where('nombre', 'like', '%'.$name.'%');
+        return $this->belongsToMany(Ovario::class, 'foliculo_ovario', 'foliculo_id', 'ovario_id');
     }
 }

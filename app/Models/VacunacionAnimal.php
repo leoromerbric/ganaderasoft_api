@@ -9,21 +9,24 @@ class VacunacionAnimal extends Model
 {
     use HasFactory;
 
-    protected $table = 'vacunacion_animal';
-    protected $primaryKey = 'va_id';
-
     protected $fillable = [
-        'va_vacunacion_id',
-        'va_animal_id',
+        'vacunacion_id',
+        'animal_id',
     ];
 
+    /**
+     * Obtener vacunacion asociado/a.
+     */
     public function vacunacion()
     {
-        return $this->belongsTo(Vacunacion::class, 'va_vacunacion_id', 'vacunacion_id');
+        return $this->belongsTo(Vacunacion::class, 'vacunacion_id', 'id');
     }
 
+    /**
+     * Obtener animal asociado/a.
+     */
     public function animal()
     {
-        return $this->belongsTo(Animal::class, 'va_animal_id', 'id_Animal');
+        return $this->belongsTo(Animal::class, 'animal_id', 'id');
     }
 }

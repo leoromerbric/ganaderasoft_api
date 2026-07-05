@@ -5,19 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TipoAnimal extends Model
+class Administrador extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'nombre',
+        'persona_id',
     ];
 
     /**
-     * Filtro para buscar por nombre.
+     * Obtener la persona asociada a este administrador.
      */
-    public function scopeByName($query, $name)
+    public function persona()
     {
-        return $query->where('nombre', 'like', '%'.$name.'%');
+        return $this->belongsTo(Persona::class, 'persona_id', 'id');
     }
 }

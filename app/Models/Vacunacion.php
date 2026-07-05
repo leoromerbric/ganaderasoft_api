@@ -9,57 +9,72 @@ class Vacunacion extends Model
 {
     use HasFactory;
 
-    protected $table = 'vacunacion';
-    protected $primaryKey = 'vacunacion_id';
-
     protected $fillable = [
-        'vacunacion_vacuna_id',
-        'vacunacion_casa_id',
-        'vacunacion_rebano_id',
-        'vacunacion_modo_seleccion',
-        'vacunacion_filtros',
-        'vacunacion_fecha',
-        'vacunacion_costo_dosis',
-        'vacunacion_total_animales',
-        'vacunacion_monto_total',
-        'vacunacion_observacion',
+        'vacuna_id',
+        'casa_comercial_id',
+        'rebano_id',
+        'modo_seleccion',
+        'filtros',
+        'fecha',
+        'costo_dosis',
+        'total_animales',
+        'monto_total',
+        'observacion',
     ];
 
     protected $casts = [
-        'vacunacion_filtros' => 'array',
-        'vacunacion_fecha' => 'date',
-        'vacunacion_costo_dosis' => 'float',
-        'vacunacion_total_animales' => 'integer',
-        'vacunacion_monto_total' => 'float',
+        'filtros' => 'array',
+        'fecha' => 'date',
+        'costo_dosis' => 'float',
+        'total_animales' => 'integer',
+        'monto_total' => 'float',
     ];
 
+    /**
+     * Obtener vacuna asociado/a.
+     */
     public function vacuna()
     {
-        return $this->belongsTo(Vacuna::class, 'vacunacion_vacuna_id', 'vacuna_id');
+        return $this->belongsTo(Vacuna::class, 'vacuna_id', 'id');
     }
 
+    /**
+     * Obtener casa comercial asociado/a.
+     */
     public function casaComercial()
     {
-        return $this->belongsTo(CasaComercial::class, 'vacunacion_casa_id', 'casa_id');
+        return $this->belongsTo(CasaComercial::class, 'casa_comercial_id', 'id');
     }
 
+    /**
+     * Obtener rebano asociado/a.
+     */
     public function rebano()
     {
-        return $this->belongsTo(Rebano::class, 'vacunacion_rebano_id', 'id_Rebano');
+        return $this->belongsTo(Rebano::class, 'rebano_id', 'id');
     }
 
+    /**
+     * Obtener animales asociado/a.
+     */
     public function animales()
     {
-        return $this->hasMany(VacunacionAnimal::class, 'va_vacunacion_id', 'vacunacion_id');
+        return $this->hasMany(VacunacionAnimal::class, 'vacunacion_id', 'id');
     }
 
+    /**
+     * Filtro para buscar por for vacuna.
+     */
     public function scopeForVacuna($query, $vacunaId)
     {
-        return $query->where('vacunacion_vacuna_id', $vacunaId);
+        return $query->where('vacuna_id', $vacunaId);
     }
 
+    /**
+     * Filtro para buscar por for rebano.
+     */
     public function scopeForRebano($query, $rebanoId)
     {
-        return $query->where('vacunacion_rebano_id', $rebanoId);
+        return $query->where('rebano_id', $rebanoId);
     }
 }
