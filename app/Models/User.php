@@ -77,7 +77,7 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->roles()->where('code', 'admin')->exists();
+        return $this->roles()->whereIn('code', ['admin', 'global_admin'])->exists();
     }
 
     /**
@@ -95,4 +95,35 @@ class User extends Authenticatable
     {
         return $this->roles()->where('code', 'tecnico')->exists();
     }
+
+    /**
+     * Obtener el tipo de usuario (para retrocompatibilidad con frontend).
+     */
+    public function getTypeUserAttribute(): string
+    {
+        $role = $this->roles->first();
+        if ($role) {
+            return $role->code === 'global_admin' ? 'admin' : $role->code;
+        }
+        return 'tecnico';
+    }
+
+
+    /**
+     * Obtener la imagen de perfil (para retrocompatibilidad).
+     */
+    public function getImageAttribute(): string
+    {
+        return 'user.png';
+    }
+
+    /**
+     * Obtener el propietario asociado a través de la relación personas (si existe).
+     */
+    public function getPropietarioAttribute()
+    {
+        $persona = $this->personas()->first();
+        return $persona ? $persona->propietario : null;
+    }
 }
+
