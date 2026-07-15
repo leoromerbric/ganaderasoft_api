@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\User;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -26,7 +26,6 @@ class UserResource extends JsonResource
             'image' => $this->image,
             'email_verified_at' => $this->email_verified_at,
             'created_at' => $this->created_at,
-            'propietario' => $this->propietario ? $this->propietario->id : null,
         ];
     }
 }
