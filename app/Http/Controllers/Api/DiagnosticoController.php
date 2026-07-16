@@ -3,43 +3,31 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Diagnostico;
+use App\Services\Sanidad\DiagnosticoService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class DiagnosticoController extends Controller
 {
+    protected $diagnosticoService;
+
+    public function __construct(DiagnosticoService $diagnosticoService)
+    {
+        $this->diagnosticoService = $diagnosticoService;
+    }
+
     public function index(Request $request)
     {
-        $user = $request->user();
-        $query = Diagnostico::with('animal', 'etapa', 'tratamientos');
-
-        if ($request->has('animal_id')) {
-            $query->forAnimal($request->animal_id);
-        }
-        if ($request->has('tipo')) {
-            $query->byTipo($request->tipo);
-        }
-        if ($request->has('fecha_inicio')) {
-            $query->byDateRange($request->fecha_inicio, $request->get('fecha_fin'));
-        }
-
-        if (!$user->isAdmin() && $user->isPropietario()) {
-            $propietario = $user->propietario;
-            if ($propietario) {
-                $query->whereHas('animal.rebano.finca', function ($q) use ($propietario) {
-                    $q->where('id_Propietario', $propietario->id);
-                });
-            }
-        }
-
-        $records = $query->paginate(15);
+        // Extract only the necessary filter parameters
+        $filters = $request->only(['animal_id', 'tipo', 'fecha_inicio', 'fecha_fin']);
+        
+        // Delegate to the service
+        $records = $this->diagnosticoService->getPaginatedDiagnosticos($filters, $request->user());
 
         return response()->json([
             'success'    => true,
-            'message'    => 'Diagnósticos',
+            'message'    => 'Diagnósticos obtenidos exitosamente',
             'data'       => $records->items(),
             'pagination' => [
                 'current_page' => $records->currentPage(),
@@ -53,72 +41,72 @@ class DiagnosticoController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'diagnostico_descripcion'  => 'nullable|string',
-            'diagnostico_tipo'         => 'nullable|string|max:30',
-            'diagnostico_fecha'        => 'nullable|date',
-            'fk_etapa_animal_anid'     => 'required|exists:animal,id_Animal',
-            'fk_etapa_animal_etid'     => 'required|exists:etapa,etapa_id',
+            'descripcion'     => 'nullable|string',
+            'tipo'            => 'nullable|string|max:30',
+            'fecha'           => 'nullable|date',
+            'animal_etapa_id' => 'required|exists:animal_etapa,id',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['success' => false, 'errors' => $validator->errors()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $etapaAnimalExists = DB::table('etapa_animal')
-            ->where('etan_animal_id', $request->fk_etapa_animal_anid)
-            ->where('etan_etapa_id', $request->fk_etapa_animal_etid)
-            ->exists();
-
-        if (!$etapaAnimalExists) {
-            return response()->json(['success' => false, 'message' => 'La relación etapa-animal no existe'], Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
-        $diagnostico = Diagnostico::create($request->only([
-            'diagnostico_descripcion', 'diagnostico_tipo', 'diagnostico_fecha',
-            'fk_etapa_animal_anid', 'fk_etapa_animal_etid',
+        // Delegate creation to the service
+        $diagnostico = $this->diagnosticoService->createDiagnostico($request->only([
+            'descripcion', 'tipo', 'fecha', 'animal_etapa_id'
         ]));
 
-        return response()->json(['success' => true, 'message' => 'Diagnóstico registrado', 'data' => $diagnostico->load('animal')], Response::HTTP_CREATED);
+        return response()->json([
+            'success' => true, 
+            'message' => 'Diagnóstico registrado', 
+            'data'    => $diagnostico
+        ], Response::HTTP_CREATED);
     }
 
     public function show($id)
     {
-        $diagnostico = Diagnostico::with('animal', 'etapa', 'tratamientos')->find($id);
+        $diagnostico = $this->diagnosticoService->getDiagnosticoById($id);
+        
         if (!$diagnostico) {
             return response()->json(['success' => false, 'message' => 'Diagnóstico no encontrado'], Response::HTTP_NOT_FOUND);
         }
+        
         return response()->json(['success' => true, 'data' => $diagnostico]);
     }
 
     public function update(Request $request, $id)
     {
-        $diagnostico = Diagnostico::find($id);
-        if (!$diagnostico) {
-            return response()->json(['success' => false, 'message' => 'Diagnóstico no encontrado'], Response::HTTP_NOT_FOUND);
-        }
-
+        // It's usually better to validate before making database queries
         $validator = Validator::make($request->all(), [
-            'diagnostico_descripcion' => 'nullable|string',
-            'diagnostico_tipo'        => 'nullable|string|max:30',
-            'diagnostico_fecha'       => 'nullable|date',
+            'descripcion'     => 'nullable|string',
+            'tipo'            => 'nullable|string|max:30',
+            'fecha'           => 'nullable|date',
+            'animal_etapa_id' => 'nullable|exists:animal_etapa,id', 
         ]);
 
         if ($validator->fails()) {
             return response()->json(['success' => false, 'errors' => $validator->errors()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $diagnostico->update($request->only(['diagnostico_descripcion', 'diagnostico_tipo', 'diagnostico_fecha']));
+        $diagnostico = $this->diagnosticoService->updateDiagnostico($id, $request->only([
+            'descripcion', 'tipo', 'fecha', 'animal_etapa_id'
+        ]));
+
+        if (!$diagnostico) {
+            return response()->json(['success' => false, 'message' => 'Diagnóstico no encontrado'], Response::HTTP_NOT_FOUND);
+        }
 
         return response()->json(['success' => true, 'message' => 'Diagnóstico actualizado', 'data' => $diagnostico]);
     }
 
     public function destroy($id)
     {
-        $diagnostico = Diagnostico::find($id);
-        if (!$diagnostico) {
+        $deleted = $this->diagnosticoService->deleteDiagnostico($id);
+        
+        if (!$deleted) {
             return response()->json(['success' => false, 'message' => 'Diagnóstico no encontrado'], Response::HTTP_NOT_FOUND);
         }
-        $diagnostico->delete();
+        
         return response()->json(['success' => true, 'message' => 'Diagnóstico eliminado']);
     }
 }
