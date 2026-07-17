@@ -9,6 +9,14 @@ use App\Services\Animal\AnimalEtapaService;
 use App\Http\Resources\Animal\AnimalResource;
 use App\Http\Resources\Animal\EstadoAnimalResource;
 use App\Http\Resources\Animal\EtapaAnimalResource;
+use App\Http\Middleware\Legacy\Animal\NormalizeIndex;
+use App\Http\Middleware\Legacy\Animal\NormalizeStore;
+use App\Http\Middleware\Legacy\Animal\NormalizeShow;
+use App\Http\Middleware\Legacy\Animal\NormalizeUpdate;
+use App\Http\Middleware\Legacy\Animal\NormalizeCreateEstado;
+use App\Http\Middleware\Legacy\Animal\NormalizeUpdateEstado;
+use App\Http\Middleware\Legacy\Animal\NormalizeCreateEtapa;
+use App\Http\Middleware\Legacy\Animal\NormalizeUpdateEtapa;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
@@ -20,17 +28,22 @@ class AnimalController extends Controller
 {
     /**
      * Constructor del controlador.
-     * Inyecta los servicios correspondientes al dominio de Animales.
-     *
-     * @param AnimalService $animalService
-     * @param AnimalEstadoService $estadoService
-     * @param AnimalEtapaService $etapaService
+     * Inyecta los servicios e introduce los middlewares de compatibilidad legacy.
      */
     public function __construct(
         private AnimalService $animalService,
         private AnimalEstadoService $estadoService,
         private AnimalEtapaService $etapaService
-    ) {}
+    ) {
+        $this->middleware(NormalizeIndex::class)->only('index');
+        $this->middleware(NormalizeStore::class)->only('store');
+        $this->middleware(NormalizeShow::class)->only('show');
+        $this->middleware(NormalizeUpdate::class)->only('update');
+        $this->middleware(NormalizeCreateEstado::class)->only('createEstadoAnimal');
+        $this->middleware(NormalizeUpdateEstado::class)->only('updateEstadoAnimal');
+        $this->middleware(NormalizeCreateEtapa::class)->only('createEtapaAnimal');
+        $this->middleware(NormalizeUpdateEtapa::class)->only('updateEtapaAnimal');
+    }
 
     /**
      * Devuelve una lista paginada de animales aplicando filtros y permisos.
@@ -65,15 +78,15 @@ class AnimalController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'id_Rebano' => 'required|exists:rebanos,id',
-            'Nombre' => 'nullable|string|max:25',
+            'rebano_id' => 'required|exists:rebanos,id',
+            'nombre' => 'nullable|string|max:25',
             'codigo_animal' => 'nullable|string|max:20|unique:animals,codigo_animal',
-            'Sexo' => 'required|in:M,F',
+            'sexo' => 'required|in:M,F',
             'fecha_nacimiento' => 'required|date',
-            'Procedencia' => 'nullable|string|max:50',
-            'fk_composicion_raza' => 'required|exists:composicion_razas,id',
+            'procedencia' => 'nullable|string|max:50',
+            'composicion_raza_id' => 'required|exists:composicion_razas,id',
             'estado_inicial' => 'nullable|array',
-            'estado_inicial.estado_id' => 'required_with:estado_inicial|exists:estado_saluds,id',
+            'estado_inicial.estado_salud_id' => 'required_with:estado_inicial|exists:estado_saluds,id',
             'estado_inicial.fecha_ini' => 'required_with:estado_inicial|date',
             'etapa_inicial' => 'nullable|array',
             'etapa_inicial.etapa_id' => 'required_with:etapa_inicial|exists:etapas,id',
@@ -92,7 +105,7 @@ class AnimalController extends Controller
             [$animal, $clasificacion] = $this->animalService->storeAnimal($request->all(), $request->user());
             
             $animal->load([
-                'rebano.finca.propietario', 
+                'rebano.finca.propietario.persona', 
                 'composicionRaza',
                 'estadoActual.estadoSalud',
                 'etapaActual.etapa'
@@ -152,13 +165,13 @@ class AnimalController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'id_Rebano' => 'sometimes|exists:rebanos,id',
-            'Nombre' => 'nullable|string|max:25',
+            'rebano_id' => 'sometimes|exists:rebanos,id',
+            'nombre' => 'nullable|string|max:25',
             'codigo_animal' => 'nullable|string|max:20|unique:animals,codigo_animal,' . $id . ',id',
-            'Sexo' => 'sometimes|in:M,F',
+            'sexo' => 'sometimes|in:M,F',
             'fecha_nacimiento' => 'sometimes|date',
-            'Procedencia' => 'nullable|string|max:50',
-            'fk_composicion_raza' => 'sometimes|exists:composicion_razas,id'
+            'procedencia' => 'nullable|string|max:50',
+            'composicion_raza_id' => 'sometimes|exists:composicion_razas,id'
         ]);
 
         if ($validator->fails()) {
@@ -172,7 +185,7 @@ class AnimalController extends Controller
         try {
             [$animal, $clasificacion] = $this->animalService->updateAnimal((int) $id, $request->all(), $request->user());
             
-            $animal->load(['rebano.finca.propietario', 'composicionRaza', 'etapaActual.etapa']);
+            $animal->load(['rebano.finca.propietario.persona', 'composicionRaza', 'etapaActual.etapa']);
 
             return response()->json([
                 'success' => true,
@@ -232,9 +245,9 @@ class AnimalController extends Controller
     public function createEstadoAnimal(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'esan_fecha_ini' => 'required|date',
-            'esan_fecha_fin' => 'nullable|date|after_or_equal:esan_fecha_ini',
-            'esan_fk_estado_id' => 'required|exists:estado_saluds,id',
+            'fecha_ini' => 'required|date',
+            'fecha_fin' => 'nullable|date|after_or_equal:fecha_ini',
+            'estado_salud_id' => 'required|exists:estado_saluds,id',
         ]);
 
         if ($validator->fails()) {
@@ -276,9 +289,9 @@ class AnimalController extends Controller
     public function createEtapaAnimal(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'etan_fecha_ini' => 'required|date',
-            'etan_fecha_fin' => 'nullable|date|after_or_equal:etan_fecha_ini',
-            'etan_etapa_id' => 'required|exists:etapas,id',
+            'fecha_ini' => 'required|date',
+            'fecha_fin' => 'nullable|date|after_or_equal:fecha_ini',
+            'etapa_id' => 'required|exists:etapas,id',
         ]);
 
         if ($validator->fails()) {
@@ -326,9 +339,9 @@ class AnimalController extends Controller
     public function updateEstadoAnimal(Request $request, $animalId, $estadoId)
     {
         $validator = Validator::make($request->all(), [
-            'esan_fecha_ini' => 'sometimes|date',
-            'esan_fecha_fin' => 'nullable|date|after_or_equal:esan_fecha_ini',
-            'esan_fk_estado_id' => 'sometimes|exists:estado_saluds,id',
+            'fecha_ini' => 'sometimes|date',
+            'fecha_fin' => 'nullable|date|after_or_equal:fecha_ini',
+            'estado_salud_id' => 'sometimes|exists:estado_saluds,id',
         ]);
 
         if ($validator->fails()) {
@@ -340,7 +353,7 @@ class AnimalController extends Controller
         }
 
         try {
-            $estadoAnimal = $this->estadoService->updateEstado((int) $animalId, (int) $estadoId, $request->all(), $request->user());
+            $estadoAnimal = $this->estadoService->updateEstado((int) $estadoId, $request->all(), $request->user());
 
             return response()->json([
                 'success' => true,
@@ -371,8 +384,8 @@ class AnimalController extends Controller
     public function updateEtapaAnimal(Request $request, $animalId, $etapaId)
     {
         $validator = Validator::make($request->all(), [
-            'etan_fecha_ini' => 'sometimes|date',
-            'etan_fecha_fin' => 'nullable|date|after_or_equal:etan_fecha_ini',
+            'fecha_ini' => 'sometimes|date',
+            'fecha_fin' => 'nullable|date|after_or_equal:fecha_ini',
         ]);
 
         if ($validator->fails()) {
@@ -384,7 +397,7 @@ class AnimalController extends Controller
         }
 
         try {
-            $etapaAnimal = $this->etapaService->updateEtapa((int) $animalId, (int) $etapaId, $request->all(), $request->user());
+            $etapaAnimal = $this->etapaService->updateEtapa((int) $etapaId, $request->all(), $request->user());
 
             return response()->json([
                 'success' => true,

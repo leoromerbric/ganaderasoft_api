@@ -33,7 +33,7 @@ class AnimalService
      */
     public function listAnimals(array $filters, $user): LengthAwarePaginator
     {
-        $query = Animal::with(['rebano.finca.propietario', 'composicionRaza'])
+        $query = Animal::with(['rebano.finca.propietario.persona', 'composicionRaza'])
             ->active();
 
         // Aplicamos los filtros básicos si existen en la petición
@@ -78,7 +78,7 @@ class AnimalService
                 throw new AuthorizationException('El usuario no está registrado como propietario.');
             }
 
-            $rebano = Rebano::with('finca')->find($data['id_Rebano']);
+            $rebano = Rebano::with('finca')->find($data['rebano_id']);
             if (!$rebano || $rebano->finca->propietario_id != $propietario->id) {
                 throw new AuthorizationException('No tiene permisos para agregar un animal a este rebaño.');
             }
@@ -86,13 +86,13 @@ class AnimalService
 
         // Creación del animal mapeando los campos del request a las columnas actuales de la DB
         $animal = Animal::create([
-            'rebano_id'           => $data['id_Rebano'],
-            'nombre'              => $data['Nombre'] ?? null,
+            'rebano_id'           => $data['rebano_id'],
+            'nombre'              => $data['nombre'] ?? null,
             'codigo_animal'       => $data['codigo_animal'] ?? null,
-            'sexo'                => $data['Sexo'],
+            'sexo'                => $data['sexo'],
             'fecha_nacimiento'    => $data['fecha_nacimiento'],
-            'procedencia'         => $data['Procedencia'] ?? null,
-            'composicion_raza_id' => $data['fk_composicion_raza'],
+            'procedencia'         => $data['procedencia'] ?? null,
+            'composicion_raza_id' => $data['composicion_raza_id'],
             'archivado'           => false
         ]);
 
@@ -101,7 +101,7 @@ class AnimalService
             EstadoAnimal::create([
                 'fecha_ini'       => $data['estado_inicial']['fecha_ini'],
                 'fecha_fin'       => null,
-                'estado_salud_id' => $data['estado_inicial']['estado_id'],
+                'estado_salud_id' => $data['estado_inicial']['estado_salud_id'],
                 'animal_id'       => $animal->id,
             ]);
         }
@@ -138,7 +138,7 @@ class AnimalService
     public function getAnimal(int $id, $user): Animal
     {
         $animal = Animal::with([
-            'rebano.finca.propietario',
+            'rebano.finca.propietario.persona',
             'estados.estadoSalud',
             'etapaAnimales.etapa',
             'etapaActual.etapa'
@@ -177,8 +177,8 @@ class AnimalService
             }
 
             // Si intenta cambiar de rebaño, valida pertenencia en el nuevo rebaño
-            if (!empty($data['id_Rebano'])) {
-                $newRebano = Rebano::with('finca')->find($data['id_Rebano']);
+            if (!empty($data['rebano_id'])) {
+                $newRebano = Rebano::with('finca')->find($data['rebano_id']);
                 if (!$newRebano || $newRebano->finca->propietario_id != $propietario->id) {
                     throw new AuthorizationException('No tiene permisos para mover el animal a ese rebaño.');
                 }
@@ -187,13 +187,13 @@ class AnimalService
 
         // Mapeo selectivo de campos para la actualización
         $updatePayload = [];
-        if (array_key_exists('id_Rebano', $data)) $updatePayload['rebano_id'] = $data['id_Rebano'];
-        if (array_key_exists('Nombre', $data)) $updatePayload['nombre'] = $data['Nombre'];
+        if (array_key_exists('rebano_id', $data)) $updatePayload['rebano_id'] = $data['rebano_id'];
+        if (array_key_exists('nombre', $data)) $updatePayload['nombre'] = $data['nombre'];
         if (array_key_exists('codigo_animal', $data)) $updatePayload['codigo_animal'] = $data['codigo_animal'];
-        if (array_key_exists('Sexo', $data)) $updatePayload['sexo'] = $data['Sexo'];
+        if (array_key_exists('sexo', $data)) $updatePayload['sexo'] = $data['sexo'];
         if (array_key_exists('fecha_nacimiento', $data)) $updatePayload['fecha_nacimiento'] = $data['fecha_nacimiento'];
-        if (array_key_exists('Procedencia', $data)) $updatePayload['procedencia'] = $data['Procedencia'];
-        if (array_key_exists('fk_composicion_raza', $data)) $updatePayload['composicion_raza_id'] = $data['fk_composicion_raza'];
+        if (array_key_exists('procedencia', $data)) $updatePayload['procedencia'] = $data['procedencia'];
+        if (array_key_exists('composicion_raza_id', $data)) $updatePayload['composicion_raza_id'] = $data['composicion_raza_id'];
 
         $animal->update($updatePayload);
 

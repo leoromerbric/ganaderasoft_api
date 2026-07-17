@@ -99,13 +99,13 @@ class AnimalServiceTest extends TestCase
     public function test_can_store_animal_via_service()
     {
         $data = [
-            'id_Rebano' => $this->rebano->id,
-            'Nombre' => 'Animal Unitario',
+            'rebano_id' => $this->rebano->id,
+            'nombre' => 'Animal Unitario',
             'codigo_animal' => 'UNIT-9876',
-            'Sexo' => 'F',
+            'sexo' => 'F',
             'fecha_nacimiento' => '2024-05-01',
-            'Procedencia' => 'Compra',
-            'fk_composicion_raza' => $this->raza->id,
+            'procedencia' => 'Compra',
+            'composicion_raza_id' => $this->raza->id,
         ];
 
         [$animal, $clasificacion] = $this->animalService->storeAnimal($data, $this->adminUser);

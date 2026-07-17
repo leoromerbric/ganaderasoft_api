@@ -35,7 +35,7 @@ class AnimalEtapaService
 
         // Verificamos si ya existe el registro de etapa para evitar duplicados debido a la clave única
         $existingEtapaAnimal = EtapaAnimal::where('animal_id', $animal->id)
-            ->where('etapa_id', $data['etan_etapa_id'])
+            ->where('etapa_id', $data['etapa_id'])
             ->first();
 
         if ($existingEtapaAnimal) {
@@ -43,17 +43,17 @@ class AnimalEtapaService
         }
 
         // Si se crea una etapa activa (sin fecha de fin), cerramos cualquier otra activa
-        if (empty($data['etan_fecha_fin'])) {
+        if (empty($data['fecha_fin'])) {
             EtapaAnimal::where('animal_id', $animal->id)
                 ->whereNull('fecha_fin')
                 ->update(['fecha_fin' => now()->toDateString()]);
         }
 
         $etapaAnimal = EtapaAnimal::create([
-            'fecha_ini' => $data['etan_fecha_ini'],
-            'fecha_fin' => $data['etan_fecha_fin'] ?? null,
+            'fecha_ini' => $data['fecha_ini'],
+            'fecha_fin' => $data['fecha_fin'] ?? null,
             'animal_id' => $animal->id,
-            'etapa_id'  => $data['etan_etapa_id'],
+            'etapa_id'  => $data['etapa_id'],
         ]);
 
         return $etapaAnimal->load(['etapa', 'animal']);
@@ -70,27 +70,23 @@ class AnimalEtapaService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function updateEtapa(int $animalId, int $etapaId, array $data, $user): EtapaAnimal
+    public function updateEtapa(int $id, array $data, $user): EtapaAnimal
     {
-        $animal = Animal::findOrFail($animalId);
-
         // Buscar el registro histórico
-        $etapaAnimal = EtapaAnimal::where('animal_id', $animalId)
-            ->where('etapa_id', $etapaId)
-            ->firstOrFail();
+        $etapaAnimal = EtapaAnimal::with('animal.rebano.finca')->findOrFail($id);
 
         // Control de permisos
         if (!$user->isAdmin()) {
             $propietario = $user->propietario;
-            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
+            if (!$propietario || $etapaAnimal->animal->rebano->finca->propietario_id != $propietario->id) {
                 throw new AuthorizationException('No tiene permisos para actualizar este registro de etapa.');
             }
         }
 
         // Mapeo selectivo de atributos
         $updatePayload = [];
-        if (array_key_exists('etan_fecha_ini', $data)) $updatePayload['fecha_ini'] = $data['etan_fecha_ini'];
-        if (array_key_exists('etan_fecha_fin', $data)) $updatePayload['fecha_fin'] = $data['etan_fecha_fin'];
+        if (array_key_exists('fecha_ini', $data)) $updatePayload['fecha_ini'] = $data['fecha_ini'];
+        if (array_key_exists('fecha_fin', $data)) $updatePayload['fecha_fin'] = $data['fecha_fin'];
 
         $etapaAnimal->update($updatePayload);
 

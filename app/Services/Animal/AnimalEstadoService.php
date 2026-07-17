@@ -33,16 +33,16 @@ class AnimalEstadoService
         }
 
         // Si se registra un estado sin fecha de fin (activo), cerramos el estado activo anterior
-        if (empty($data['esan_fecha_fin'])) {
+        if (empty($data['fecha_fin'])) {
             EstadoAnimal::where('animal_id', $animal->id)
                 ->whereNull('fecha_fin')
                 ->update(['fecha_fin' => now()->toDateString()]);
         }
 
         $estadoAnimal = EstadoAnimal::create([
-            'fecha_ini'       => $data['esan_fecha_ini'],
-            'fecha_fin'       => $data['esan_fecha_fin'] ?? null,
-            'estado_salud_id' => $data['esan_fk_estado_id'],
+            'fecha_ini'       => $data['fecha_ini'],
+            'fecha_fin'       => $data['fecha_fin'] ?? null,
+            'estado_salud_id' => $data['estado_salud_id'],
             'animal_id'       => $animal->id,
         ]);
 
@@ -60,28 +60,24 @@ class AnimalEstadoService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function updateEstado(int $animalId, int $estadoId, array $data, $user): EstadoAnimal
+    public function updateEstado(int $id, array $data, $user): EstadoAnimal
     {
-        $animal = Animal::findOrFail($animalId);
-
         // Buscar el registro histórico
-        $estadoAnimal = EstadoAnimal::where('animal_id', $animalId)
-            ->where('id', $estadoId)
-            ->firstOrFail();
+        $estadoAnimal = EstadoAnimal::with('animal.rebano.finca')->findOrFail($id);
 
         // Control de permisos
         if (!$user->isAdmin()) {
             $propietario = $user->propietario;
-            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
+            if (!$propietario || $estadoAnimal->animal->rebano->finca->propietario_id != $propietario->id) {
                 throw new AuthorizationException('No tiene permisos para actualizar este estado de salud.');
             }
         }
 
         // Mapeo selectivo de atributos
         $updatePayload = [];
-        if (array_key_exists('esan_fecha_ini', $data)) $updatePayload['fecha_ini'] = $data['esan_fecha_ini'];
-        if (array_key_exists('esan_fecha_fin', $data)) $updatePayload['fecha_fin'] = $data['esan_fecha_fin'];
-        if (array_key_exists('esan_fk_estado_id', $data)) $updatePayload['estado_salud_id'] = $data['esan_fk_estado_id'];
+        if (array_key_exists('fecha_ini', $data)) $updatePayload['fecha_ini'] = $data['fecha_ini'];
+        if (array_key_exists('fecha_fin', $data)) $updatePayload['fecha_fin'] = $data['fecha_fin'];
+        if (array_key_exists('estado_salud_id', $data)) $updatePayload['estado_salud_id'] = $data['estado_salud_id'];
 
         $estadoAnimal->update($updatePayload);
 
