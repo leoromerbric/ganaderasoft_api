@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Role;
 use App\Http\Resources\User\UserResource;
+use App\Http\Middleware\Legacy\User\NormalizeLogin;
+use App\Http\Middleware\Legacy\User\NormalizeRegister;
+use App\Http\Middleware\Legacy\User\NormalizeProfile;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +17,17 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
+    /**
+     * Constructor del controlador.
+     * Inyecta los middlewares de compatibilidad para el front-end legacy.
+     */
+    public function __construct()
+    {
+        $this->middleware(NormalizeLogin::class)->only('login');
+        $this->middleware(NormalizeRegister::class)->only('register');
+        $this->middleware(NormalizeProfile::class)->only('profile');
+    }
+
     /**
      * Login user and create token
      */
@@ -42,6 +56,7 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
+        $user->load('roles');
         $token = $user->createToken('GanaderaSoft API Token')->plainTextToken;
 
         return response()->json([
@@ -61,6 +76,7 @@ class AuthController extends Controller
     public function profile(Request $request)
     {
         $user = $request->user();
+        $user->load(['roles', 'personas.propietario.persona']);
         
         return response()->json([
             'success' => true,
@@ -93,7 +109,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'type_user' => 'required|string|in:admin,propietario,tecnico'
+            'role_code' => 'required|string|exists:roles,code'
         ]);
 
         if ($validator->fails()) {
@@ -111,13 +127,13 @@ class AuthController extends Controller
             'status' => 'active'
         ]);
 
-        // Mapear y asignar rol
-        $roleCode = $request->type_user === 'admin' ? 'global_admin' : $request->type_user;
-        $role = Role::where('code', $roleCode)->first();
+        // Asignar rol
+        $role = Role::where('code', $request->role_code)->first();
         if ($role) {
             $user->roles()->attach($role->id);
         }
 
+        $user->load('roles');
         $token = $user->createToken('GanaderaSoft API Token')->plainTextToken;
 
         return response()->json([
