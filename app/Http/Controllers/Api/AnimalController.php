@@ -77,6 +77,13 @@ class AnimalController extends Controller
      */
     public function store(Request $request)
     {
+        if ($request->has('sexo')) {
+            $sex = strtoupper((string) $request->sexo);
+            if ($sex === 'H') {
+                $request->merge(['sexo' => 'F']);
+            }
+        }
+
         $validator = Validator::make($request->all(), [
             'rebano_id' => 'required|exists:rebanos,id',
             'nombre' => 'nullable|string|max:25',
@@ -164,6 +171,13 @@ class AnimalController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if ($request->has('sexo')) {
+            $sex = strtoupper((string) $request->sexo);
+            if ($sex === 'H') {
+                $request->merge(['sexo' => 'F']);
+            }
+        }
+
         $validator = Validator::make($request->all(), [
             'rebano_id' => 'sometimes|exists:rebanos,id',
             'nombre' => 'nullable|string|max:25',

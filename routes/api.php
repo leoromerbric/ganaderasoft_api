@@ -132,9 +132,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('etapa-animal/{etapa}', [AnimalController::class, 'updateEtapaAnimal']);
 
         // Árbol genealógico
-        Route::get('arbol', [ArbolGenController::class, 'arbol']);
-        Route::post('progenitor', [ArbolGenController::class, 'setProgenitor']);
-        Route::delete('progenitor/{tipo}', [ArbolGenController::class, 'removeProgenitor']);
-        Route::get('progenitores-disponibles', [ArbolGenController::class, 'disponibles']);
+        Route::get('arbol', [ArbolGenController::class, 'getTree']);
+        Route::post('progenitor', [ArbolGenController::class, 'setParent']);
+        Route::delete('progenitor/{tipo}', [ArbolGenController::class, 'removeParent']);
+        Route::get('progenitores-disponibles', [ArbolGenController::class, 'getAvailableParents']);
     });
 });
