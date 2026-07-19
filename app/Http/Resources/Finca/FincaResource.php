@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Finca;
 
 use App\Http\Resources\Persona\PropietarioResource;
+use App\Http\Resources\Terreno\TerrenoResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

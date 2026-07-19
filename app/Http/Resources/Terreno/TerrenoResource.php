@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Resources\Finca;
+namespace App\Http\Resources\Terreno;
 
+use App\Http\Resources\Finca\FincaResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -37,6 +38,7 @@ class TerrenoResource extends JsonResource
             'riego_metodo' => $this->riego_metodo,
             'created_at' => $this->created_at ? $this->created_at->toIso8601String() : null,
             'updated_at' => $this->updated_at ? $this->updated_at->toIso8601String() : null,
+            'finca' => new FincaResource($this->whenLoaded('finca')),
         ];
     }
 }
