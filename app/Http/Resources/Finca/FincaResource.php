@@ -32,6 +32,7 @@ class FincaResource extends JsonResource
             'propietario_id' => $this->when(!$this->relationLoaded('propietario'), $this->propietario_id),
             
             'propietario' => new PropietarioResource($this->whenLoaded('propietario')),
+            'terreno' => new TerrenoResource($this->whenLoaded('terreno')),
         ];
     }
 }
