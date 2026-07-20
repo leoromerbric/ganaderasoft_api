@@ -31,7 +31,7 @@ class AnimalService
      * @return LengthAwarePaginator
      * @throws AuthorizationException
      */
-    public function listAnimals(array $filters, $user): LengthAwarePaginator
+    public function listAnimals(array $filters, $user)
     {
         $query = Animal::with(['rebano.finca.propietario.persona', 'composicionRaza'])
             ->active();
@@ -47,6 +47,9 @@ class AnimalService
 
         // Si el usuario es administrador, puede ver todos los animales
         if ($user->isAdmin()) {
+            if (!empty($filters['nopaginate'])) {
+                return $query->get();
+            }
             return $query->paginate(15);
         }
 
@@ -56,9 +59,15 @@ class AnimalService
             throw new AuthorizationException('El usuario no está registrado como propietario.');
         }
 
-        return $query->whereHas('rebano.finca', function ($q) use ($propietario) {
+        $query->whereHas('rebano.finca', function ($q) use ($propietario) {
             $q->where('propietario_id', $propietario->id);
-        })->paginate(15);
+        });
+
+        if (!empty($filters['nopaginate'])) {
+            return $query->get();
+        }
+
+        return $query->paginate(15);
     }
 
     /**

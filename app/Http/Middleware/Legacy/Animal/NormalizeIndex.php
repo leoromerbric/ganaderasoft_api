@@ -22,9 +22,14 @@ class NormalizeIndex
         if (!$isV2 && $response->headers->get('Content-Type') === 'application/json') {
             $content = json_decode($response->getContent(), true);
 
-            if (isset($content['data']['data'])) {
+            if (isset($content['data']['data']) && is_array($content['data']['data'])) {
                 foreach ($content['data']['data'] as $key => $animal) {
                     $content['data']['data'][$key] = $this->transformAnimalToLegacyFormat($animal);
+                }
+                $response->setContent(json_encode($content));
+            } elseif (isset($content['data']) && is_array($content['data'])) {
+                foreach ($content['data'] as $key => $animal) {
+                    $content['data'][$key] = $this->transformAnimalToLegacyFormat($animal);
                 }
                 $response->setContent(json_encode($content));
             }

@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\Animal\AnimalService;
-use App\Services\Animal\AnimalEstadoService;
+use App\Services\Sanidad\EstadoAnimalService;
 use App\Services\Animal\AnimalEtapaService;
 use App\Http\Resources\Animal\AnimalResource;
 use App\Http\Resources\Animal\EstadoAnimalResource;
@@ -32,7 +32,7 @@ class AnimalController extends Controller
      */
     public function __construct(
         private AnimalService $animalService,
-        private AnimalEstadoService $estadoService,
+        private EstadoAnimalService $estadoService,
         private AnimalEtapaService $etapaService
     ) {
         $this->middleware(NormalizeIndex::class)->only('index');
@@ -54,7 +54,7 @@ class AnimalController extends Controller
     public function index(Request $request)
     {
         try {
-            $animals = $this->animalService->listAnimals($request->only(['rebano_id', 'sexo']), $request->user());
+            $animals = $this->animalService->listAnimals($request->only(['rebano_id', 'sexo', 'nopaginate']), $request->user());
             
             return response()->json([
                 'success' => true,
@@ -273,7 +273,9 @@ class AnimalController extends Controller
         }
 
         try {
-            $estadoAnimal = $this->estadoService->createEstado((int) $id, $request->all(), $request->user());
+            $data = $request->all();
+            $data['animal_id'] = (int) $id;
+            $estadoAnimal = $this->estadoService->createEstado($data, $request->user());
 
             return response()->json([
                 'success' => true,
