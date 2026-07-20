@@ -1,0 +1,179 @@
+<?php
+
+namespace App\Services\Animal;
+
+use App\Models\CambiosAnimal;
+use App\Models\Animal;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Pagination\LengthAwarePaginator;
+
+class CambiosAnimalService
+{
+    /**
+     * Obtiene el listado de cambios de animal aplicando filtros y validando permisos.
+     *
+     * @param array $filters Filtros aplicados.
+     * @param mixed $user Usuario que realiza la consulta.
+     * @return LengthAwarePaginator
+     * @throws AuthorizationException
+     */
+    public function listCambios(array $filters, $user)
+    {
+        $query = CambiosAnimal::query();
+
+        // Aplicar filtros V2
+        if (!empty($filters['animal_id'])) {
+            $query->whereHas('etapaAnimal', function ($q) use ($filters) {
+                $q->where('animal_id', $filters['animal_id']);
+            });
+        }
+
+        if (!empty($filters['etapa_id'])) {
+            $query->whereHas('etapaAnimal', function ($q) use ($filters) {
+                $q->where('etapa_id', $filters['etapa_id']);
+            });
+        }
+
+        if (!empty($filters['etapa_cambio'])) {
+            $query->where('etapa_cambio', $filters['etapa_cambio']);
+        }
+
+        if (!empty($filters['fecha_inicio'])) {
+            $endDate = $filters['fecha_fin'] ?? null;
+            $query->byDateRange($filters['fecha_inicio'], $endDate);
+        }
+
+        // Control de accesos para no administradores
+        if (!$user->isAdmin()) {
+            $propietario = $user->propietario;
+            if (!$propietario) {
+                throw new AuthorizationException('El usuario no está registrado como propietario.');
+            }
+
+            $query->whereHas('animal.rebano.finca', function ($q) use ($propietario) {
+                $q->where('propietario_id', $propietario->id);
+            });
+        }
+
+        if (!empty($filters['nopaginate'])) {
+            return $query->get();
+        }
+
+        return $query->paginate(15);
+    }
+
+    /**
+     * Registra un nuevo log de cambio de animal.
+     *
+     * @param array $data Datos del cambio.
+     * @param mixed $user Usuario que realiza la acción.
+     * @return CambiosAnimal
+     * @throws AuthorizationException
+     */
+    public function createCambio(array $data, $user): CambiosAnimal
+    {
+        // Obtener el animal a través de la etapa seleccionada para verificar permisos
+        $animal = Animal::whereHas('etapaAnimales', function ($q) use ($data) {
+            $q->where('id', $data['animal_etapa_id']);
+        })->firstOrFail();
+
+        if (!$user->isAdmin()) {
+            $propietario = $user->propietario;
+            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
+                throw new AuthorizationException('No tiene permisos para registrar cambios a este animal.');
+            }
+        }
+
+        return CambiosAnimal::create([
+            'animal_etapa_id' => $data['animal_etapa_id'],
+            'fecha_cambio'    => $data['fecha_cambio'] ?? now()->toDateString(),
+            'etapa_cambio'    => $data['etapa_cambio'] ?? null,
+            'peso'            => $data['peso'],
+            'altura'          => $data['altura'],
+            'comentario'      => $data['comentario'] ?? null,
+        ]);
+    }
+
+    /**
+     * Actualiza un log de cambio existente.
+     *
+     * @param int $id ID del registro de CambiosAnimal.
+     * @param array $data Datos a actualizar.
+     * @param mixed $user Usuario que realiza la acción.
+     * @return CambiosAnimal
+     * @throws ModelNotFoundException
+     * @throws AuthorizationException
+     */
+    public function updateCambio(int $id, array $data, $user): CambiosAnimal
+    {
+        $cambio = CambiosAnimal::findOrFail($id);
+        $animal = $cambio->animal;
+
+        if (!$user->isAdmin()) {
+            $propietario = $user->propietario;
+            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
+                throw new AuthorizationException('No tiene permisos para editar estos cambios de animal.');
+            }
+        }
+
+        $payload = [];
+        if (array_key_exists('fecha_cambio', $data)) $payload['fecha_cambio'] = $data['fecha_cambio'];
+        if (array_key_exists('etapa_cambio', $data)) $payload['etapa_cambio'] = $data['etapa_cambio'];
+        if (array_key_exists('peso', $data)) $payload['peso'] = $data['peso'];
+        if (array_key_exists('altura', $data)) $payload['altura'] = $data['altura'];
+        if (array_key_exists('comentario', $data)) $payload['comentario'] = $data['comentario'];
+
+        $cambio->update($payload);
+
+        return $cambio;
+    }
+
+    /**
+     * Elimina un log de cambio de animal.
+     *
+     * @param int $id ID del registro de CambiosAnimal.
+     * @param mixed $user Usuario que realiza la acción.
+     * @return bool
+     * @throws ModelNotFoundException
+     * @throws AuthorizationException
+     */
+    public function deleteCambio(int $id, $user): bool
+    {
+        $cambio = CambiosAnimal::findOrFail($id);
+        $animal = $cambio->animal;
+
+        if (!$user->isAdmin()) {
+            $propietario = $user->propietario;
+            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
+                throw new AuthorizationException('No tiene permisos para eliminar estos cambios de animal.');
+            }
+        }
+
+        return $cambio->delete();
+    }
+
+    /**
+     * Obtiene un registro de cambio específico por su ID.
+     *
+     * @param int $id ID del cambio.
+     * @param mixed $user Usuario.
+     * @return CambiosAnimal
+     * @throws ModelNotFoundException
+     * @throws AuthorizationException
+     */
+    public function getCambioById(int $id, $user): CambiosAnimal
+    {
+        $cambio = CambiosAnimal::with(['etapaAnimal'])->findOrFail($id);
+        $animal = $cambio->animal;
+
+        if (!$user->isAdmin()) {
+            $propietario = $user->propietario;
+            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
+                throw new AuthorizationException('No tiene permisos para ver estos cambios de animal.');
+            }
+        }
+
+        return $cambio;
+    }
+}
