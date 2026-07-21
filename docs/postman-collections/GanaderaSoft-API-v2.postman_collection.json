@@ -7264,6 +7264,118 @@
             "name": "🏷️ Tipos de Animal",
             "item": [
                 {
+                    "name": "Create Tipo de Animal (Admin only)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"tipo_animal_nombre\": \"Bovino Criollo\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/tipos-animal",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tipos-animal"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Tipo de Animal (Admin only)",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/tipos-animal/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tipos-animal",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Tipo de Animal",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/tipos-animal/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tipos-animal",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
                     "name": "List Tipos de Animal",
                     "request": {
                         "method": "GET",
@@ -7350,83 +7462,6 @@
                     "response": []
                 },
                 {
-                    "name": "Create Tipo de Animal (Admin only)",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Accept",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "X-API-VERSION",
-                                "value": "2",
-                                "type": "text",
-                                "disabled": true
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}",
-                                "type": "text"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"tipo_animal_nombre\": \"Bovino Criollo\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{base_url}}/api/tipos-animal",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "api",
-                                "tipos-animal"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Get Tipo de Animal",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "X-API-VERSION",
-                                "value": "2",
-                                "type": "text",
-                                "disabled": true
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}",
-                                "type": "text"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/api/tipos-animal/1",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "api",
-                                "tipos-animal",
-                                "1"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
                     "name": "Update Tipo de Animal (Admin only)",
                     "request": {
                         "method": "PUT",
@@ -7468,9 +7503,175 @@
                         }
                     },
                     "response": []
+                }
+            ]
+        },
+        {
+            "name": "🧬 Tipos de Animal",
+            "item": [
+                {
+                    "name": "List Tipo Animal",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/tipos-animal",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tipos-animal"
+                            ],
+                            "query": [
+                                {
+                                    "key": "nopaginate",
+                                    "value": "true",
+                                    "disabled": true
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
                 },
                 {
-                    "name": "Delete Tipo de Animal (Admin only)",
+                    "name": "Get Tipo Animal",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/tipos-animal/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tipos-animal",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Tipo Animal",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"tipo_animal_nombre\": \"Bovino Nuevo\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/tipos-animal",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tipos-animal"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Tipo Animal",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"tipo_animal_nombre\": \"Bovino Modificado\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/tipos-animal/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "tipos-animal",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Tipo Animal",
                     "request": {
                         "method": "DELETE",
                         "header": [
