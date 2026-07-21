@@ -199,6 +199,7 @@ class NormalizeShow
             'etan_animal_id' => $etapaAnimal['animal_id'] ?? ($etapaAnimal['animal']['id'] ?? null),
             'etan_fecha_ini' => $etapaAnimal['fecha_ini'] ?? null,
             'etan_fecha_fin' => $etapaAnimal['fecha_fin'] ?? null,
+            'Nombre' => $etapa['nombre'] ?? '',
             'etapa' => $etapaLegacy,
         ];
     }
