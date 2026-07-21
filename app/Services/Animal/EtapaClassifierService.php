@@ -235,20 +235,20 @@ class EtapaClassifierService
     }
 
     /**
-     * Normaliza el campo sexo para usar consistentemente 'M' (Macho) o 'F' (Hembra).
+     * Normaliza el campo sexo para usar consistentemente 'M' (Macho) o 'H' (Hembra).
      *
      * @param string|null $sex Sexo original.
-     * @return string Sexo normalizado ('M' o 'F').
+     * @return string Sexo normalizado ('M' o 'H').
      */
     private function normalizeSex(?string $sex): string
     {
         $value = strtoupper((string) $sex);
 
-        // 'H' (Hembra) se normaliza a 'F' (Femenino)
-        if ($value === 'H') {
-            return 'F';
+        // 'F' (Femenino) se normaliza a 'H' (Hembra)
+        if ($value === 'F' || $value === 'FEMENINO' || $value === 'HEMBRA') {
+            return 'H';
         }
 
-        return $value === 'M' ? 'M' : 'F';
+        return $value === 'M' ? 'M' : 'H';
     }
 }

@@ -131,7 +131,7 @@ class EtapaClassifierServiceTest extends TestCase
             'rebano_id' => $this->rebano->id,
             'nombre' => 'Espumita',
             'codigo_animal' => 'ESPU-002',
-            'sexo' => 'F',
+            'sexo' => 'H',
             'fecha_nacimiento' => now()->subDays(120),
             'archivado' => false,
             'composicion_raza_id' => $raza->id,
@@ -269,7 +269,7 @@ class EtapaClassifierServiceTest extends TestCase
             'rebano_id' => $this->rebano->id,
             'nombre' => 'Vaca Vieja',
             'codigo_animal' => 'VACA-999',
-            'sexo' => 'F',
+            'sexo' => 'H',
             'fecha_nacimiento' => now()->subDays(1000), // 1000 días (adulta por edad)
             'archivado' => false,
             'composicion_raza_id' => $raza->id,
@@ -292,7 +292,7 @@ class EtapaClassifierServiceTest extends TestCase
             'rebano_id' => $this->rebano->id,
             'nombre' => 'Bufala Joven',
             'codigo_animal' => 'BUF-080',
-            'sexo' => 'F',
+            'sexo' => 'H',
             'fecha_nacimiento' => now()->subDays(800), // 800 días (en la brecha)
             'archivado' => false,
             'composicion_raza_id' => $raza->id,

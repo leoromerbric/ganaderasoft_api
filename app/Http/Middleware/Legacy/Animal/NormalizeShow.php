@@ -132,7 +132,7 @@ class NormalizeShow
             'id_Rebano' => $animal['rebano_id'] ?? ($rebano['id'] ?? null),
             'Nombre' => $animal['nombre'] ?? null,
             'codigo_animal' => $animal['codigo_animal'] ?? null,
-            'Sexo' => $animal['sexo'] ?? null,
+            'Sexo' => isset($animal['sexo']) && $animal['sexo'] === 'H' ? 'F' : ($animal['sexo'] ?? null),
             'fecha_nacimiento' => $animal['fecha_nacimiento'] ?? null,
             'Procedencia' => $animal['procedencia'] ?? null,
             'archivado' => $animal['archivado'] ?? false,

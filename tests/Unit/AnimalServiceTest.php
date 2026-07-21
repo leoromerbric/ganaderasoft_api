@@ -102,7 +102,7 @@ class AnimalServiceTest extends TestCase
             'rebano_id' => $this->rebano->id,
             'nombre' => 'Animal Unitario',
             'codigo_animal' => 'UNIT-9876',
-            'sexo' => 'F',
+            'sexo' => 'H',
             'fecha_nacimiento' => '2024-05-01',
             'procedencia' => 'Compra',
             'composicion_raza_id' => $this->raza->id,
@@ -113,7 +113,7 @@ class AnimalServiceTest extends TestCase
         $this->assertNotNull($animal);
         $this->assertEquals('Animal Unitario', $animal->nombre);
         $this->assertEquals('UNIT-9876', $animal->codigo_animal);
-        $this->assertEquals('F', $animal->sexo);
+        $this->assertEquals('H', $animal->sexo);
         $this->assertDatabaseHas('animals', ['codigo_animal' => 'UNIT-9876']);
     }
 

@@ -79,16 +79,14 @@ class AnimalController extends Controller
     {
         if ($request->has('sexo')) {
             $sex = strtoupper((string) $request->sexo);
-            if ($sex === 'H') {
-                $request->merge(['sexo' => 'F']);
-            }
+            $request->merge(['sexo' => $sex]);
         }
 
         $validator = Validator::make($request->all(), [
             'rebano_id' => 'required|exists:rebanos,id',
             'nombre' => 'nullable|string|max:25',
             'codigo_animal' => 'nullable|string|max:20|unique:animals,codigo_animal',
-            'sexo' => 'required|in:M,F',
+            'sexo' => 'required|in:M,H',
             'fecha_nacimiento' => 'required|date',
             'procedencia' => 'nullable|string|max:50',
             'composicion_raza_id' => 'required|exists:composicion_razas,id',
@@ -173,16 +171,14 @@ class AnimalController extends Controller
     {
         if ($request->has('sexo')) {
             $sex = strtoupper((string) $request->sexo);
-            if ($sex === 'H') {
-                $request->merge(['sexo' => 'F']);
-            }
+            $request->merge(['sexo' => $sex]);
         }
 
         $validator = Validator::make($request->all(), [
             'rebano_id' => 'sometimes|exists:rebanos,id',
             'nombre' => 'nullable|string|max:25',
             'codigo_animal' => 'nullable|string|max:20|unique:animals,codigo_animal,' . $id . ',id',
-            'sexo' => 'sometimes|in:M,F',
+            'sexo' => 'sometimes|in:M,H',
             'fecha_nacimiento' => 'sometimes|date',
             'procedencia' => 'nullable|string|max:50',
             'composicion_raza_id' => 'sometimes|exists:composicion_razas,id'
