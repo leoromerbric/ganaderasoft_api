@@ -3,37 +3,40 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Sanidad\TratamientoResource;
+use App\Http\Middleware\Legacy\Sanidad\NormalizeIndexTratamiento;
+use App\Http\Middleware\Legacy\Sanidad\NormalizeShowTratamiento;
+use App\Http\Middleware\Legacy\Sanidad\NormalizeStoreTratamiento;
+use App\Http\Middleware\Legacy\Sanidad\NormalizeUpdateTratamiento;
 use App\Services\Sanidad\TratamientoService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class TratamientoController extends Controller
 {
-    protected $tratamientoService;
-
-    public function __construct(TratamientoService $tratamientoService)
-    {
-        $this->tratamientoService = $tratamientoService;
+    public function __construct(
+        protected TratamientoService $tratamientoService
+    ) {
+        $this->middleware(NormalizeIndexTratamiento::class)->only('index');
+        $this->middleware(NormalizeShowTratamiento::class)->only('show');
+        $this->middleware(NormalizeStoreTratamiento::class)->only('store');
+        $this->middleware(NormalizeUpdateTratamiento::class)->only('update');
     }
 
     public function index(Request $request)
     {
-        $filters = $request->only(['diagnostico_id', 'fecha_inicio', 'fecha_fin']);
+        $filters = $request->only(['diagnostico_id', 'fecha_inicio', 'fecha_fin', 'nopaginate']);
         
         $records = $this->tratamientoService->getPaginatedTratamientos($filters, $request->user());
 
         return response()->json([
-            'success'    => true,
-            'message'    => 'Tratamientos obtenidos exitosamente',
-            'data'       => $records->items(),
-            'pagination' => [
-                'current_page' => $records->currentPage(),
-                'last_page'    => $records->lastPage(),
-                'per_page'     => $records->perPage(),
-                'total'        => $records->total(),
-            ],
-        ]);
+            'success' => true,
+            'message' => 'Tratamientos obtenidos exitosamente',
+            'data'    => $this->formatCollection(TratamientoResource::class, $records),
+        ], Response::HTTP_OK);
     }
 
     public function store(Request $request)
@@ -42,33 +45,51 @@ class TratamientoController extends Controller
             'plan'           => 'nullable|string|max:255',
             'fecha_ini'      => 'required|date',
             'fecha_fin'      => 'nullable|date|after_or_equal:fecha_ini',
-            'diagnostico_id' => 'nullable|exists:diagnosticos,id',
+            'diagnostico_id' => 'required|exists:diagnosticos,id',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return response()->json([
+                'success' => false, 
+                'message' => 'Datos de validación incorrectos',
+                'errors'  => $validator->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $tratamiento = $this->tratamientoService->createTratamiento($request->only([
-            'plan', 'fecha_ini', 'fecha_fin', 'diagnostico_id'
-        ]));
+        try {
+            $tratamiento = $this->tratamientoService->createTratamiento($request->only([
+                'plan', 'fecha_ini', 'fecha_fin', 'diagnostico_id'
+            ]));
 
-        return response()->json([
-            'success' => true, 
-            'message' => 'Tratamiento registrado', 
-            'data'    => $tratamiento
-        ], Response::HTTP_CREATED);
+            return response()->json([
+                'success' => true, 
+                'message' => 'Tratamiento registrado exitosamente', 
+                'data'    => $this->formatResource(TratamientoResource::class, $tratamiento)
+            ], Response::HTTP_CREATED);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
+        }
     }
 
     public function show($id)
     {
-        $tratamiento = $this->tratamientoService->getTratamientoById($id);
-
-        if (!$tratamiento) {
-            return response()->json(['success' => false, 'message' => 'Tratamiento no encontrado'], Response::HTTP_NOT_FOUND);
+        try {
+            $tratamiento = $this->tratamientoService->getTratamientoById((int)$id);
+            
+            return response()->json([
+                'success' => true, 
+                'message' => 'Tratamiento obtenido exitosamente',
+                'data'    => $this->formatResource(TratamientoResource::class, $tratamiento)
+            ], Response::HTTP_OK);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Tratamiento no encontrado'
+            ], Response::HTTP_NOT_FOUND);
         }
-        
-        return response()->json(['success' => true, 'data' => $tratamiento]);
     }
 
     public function update(Request $request, $id)
@@ -81,28 +102,55 @@ class TratamientoController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], Response::HTTP_UNPROCESSABLE_ENTITY);
+            return response()->json([
+                'success' => false, 
+                'message' => 'Datos de validación incorrectos',
+                'errors'  => $validator->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $tratamiento = $this->tratamientoService->updateTratamiento($id, $request->only([
-            'plan', 'fecha_ini', 'fecha_fin', 'diagnostico_id'
-        ]));
+        try {
+            $tratamiento = $this->tratamientoService->updateTratamiento((int)$id, $request->only([
+                'plan', 'fecha_ini', 'fecha_fin', 'diagnostico_id'
+            ]));
 
-        if (!$tratamiento) {
-            return response()->json(['success' => false, 'message' => 'Tratamiento no encontrado'], Response::HTTP_NOT_FOUND);
+            return response()->json([
+                'success' => true, 
+                'message' => 'Tratamiento actualizado exitosamente', 
+                'data'    => $this->formatResource(TratamientoResource::class, $tratamiento)
+            ], Response::HTTP_OK);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Tratamiento no encontrado'
+            ], Response::HTTP_NOT_FOUND);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
         }
-
-        return response()->json(['success' => true, 'message' => 'Tratamiento actualizado', 'data' => $tratamiento]);
     }
 
     public function destroy($id)
     {
-        $deleted = $this->tratamientoService->deleteTratamiento($id);
-
-        if (!$deleted) {
-            return response()->json(['success' => false, 'message' => 'Tratamiento no encontrado'], Response::HTTP_NOT_FOUND);
+        try {
+            $this->tratamientoService->deleteTratamiento((int)$id);
+            
+            return response()->json([
+                'success' => true, 
+                'message' => 'Tratamiento eliminado exitosamente'
+            ], Response::HTTP_OK);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Tratamiento no encontrado'
+            ], Response::HTTP_NOT_FOUND);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
         }
-        
-        return response()->json(['success' => true, 'message' => 'Tratamiento eliminado']);
     }
 }

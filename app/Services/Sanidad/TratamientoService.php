@@ -49,7 +49,7 @@ class TratamientoService
      */
     public function getTratamientoById($id)
     {
-        return Tratamiento::with(['diagnostico.etapaAnimal.animal'])->find($id);
+        return Tratamiento::with(['diagnostico.etapaAnimal.animal'])->findOrFail($id);
     }
 
     /**
@@ -57,14 +57,10 @@ class TratamientoService
      */
     public function updateTratamiento($id, array $data)
     {
-        $tratamiento = Tratamiento::find($id);
-
-        if (!$tratamiento) {
-            return null;
-        }
+        $tratamiento = Tratamiento::findOrFail($id);
 
         $tratamiento->update($data);
-        return $tratamiento;
+        return $tratamiento->load(['diagnostico.etapaAnimal.animal']);
     }
 
     /**
@@ -72,11 +68,7 @@ class TratamientoService
      */
     public function deleteTratamiento($id)
     {
-        $tratamiento = Tratamiento::find($id);
-
-        if (!$tratamiento) {
-            return false;
-        }
+        $tratamiento = Tratamiento::findOrFail($id);
         
         $tratamiento->delete();
         return true;
