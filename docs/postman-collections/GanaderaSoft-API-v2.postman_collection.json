@@ -2268,7 +2268,7 @@
             "name": "🏥 Estado Salud",
             "item": [
                 {
-                    "name": "Estados de Salud",
+                    "name": "List Estados de Salud",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -2289,13 +2289,13 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/api/etapas",
+                            "raw": "{{base_url}}/api/estados-salud",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
                                 "api",
-                                "etapas"
+                                "estados-salud"
                             ],
                             "query": [
                                 {
@@ -2313,48 +2313,6 @@
                                     "value": "true",
                                     "disabled": true
                                 }
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Create Estado Salud(Admin Only)",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Accept",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "X-API-VERSION",
-                                "value": "2",
-                                "type": "text",
-                                "disabled": true
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}",
-                                "type": "text"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"estado_nombre\": \"Mejorando\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{base_url}}/api/estados-salud",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "api",
-                                "estados-salud"
                             ]
                         }
                     },
@@ -2382,14 +2340,56 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/api/etapas/1",
+                            "raw": "{{base_url}}/api/estados-salud/1",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
                                 "api",
-                                "etapas",
+                                "estados-salud",
                                 "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Estado de Salud (Admin Only)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"estado_nombre\": \"Nuevo Estado\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/estados-salud",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "estados-salud"
                             ]
                         }
                     },
@@ -2460,13 +2460,13 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/api/etapas/1",
+                            "raw": "{{base_url}}/api/estados-salud/1",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
                                 "api",
-                                "etapas",
+                                "estados-salud",
                                 "1"
                             ]
                         }
