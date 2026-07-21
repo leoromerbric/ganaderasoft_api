@@ -3,6 +3,9 @@
 namespace App\Services\Sanidad;
 
 use App\Models\Diagnostico;
+use App\Models\EtapaAnimal;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class DiagnosticoService
 {
@@ -28,6 +31,10 @@ class DiagnosticoService
             $query->whereBetween('fecha', [$filters['fecha_inicio'], $fechaFin]);
         }
 
+        if (isset($filters['nopaginate'])) {
+            return $query->get();
+        }
+
         // Adapted authorization logic targeting the propietario_id column on fincas
         if (!$user->isAdmin() && $user->isPropietario()) {
             $propietario = $user->propietario;
@@ -46,8 +53,18 @@ class DiagnosticoService
      */
     public function createDiagnostico(array $data)
     {
+        if (!isset($data['animal_etapa_id']) && isset($data['animal_id']) && isset($data['etapa_id'])) {
+            $etapaAnimal = EtapaAnimal::where('animal_id', $data['animal_id'])
+                ->where('etapa_id', $data['etapa_id'])
+                ->first();
+            
+            if ($etapaAnimal) {
+                $data['animal_etapa_id'] = $etapaAnimal->id;
+            }
+        }
+
         $diagnostico = Diagnostico::create($data);
-        return $diagnostico->load('etapaAnimal.animal');
+        return $diagnostico->load(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tratamientos']);
     }
 
     /**
@@ -55,7 +72,7 @@ class DiagnosticoService
      */
     public function getDiagnosticoById($id)
     {
-        return Diagnostico::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tratamientos'])->find($id);
+        return Diagnostico::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tratamientos'])->findOrFail($id);
     }
 
     /**
@@ -63,14 +80,20 @@ class DiagnosticoService
      */
     public function updateDiagnostico($id, array $data)
     {
-        $diagnostico = Diagnostico::find($id);
-        
-        if (!$diagnostico) {
-            return null;
+        $diagnostico = Diagnostico::findOrFail($id);
+
+        if (!isset($data['animal_etapa_id']) && isset($data['animal_id']) && isset($data['etapa_id'])) {
+            $etapaAnimal = EtapaAnimal::where('animal_id', $data['animal_id'])
+                ->where('etapa_id', $data['etapa_id'])
+                ->first();
+            
+            if ($etapaAnimal) {
+                $data['animal_etapa_id'] = $etapaAnimal->id;
+            }
         }
 
         $diagnostico->update($data);
-        return $diagnostico;
+        return $diagnostico->load(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tratamientos']);
     }
 
     /**
@@ -78,13 +101,7 @@ class DiagnosticoService
      */
     public function deleteDiagnostico($id)
     {
-        $diagnostico = Diagnostico::find($id);
-        
-        if (!$diagnostico) {
-            return false;
-        }
-        
-        $diagnostico->delete();
-        return true;
+        $diagnostico = Diagnostico::findOrFail($id);
+        return $diagnostico->delete();
     }
-}
+}
