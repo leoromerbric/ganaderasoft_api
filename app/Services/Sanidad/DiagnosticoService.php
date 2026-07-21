@@ -60,6 +60,10 @@ class DiagnosticoService
             
             if ($etapaAnimal) {
                 $data['animal_etapa_id'] = $etapaAnimal->id;
+            } else {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'animal_etapa_id' => ['La combinación de animal y etapa no existe en los registros.']
+                ]);
             }
         }
 
@@ -89,6 +93,10 @@ class DiagnosticoService
             
             if ($etapaAnimal) {
                 $data['animal_etapa_id'] = $etapaAnimal->id;
+            } else {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'animal_etapa_id' => ['La combinación de animal y etapa no existe en los registros.']
+                ]);
             }
         }
 

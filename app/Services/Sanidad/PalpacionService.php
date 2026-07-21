@@ -3,6 +3,9 @@
 namespace App\Services\Sanidad;
 
 use App\Models\Palpacion;
+use App\Models\EtapaAnimal;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class PalpacionService
 {
@@ -28,6 +31,10 @@ class PalpacionService
             $query->whereBetween('fecha', [$filters['fecha_inicio'], $fechaFin]);
         }
 
+        if (isset($filters['nopaginate'])) {
+            return $query->get();
+        }
+
         // Authorization logic: Filter by propietario_id if the user is not an admin
         if (!$user->isAdmin() && $user->isPropietario()) {
             $propietario = $user->propietario;
@@ -46,8 +53,22 @@ class PalpacionService
      */
     public function createPalpacion(array $data)
     {
+        if (!isset($data['animal_etapa_id']) && isset($data['animal_id']) && isset($data['etapa_id'])) {
+            $etapaAnimal = EtapaAnimal::where('animal_id', $data['animal_id'])
+                ->where('etapa_id', $data['etapa_id'])
+                ->first();
+            
+            if ($etapaAnimal) {
+                $data['animal_etapa_id'] = $etapaAnimal->id;
+            } else {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'animal_etapa_id' => ['La combinación de animal y etapa no existe en los registros.']
+                ]);
+            }
+        }
+
         $palpacion = Palpacion::create($data);
-        return $palpacion->load(['etapaAnimal.animal', 'tecnico']);
+        return $palpacion->load(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tecnico']);
     }
 
     /**
@@ -55,7 +76,7 @@ class PalpacionService
      */
     public function getPalpacionById($id)
     {
-        return Palpacion::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tecnico'])->find($id);
+        return Palpacion::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tecnico'])->findOrFail($id);
     }
 
     /**
@@ -63,14 +84,24 @@ class PalpacionService
      */
     public function updatePalpacion($id, array $data)
     {
-        $palpacion = Palpacion::find($id);
+        $palpacion = Palpacion::findOrFail($id);
 
-        if (!$palpacion) {
-            return null;
+        if (!isset($data['animal_etapa_id']) && isset($data['animal_id']) && isset($data['etapa_id'])) {
+            $etapaAnimal = EtapaAnimal::where('animal_id', $data['animal_id'])
+                ->where('etapa_id', $data['etapa_id'])
+                ->first();
+            
+            if ($etapaAnimal) {
+                $data['animal_etapa_id'] = $etapaAnimal->id;
+            } else {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'animal_etapa_id' => ['La combinación de animal y etapa no existe en los registros.']
+                ]);
+            }
         }
 
         $palpacion->update($data);
-        return $palpacion;
+        return $palpacion->load(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tecnico']);
     }
 
     /**
@@ -78,13 +109,7 @@ class PalpacionService
      */
     public function deletePalpacion($id)
     {
-        $palpacion = Palpacion::find($id);
-
-        if (!$palpacion) {
-            return false;
-        }
-        
-        $palpacion->delete();
-        return true;
+        $palpacion = Palpacion::findOrFail($id);
+        return $palpacion->delete();
     }
-}
+}
