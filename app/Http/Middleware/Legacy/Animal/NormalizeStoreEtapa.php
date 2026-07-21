@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class NormalizeUpdateEtapa
+class NormalizeStoreEtapa
 {
     /**
      * Handle an incoming request.
@@ -38,14 +38,13 @@ class NormalizeUpdateEtapa
      */
     private function transformToCleanFormat(array $input): array
     {
-        $payload = [];
-        if (array_key_exists('etapa_nombre', $input)) $payload['nombre'] = $input['etapa_nombre'];
-        if (array_key_exists('etapa_edad_ini', $input)) $payload['edad_ini'] = $input['etapa_edad_ini'];
-        if (array_key_exists('etapa_edad_fin', $input)) $payload['edad_fin'] = $input['etapa_edad_fin'];
-        if (array_key_exists('etapa_fk_tipo_animal_id', $input)) $payload['tipo_animal_id'] = $input['etapa_fk_tipo_animal_id'];
-        if (array_key_exists('etapa_sexo', $input)) $payload['sexo'] = $input['etapa_sexo'];
-
-        return $payload;
+        return [
+            'nombre'         => $input['etapa_nombre'] ?? null,
+            'edad_ini'       => $input['etapa_edad_ini'] ?? null,
+            'edad_fin'       => $input['etapa_edad_fin'] ?? null,
+            'tipo_animal_id' => $input['etapa_fk_tipo_animal_id'] ?? null,
+            'sexo'           => $input['etapa_sexo'] ?? null,
+        ];
     }
 
     /**

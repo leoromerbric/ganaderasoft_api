@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class NormalizeUpdateEtapa
+class NormalizeShowEtapa
 {
     /**
      * Handle an incoming request.
@@ -38,14 +38,7 @@ class NormalizeUpdateEtapa
      */
     private function transformToCleanFormat(array $input): array
     {
-        $payload = [];
-        if (array_key_exists('etapa_nombre', $input)) $payload['nombre'] = $input['etapa_nombre'];
-        if (array_key_exists('etapa_edad_ini', $input)) $payload['edad_ini'] = $input['etapa_edad_ini'];
-        if (array_key_exists('etapa_edad_fin', $input)) $payload['edad_fin'] = $input['etapa_edad_fin'];
-        if (array_key_exists('etapa_fk_tipo_animal_id', $input)) $payload['tipo_animal_id'] = $input['etapa_fk_tipo_animal_id'];
-        if (array_key_exists('etapa_sexo', $input)) $payload['sexo'] = $input['etapa_sexo'];
-
-        return $payload;
+        return $input;
     }
 
     /**
@@ -61,6 +54,23 @@ class NormalizeUpdateEtapa
             ];
         }
 
+        $etapaAnimalesLegacy = [];
+        if (isset($item['etapa_animales'])) {
+            foreach ($item['etapa_animales'] as $ea) {
+                $etapaAnimalesLegacy[] = [
+                    'id_Etapa_Animal'   => $ea['id'] ?? null,
+                    'etan_fecha_ini'    => isset($ea['fecha_ini']) ? $ea['fecha_ini'] . 'T00:00:00.000000Z' : null,
+                    'etan_fecha_fin'    => isset($ea['fecha_fin']) ? $ea['fecha_fin'] . 'T00:00:00.000000Z' : null,
+                    'etan_fk_id_animal' => $ea['animal_id'] ?? null,
+                    'etan_fk_id_etapa'  => $ea['etapa_id'] ?? null,
+                    'animal'            => isset($ea['animal']) ? [
+                        'id_Animal' => $ea['animal']['id'],
+                        'Nombre'    => $ea['animal']['nombre']
+                    ] : null
+                ];
+            }
+        }
+
         return [
             'etapa_id'                => $item['id'],
             'etapa_nombre'            => $item['nombre'],
@@ -68,7 +78,8 @@ class NormalizeUpdateEtapa
             'etapa_edad_fin'          => $item['edad_fin'],
             'etapa_fk_tipo_animal_id' => $item['tipo_animal_id'],
             'etapa_sexo'              => $item['sexo'],
-            'tipo_animal'             => $tipoAnimalLegacy
+            'tipo_animal'             => $tipoAnimalLegacy,
+            'etapa_animales'          => $etapaAnimalesLegacy
         ];
     }
 }

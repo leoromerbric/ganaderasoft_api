@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class NormalizeUpdateEtapa
+class NormalizeIndexEtapa
 {
     /**
      * Handle an incoming request.
@@ -18,6 +18,7 @@ class NormalizeUpdateEtapa
         }
 
         $cleanedInput = $this->transformToCleanFormat($request->all());
+        $cleanedInput['nopaginate'] = true;
         $request->replace($cleanedInput);
 
         $response = $next($request);
@@ -25,7 +26,11 @@ class NormalizeUpdateEtapa
         if ($response->isSuccessful()) {
             $data = $response->getData(true);
             if (isset($data['data'])) {
-                $data['data'] = $this->transformToLegacyFormat($data['data']);
+                if (isset($data['data']['data']) && is_array($data['data']['data'])) {
+                    $data['data']['data'] = array_map([$this, 'transformToLegacyFormat'], $data['data']['data']);
+                } else {
+                    $data['data'] = array_map([$this, 'transformToLegacyFormat'], $data['data']);
+                }
                 $response->setData($data);
             }
         }
@@ -38,14 +43,7 @@ class NormalizeUpdateEtapa
      */
     private function transformToCleanFormat(array $input): array
     {
-        $payload = [];
-        if (array_key_exists('etapa_nombre', $input)) $payload['nombre'] = $input['etapa_nombre'];
-        if (array_key_exists('etapa_edad_ini', $input)) $payload['edad_ini'] = $input['etapa_edad_ini'];
-        if (array_key_exists('etapa_edad_fin', $input)) $payload['edad_fin'] = $input['etapa_edad_fin'];
-        if (array_key_exists('etapa_fk_tipo_animal_id', $input)) $payload['tipo_animal_id'] = $input['etapa_fk_tipo_animal_id'];
-        if (array_key_exists('etapa_sexo', $input)) $payload['sexo'] = $input['etapa_sexo'];
-
-        return $payload;
+        return $input;
     }
 
     /**
