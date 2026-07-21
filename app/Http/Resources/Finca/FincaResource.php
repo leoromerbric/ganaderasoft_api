@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Finca;
 
 use App\Http\Resources\Persona\PropietarioResource;
+use App\Http\Resources\Terreno\TerrenoResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -32,6 +33,7 @@ class FincaResource extends JsonResource
             'propietario_id' => $this->when(!$this->relationLoaded('propietario'), $this->propietario_id),
             
             'propietario' => new PropietarioResource($this->whenLoaded('propietario')),
+            'terreno' => new TerrenoResource($this->whenLoaded('terreno')),
         ];
     }
 }

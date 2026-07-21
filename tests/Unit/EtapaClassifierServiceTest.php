@@ -55,7 +55,7 @@ class EtapaClassifierServiceTest extends TestCase
         $persona = Persona::create([
             'nombre' => 'Juan',
             'apellido' => 'Perez',
-            'cedula' => '12345678',
+            'cedula' => 'V12345678',
             'telefono' => '123456',
             'direccion' => 'Finca Test',
             'status' => 'activo',

@@ -22,6 +22,7 @@ class PropietarioResource extends JsonResource
         return [
             'id' => $this->id,
             'persona' => new PersonaResource($this->whenLoaded('persona')),
+            'fincas' => \App\Http\Resources\Finca\FincaResource::collection($this->whenLoaded('fincas')),
         ];
     }
 }

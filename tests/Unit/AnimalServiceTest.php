@@ -53,7 +53,7 @@ class AnimalServiceTest extends TestCase
         $persona = Persona::create([
             'nombre' => 'Admin',
             'apellido' => 'Test',
-            'cedula' => '99999999',
+            'cedula' => 'V99999999',
             'telefono' => '12345678',
             'direccion' => 'Soporte',
             'status' => 'activo',
