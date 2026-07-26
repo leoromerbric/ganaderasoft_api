@@ -4,6 +4,7 @@ namespace App\Services\Reproduccion;
 
 use App\Models\RegistroCelo;
 use App\Models\EtapaAnimal;
+use App\Models\Animal;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
@@ -64,6 +65,12 @@ class RegistroCeloService
             }
         }
 
+        if (isset($data['animal_etapa_id'])) {
+            $this->validateFemaleEtapaAnimal($data['animal_etapa_id']);
+        } elseif (isset($data['animal_id'])) {
+            $this->validateFemaleAnimal($data['animal_id']);
+        }
+
         $celo = RegistroCelo::create([
             'animal_etapa_id' => $data['animal_etapa_id'],
             'fecha'           => $data['fecha'],
@@ -102,6 +109,12 @@ class RegistroCeloService
             }
         }
 
+        if (isset($data['animal_etapa_id']) && $data['animal_etapa_id'] != $celo->animal_etapa_id) {
+            $this->validateFemaleEtapaAnimal($data['animal_etapa_id']);
+        } elseif (isset($data['animal_id'])) {
+            $this->validateFemaleAnimal($data['animal_id']);
+        }
+
         $updatePayload = [];
         if (array_key_exists('animal_etapa_id', $data)) {
             $updatePayload['animal_etapa_id'] = $data['animal_etapa_id'];
@@ -125,5 +138,35 @@ class RegistroCeloService
     {
         $celo = RegistroCelo::findOrFail($id);
         return $celo->delete();
+    }
+
+    /**
+     * Valida que el animal asociado a etapa_animal sea hembra ('H').
+     */
+    private function validateFemaleEtapaAnimal($etapaAnimalId): void
+    {
+        $etapaAnimal = EtapaAnimal::with('animal')->findOrFail($etapaAnimalId);
+        if ($etapaAnimal->animal) {
+            $sexo = strtoupper((string) $etapaAnimal->animal->sexo);
+            if (!in_array($sexo, ['H', 'F', 'HEMBRA', 'FEMENINO'], true)) {
+                throw ValidationException::withMessages([
+                    'animal_etapa_id' => ['El registro de celo solo puede ser creado para animales hembras (H).']
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Valida que el animal sea hembra ('H').
+     */
+    private function validateFemaleAnimal($animalId): void
+    {
+        $animal = Animal::findOrFail($animalId);
+        $sexo = strtoupper((string) $animal->sexo);
+        if (!in_array($sexo, ['H', 'F', 'HEMBRA', 'FEMENINO'], true)) {
+            throw ValidationException::withMessages([
+                'animal_id' => ['El registro de celo solo puede ser creado para animales hembras (H).']
+            ]);
+        }
     }
 }
