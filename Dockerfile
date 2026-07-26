@@ -97,7 +97,9 @@ php artisan cache:clear
 # Start Apache
 apache2-foreground
 ENTRYPOINT
-RUN chmod +x /usr/local/bin/entrypoint.sh
+# Make executable and strip Windows line endings (CRLF -> LF)
+RUN chmod +x /usr/local/bin/entrypoint.sh && \
+    sed -i 's/\r$//' /usr/local/bin/entrypoint.sh
 
 EXPOSE 80
 
