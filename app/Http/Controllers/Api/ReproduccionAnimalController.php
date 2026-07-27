@@ -45,7 +45,7 @@ class ReproduccionAnimalController extends Controller
             'fecha_reproduccion' => 'required|date',
             'tipo_reproduccion'  => 'nullable|string|max:16',
             'observacion'        => 'nullable|string|max:100',
-            'animal_etapa_id'    => 'required_without_all:animal_id,etapa_id|exists:etapa_animals,id',
+            'animal_etapa_id'    => 'required_without_all:animal_id,etapa_id|exists:animal_etapa,id',
             'animal_id'          => 'required_without:animal_etapa_id|exists:animals,id',
             'etapa_id'           => 'required_without:animal_etapa_id|exists:etapas,id',
         ]);
@@ -99,7 +99,7 @@ class ReproduccionAnimalController extends Controller
             'fecha_reproduccion' => 'sometimes|date',
             'tipo_reproduccion'  => 'nullable|string|max:16',
             'observacion'        => 'nullable|string|max:100',
-            'animal_etapa_id'    => 'nullable|exists:etapa_animals,id',
+            'animal_etapa_id'    => 'nullable|exists:animal_etapa,id',
             'animal_id'          => 'nullable|exists:animals,id',
             'etapa_id'           => 'nullable|exists:etapas,id',
         ]);
