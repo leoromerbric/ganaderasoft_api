@@ -7,13 +7,21 @@ use App\Models\EtapaAnimal;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Auth\Access\AuthorizationException;
 
-class DiagnosticoService
+use App\Services\BaseService;
+
+class DiagnosticoService extends BaseService
 {
     /**
-     * Retrieve paginated diagnosticos with applied filters and user authorization.
+     * Obtiene una lista paginada de diagnósticos basándose en los filtros y la autorización del usuario.
      */
-    public function getPaginatedDiagnosticos(array $filters, $user, $perPage = 15)
+    public function getPaginatedDiagnosticos(array $filters, $user = null, $perPage = 15)
     {
+        $user = $user ?? auth()->user();
+
+        if ($user->cannot('readAny', Diagnostico::class)) {
+            throw new AuthorizationException('Sin permisos para listar diagnósticos.');
+        }
+
         $query = Diagnostico::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tratamientos']);
 
         if (isset($filters['animal_id'])) {
@@ -31,28 +39,22 @@ class DiagnosticoService
             $query->whereBetween('fecha', [$filters['fecha_inicio'], $fechaFin]);
         }
 
+        $this->applyFincaFilter($query, $user, 'animal.rebano');
+
         if (isset($filters['nopaginate'])) {
             return $query->get();
-        }
-
-        // Adapted authorization logic targeting the propietario_id column on fincas
-        if (!$user->isAdmin() && $user->isPropietario()) {
-            $propietario = $user->propietario;
-            if ($propietario) {
-                $query->whereHas('etapaAnimal.animal.rebano.finca', function ($q) use ($propietario) {
-                    $q->where('propietario_id', $propietario->id);
-                });
-            }
         }
 
         return $query->paginate($perPage);
     }
 
     /**
-     * Create a new Diagnostico.
+     * Crea un nuevo registro de diagnóstico.
      */
-    public function createDiagnostico(array $data)
+    public function createDiagnostico(array $data, $user = null)
     {
+        $user = $user ?? auth()->user();
+
         if (!isset($data['animal_etapa_id']) && isset($data['animal_id']) && isset($data['etapa_id'])) {
             $etapaAnimal = EtapaAnimal::where('animal_id', $data['animal_id'])
                 ->where('etapa_id', $data['etapa_id'])
@@ -67,24 +69,40 @@ class DiagnosticoService
             }
         }
 
+        if ($user->cannot('create', [Diagnostico::class, $data['animal_id'] ?? null, $data['animal_etapa_id'] ?? null])) {
+            throw new AuthorizationException('No tiene permisos para registrar diagnóstico a este animal.');
+        }
+
         $diagnostico = Diagnostico::create($data);
         return $diagnostico->load(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tratamientos']);
     }
 
     /**
-     * Fetch a specific Diagnostico by ID with its relationships.
+     * Obtiene un diagnóstico específico por su ID.
      */
-    public function getDiagnosticoById($id)
+    public function getDiagnosticoById($id, $user = null)
     {
-        return Diagnostico::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tratamientos'])->findOrFail($id);
+        $user = $user ?? auth()->user();
+        $diagnostico = Diagnostico::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tratamientos'])->findOrFail($id);
+
+        if ($user->cannot('read', $diagnostico)) {
+            throw new AuthorizationException('No tiene permisos para ver este diagnóstico.');
+        }
+
+        return $diagnostico;
     }
 
     /**
-     * Update an existing Diagnostico.
+     * Actualiza un registro de diagnóstico existente.
      */
-    public function updateDiagnostico($id, array $data)
+    public function updateDiagnostico($id, array $data, $user = null)
     {
+        $user = $user ?? auth()->user();
         $diagnostico = Diagnostico::findOrFail($id);
+
+        if ($user->cannot('update', $diagnostico)) {
+            throw new AuthorizationException('No tiene permisos para actualizar este diagnóstico.');
+        }
 
         if (!isset($data['animal_etapa_id']) && isset($data['animal_id']) && isset($data['etapa_id'])) {
             $etapaAnimal = EtapaAnimal::where('animal_id', $data['animal_id'])
@@ -105,11 +123,17 @@ class DiagnosticoService
     }
 
     /**
-     * Delete an existing Diagnostico.
+     * Elimina un registro de diagnóstico existente.
      */
-    public function deleteDiagnostico($id)
+    public function deleteDiagnostico($id, $user = null)
     {
+        $user = $user ?? auth()->user();
         $diagnostico = Diagnostico::findOrFail($id);
+
+        if ($user->cannot('delete', $diagnostico)) {
+            throw new AuthorizationException('No tiene permisos para eliminar este diagnóstico.');
+        }
+
         return $diagnostico->delete();
     }
 }

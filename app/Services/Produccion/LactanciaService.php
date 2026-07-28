@@ -9,13 +9,19 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 
-class LactanciaService
+use App\Services\BaseService;
+
+class LactanciaService extends BaseService
 {
     /**
-     * Retrieve paginated lactancias with applied filters and authorization.
+     * Obtener registros de lactancia paginados con filtros y autorización aplicada.
      */
     public function getPaginatedLactancias(array $filters, $user, $perPage = 15)
     {
+        if ($user->cannot('readAny', Lactancia::class)) {
+            throw new AuthorizationException('Sin permisos para listar lactancias.');
+        }
+
         $query = Lactancia::with(['animal', 'etapa', 'etapaAnimal', 'lecheRecords']);
 
         if (isset($filters['animal_id'])) {
@@ -33,28 +39,22 @@ class LactanciaService
             $query->byDateRange($filters['fecha_inicio'], $endDate);
         }
 
+        $this->applyFincaFilter($query, $user, 'animal.rebano');
+
         if (isset($filters['nopaginate'])) {
             return $query->get();
         }
 
-        // Control de acceso para propietarios no-administradores
-        if (!$user->isAdmin() && $user->isPropietario()) {
-            $propietario = $user->propietario;
-            if ($propietario) {
-                $query->whereHas('animal.rebano.finca', function ($q) use ($propietario) {
-                    $q->where('propietario_id', $propietario->id);
-                });
-            }
-        }
 
         return $query->paginate($perPage);
     }
 
     /**
-     * Create a new Lactancia record resolving animal_etapa_id and validating female sex.
+     * Crear un nuevo registro de Lactancia resolviendo animal_etapa_id y validando el sexo hembra.
      */
-    public function createLactancia(array $data)
+    public function createLactancia(array $data, $user = null)
     {
+        $user = $user ?? auth()->user();
         if (!isset($data['animal_etapa_id']) && isset($data['animal_id']) && isset($data['etapa_id'])) {
             $etapaAnimal = EtapaAnimal::where('animal_id', $data['animal_id'])
                 ->where('etapa_id', $data['etapa_id'])
@@ -75,6 +75,10 @@ class LactanciaService
             $this->validateFemaleAnimal($data['animal_id']);
         }
 
+        if ($user->cannot('create', [Lactancia::class, $data['animal_id'] ?? null, $data['animal_etapa_id'] ?? null])) {
+            throw new AuthorizationException('No tiene permisos para registrar lactancia a este animal.');
+        }
+
         $lactancia = Lactancia::create([
             'animal_etapa_id' => $data['animal_etapa_id'],
             'fecha_inicio'    => $data['fecha_inicio'],
@@ -86,19 +90,31 @@ class LactanciaService
     }
 
     /**
-     * Fetch a specific Lactancia by ID with relationships.
+     * Obtener una Lactancia específica por ID con sus relaciones.
      */
-    public function getLactanciaById($id)
+    public function getLactanciaById($id, $user = null)
     {
-        return Lactancia::with(['animal', 'etapa', 'etapaAnimal', 'lecheRecords'])->findOrFail($id);
+        $user = $user ?? auth()->user();
+        $lactancia = Lactancia::with(['animal', 'etapa', 'etapaAnimal', 'lecheRecords'])->findOrFail($id);
+
+        if ($user->cannot('read', $lactancia)) {
+            throw new AuthorizationException('No tiene permisos para ver este registro de lactancia.');
+        }
+
+        return $lactancia;
     }
 
     /**
-     * Update an existing Lactancia record.
+     * Actualizar un registro existente de Lactancia.
      */
-    public function updateLactancia($id, array $data)
+    public function updateLactancia($id, array $data, $user = null)
     {
+        $user = $user ?? auth()->user();
         $lactancia = Lactancia::findOrFail($id);
+
+        if ($user->cannot('update', $lactancia)) {
+            throw new AuthorizationException('No tiene permisos para actualizar este registro de lactancia.');
+        }
 
         if (!isset($data['animal_etapa_id']) && isset($data['animal_id']) && isset($data['etapa_id'])) {
             $etapaAnimal = EtapaAnimal::where('animal_id', $data['animal_id'])
@@ -140,11 +156,17 @@ class LactanciaService
     }
 
     /**
-     * Delete an existing Lactancia record.
+     * Eliminar un registro existente de Lactancia.
      */
-    public function deleteLactancia($id)
+    public function deleteLactancia($id, $user = null)
     {
+        $user = $user ?? auth()->user();
         $lactancia = Lactancia::findOrFail($id);
+
+        if ($user->cannot('delete', $lactancia)) {
+            throw new AuthorizationException('No tiene permisos para eliminar este registro de lactancia.');
+        }
+
         return $lactancia->delete();
     }
 

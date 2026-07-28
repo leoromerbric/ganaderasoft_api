@@ -21,6 +21,8 @@ class NormalizeUpdate
             if ($request->has('Apellido')) $mappedData['apellido'] = $request->input('Apellido');
             if ($request->has('Telefono')) $mappedData['telefono'] = $request->input('Telefono');
             if ($request->has('Correo')) $mappedData['correo'] = $request->input('Correo');
+            if ($request->has('Fecha_Nacimiento')) $mappedData['fecha_nacimiento'] = $request->input('Fecha_Nacimiento');
+            if ($request->has('Fecha_Ingreso')) $mappedData['fecha_ingreso'] = $request->input('Fecha_Ingreso');
             
             if ($request->has('Tipo_Trabajador')) {
                 $tipoNombre = $request->input('Tipo_Trabajador');
@@ -48,6 +50,8 @@ class NormalizeUpdate
                     'Apellido' => $item['persona']['apellido'] ?? null,
                     'Telefono' => $item['persona']['telefono'] ?? null,
                     'Correo' => $item['persona']['correo'] ?? null,
+                    'Fecha_Nacimiento' => $item['persona']['fecha_nacimiento'] ?? null,
+                    'Fecha_Ingreso' => $item['fecha_ingreso'] ?? null,
                     'Tipo_Trabajador' => $item['tipo_trabajador']['nombre'] ?? null,
                     'created_at' => $item['created_at'] ?? null,
                     'updated_at' => $item['updated_at'] ?? null,

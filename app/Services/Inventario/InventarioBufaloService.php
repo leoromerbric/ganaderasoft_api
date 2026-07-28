@@ -8,45 +8,42 @@ use Illuminate\Foundation\Auth\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Arr;
+use App\Services\BaseService;
 
-class InventarioBufaloService
+class InventarioBufaloService extends BaseService
 {
     /**
+     * Listar inventario de búfalos.
      * @throws AuthorizationException
      */
     public function listInventarioBufalo(array $filters, User $user)
     {
+        if ($user->cannot('readAny', InventarioBufalo::class)) {
+            throw new AuthorizationException('Sin permisos para listar inventarios.');
+        }
+
         $query = InventarioBufalo::with(['finca.propietario'])->recent();
+
+        $this->applyFincaFilter($query, $user, null);
 
         $fincaId = Arr::get($filters, 'finca_id') ?? Arr::get($filters, 'id_finca');
         if ($fincaId) {
             $query->forFinca($fincaId);
         }
-
-        if ($user->isAdmin()) {
-            return $query->paginate(15);
-        }
-
-        $propietario = $user->propietario;
-        if (!$propietario) {
-            throw new AuthorizationException('Usuario no es administrador ni propietario');
-        }
-
-        $query->whereHas('finca', function ($q) use ($propietario) {
-            $q->where('propietario_id', $propietario->id);
-        });
-
         return $query->paginate(15);
     }
 
     /**
+     * Almacenar un nuevo registro de inventario de búfalos.
      * @throws AuthorizationException
      */
     public function storeInventarioBufalo(array $data, User $user)
     {
-        $fincaId = $data['finca_id'];
+        $fincaId = (int) $data['finca_id'];
 
-        $this->authorizeFincaAccess($fincaId, $user);
+        if ($user->cannot('create', [InventarioBufalo::class, $fincaId])) {
+            throw new AuthorizationException('No tiene permisos para crear inventarios en esta finca.');
+        }
 
         $data['num_becerro'] = $data['num_becerro'] ?? 0;
         $data['num_anojo'] = $data['num_anojo'] ?? 0;
@@ -60,6 +57,7 @@ class InventarioBufaloService
     }
 
     /**
+     * Obtener un registro específico de inventario de búfalos.
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
@@ -67,21 +65,30 @@ class InventarioBufaloService
     {
         $inventario = InventarioBufalo::with(['finca.propietario'])->findOrFail($id);
 
-        $this->authorizeFincaAccess($inventario->finca_id, $user);
+        if ($user->cannot('read', $inventario)) {
+            throw new AuthorizationException('No tiene permisos para ver este inventario.');
+        }
 
         return $inventario;
     }
 
     /**
+     * Actualizar los datos del inventario de búfalos.
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
     public function updateInventarioBufalo(int $id, array $data, User $user)
     {
-        $inventario = $this->getInventarioBufalo($id, $user);
+        $inventario = InventarioBufalo::findOrFail($id);
 
-        if (isset($data['finca_id']) && $data['finca_id'] != $inventario->finca_id) {
-            $this->authorizeFincaAccess($data['finca_id'], $user);
+        if ($user->cannot('update', $inventario)) {
+            throw new AuthorizationException('No tiene permisos para actualizar este inventario.');
+        }
+
+        if (isset($data['finca_id']) && (int) $data['finca_id'] !== $inventario->finca_id) {
+            if ($user->cannot('create', [InventarioBufalo::class, (int) $data['finca_id']])) {
+                throw new AuthorizationException('No tiene permisos para asignar el inventario a la nueva finca.');
+            }
         }
 
         $inventario->update($data);
@@ -90,37 +97,19 @@ class InventarioBufaloService
     }
 
     /**
+     * Eliminar el registro del inventario de búfalos.
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
     public function deleteInventarioBufalo(int $id, User $user)
     {
-        $inventario = $this->getInventarioBufalo($id, $user);
+        $inventario = InventarioBufalo::findOrFail($id);
+
+        if ($user->cannot('delete', $inventario)) {
+            throw new AuthorizationException('No tiene permisos para eliminar este inventario.');
+        }
+
         $inventario->delete();
         return true;
-    }
-
-    /**
-     * @throws AuthorizationException
-     */
-    protected function authorizeFincaAccess(int $fincaId, User $user): void
-    {
-        if ($user->isAdmin()) {
-            return;
-        }
-
-        $propietario = $user->propietario;
-        if (!$propietario) {
-            throw new AuthorizationException('Usuario no es administrador ni propietario');
-        }
-
-        $finca = Finca::find($fincaId);
-        if (!$finca) {
-            throw new AuthorizationException('Finca no encontrada o sin acceso');
-        }
-
-        if ($finca->propietario_id != $propietario->id) {
-            throw new AuthorizationException('No tiene permisos sobre esta finca');
-        }
     }
 }

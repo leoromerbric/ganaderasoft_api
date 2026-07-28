@@ -39,6 +39,8 @@ class NormalizeShow
             'archivado' => $finca['archivado'] ?? false,
             'created_at' => $finca['created_at'] ?? null,
             'updated_at' => $finca['updated_at'] ?? null,
+            'Municipio' => 'No disponible',
+            'Estado' => 'No disponible',
         ];
 
         if (array_key_exists('propietario', $finca) && is_array($finca['propietario'])) {

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\Terreno;
+namespace App\Http\Resources\Finca;
 
 use App\Http\Resources\Finca\FincaResource;
 use Illuminate\Http\Request;

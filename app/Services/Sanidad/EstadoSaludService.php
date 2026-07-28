@@ -8,16 +8,24 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
-class EstadoSaludService
+use App\Services\BaseService;
+
+class EstadoSaludService extends BaseService
 {
     /**
      * Obtiene la lista de estados de salud con paginación.
      *
      * @param array $filters Filtros.
-     * @return LengthAwarePaginator
+     * @return \Illuminate\Support\Collection|LengthAwarePaginator
      */
-    public function listEstados(array $filters)
+    public function listEstados(array $filters, $user = null)
     {
+        $user = $user ?? auth()->user();
+
+        if ($user->cannot('readAny', EstadoSalud::class)) {
+            throw new AuthorizationException('Sin permisos para listar estados de salud.');
+        }
+
         $query = EstadoSalud::query();
 
         if (!empty($filters['search'])) {
@@ -32,16 +40,18 @@ class EstadoSaludService
     }
 
     /**
-     * Registra un nuevo estado de salud (solo administradores).
+     * Registra un nuevo estado de salud.
      *
      * @param array $data Datos.
      * @param mixed $user Usuario.
      * @return EstadoSalud
      * @throws AuthorizationException
      */
-    public function createEstado(array $data, $user): EstadoSalud
+    public function createEstado(array $data, $user = null): EstadoSalud
     {
-        if (!$user->isAdmin()) {
+        $user = $user ?? auth()->user();
+
+        if ($user->cannot('create', EstadoSalud::class)) {
             throw new AuthorizationException('No tiene permisos para crear estados de salud.');
         }
 
@@ -57,13 +67,20 @@ class EstadoSaludService
      * @return EstadoSalud
      * @throws ModelNotFoundException
      */
-    public function getEstadoById(int $id): EstadoSalud
+    public function getEstadoById(int $id, $user = null): EstadoSalud
     {
-        return EstadoSalud::with(['estadosAnimal.animal'])->findOrFail($id);
+        $user = $user ?? auth()->user();
+        $estadoSalud = EstadoSalud::with(['estadosAnimal.animal'])->findOrFail($id);
+
+        if ($user->cannot('read', $estadoSalud)) {
+            throw new AuthorizationException('No tiene permisos para ver este estado de salud.');
+        }
+
+        return $estadoSalud;
     }
 
     /**
-     * Actualiza los datos de un estado de salud (solo administradores).
+     * Actualiza los datos de un estado de salud.
      *
      * @param int $id ID.
      * @param array $data Datos a actualizar.
@@ -72,13 +89,14 @@ class EstadoSaludService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function updateEstado(int $id, array $data, $user): EstadoSalud
+    public function updateEstado(int $id, array $data, $user = null): EstadoSalud
     {
-        if (!$user->isAdmin()) {
+        $user = $user ?? auth()->user();
+        $estadoSalud = EstadoSalud::findOrFail($id);
+
+        if ($user->cannot('update', $estadoSalud)) {
             throw new AuthorizationException('No tiene permisos para actualizar estados de salud.');
         }
-
-        $estadoSalud = EstadoSalud::findOrFail($id);
 
         $payload = [];
         if (array_key_exists('nombre', $data)) $payload['nombre'] = $data['nombre'];
@@ -89,7 +107,7 @@ class EstadoSaludService
     }
 
     /**
-     * Elimina un estado de salud (solo administradores).
+     * Elimina un estado de salud.
      *
      * @param int $id ID.
      * @param mixed $user Usuario.
@@ -98,13 +116,14 @@ class EstadoSaludService
      * @throws AuthorizationException
      * @throws ConflictHttpException
      */
-    public function deleteEstado(int $id, $user): bool
+    public function deleteEstado(int $id, $user = null): bool
     {
-        if (!$user->isAdmin()) {
+        $user = $user ?? auth()->user();
+        $estadoSalud = EstadoSalud::findOrFail($id);
+
+        if ($user->cannot('delete', $estadoSalud)) {
             throw new AuthorizationException('No tiene permisos para eliminar estados de salud.');
         }
-
-        $estadoSalud = EstadoSalud::findOrFail($id);
 
         if ($estadoSalud->estadosAnimal()->count() > 0) {
             throw new ConflictHttpException('No se puede eliminar el estado de salud porque está siendo utilizado.');

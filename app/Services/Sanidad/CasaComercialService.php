@@ -4,14 +4,23 @@ namespace App\Services\Sanidad;
 
 use App\Models\CasaComercial;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Auth\Access\AuthorizationException;
 
-class CasaComercialService
+use App\Services\BaseService;
+
+class CasaComercialService extends BaseService
 {
     /**
-     * Fetch a paginated list of Casas Comerciales based on filters.
+     * Obtiene una lista paginada de casas comerciales basándose en los filtros y la autorización del usuario.
      */
-    public function getPaginatedCasasComerciales(array $filters, $perPage = 15)
+    public function getPaginatedCasasComerciales(array $filters, $user = null, $perPage = 15)
     {
+        $user = $user ?? auth()->user();
+
+        if ($user->cannot('readAny', CasaComercial::class)) {
+            throw new AuthorizationException('Sin permisos para listar casas comerciales.');
+        }
+
         $query = CasaComercial::query();
 
         if (!empty($filters['laboratorio'])) {
@@ -30,10 +39,16 @@ class CasaComercialService
     }
 
     /**
-     * Create a new CasaComercial.
+     * Crea un nuevo registro de casa comercial.
      */
-    public function createCasaComercial(array $data)
+    public function createCasaComercial(array $data, $user = null)
     {
+        $user = $user ?? auth()->user();
+
+        if ($user->cannot('create', CasaComercial::class)) {
+            throw new AuthorizationException('No tiene permisos para crear una casa comercial.');
+        }
+
         return CasaComercial::create([
             'laboratorio'     => $data['laboratorio'],
             'marca_comercial' => $data['marca_comercial'],
@@ -42,20 +57,31 @@ class CasaComercialService
     }
 
     /**
-     * Fetch a specific CasaComercial by ID with relationships.
+     * Obtiene una casa comercial específica por su ID.
      */
-    public function getCasaComercialById($id)
+    public function getCasaComercialById($id, $user = null)
     {
-        // Removido 'dosis' ya que no existe la relación en el modelo V2
-        return CasaComercial::with(['vacunas'])->findOrFail($id);
+        $user = $user ?? auth()->user();
+        $casaComercial = CasaComercial::with(['vacunas'])->findOrFail($id);
+
+        if ($user->cannot('read', $casaComercial)) {
+            throw new AuthorizationException('No tiene permisos para ver esta casa comercial.');
+        }
+
+        return $casaComercial;
     }
 
     /**
-     * Update an existing CasaComercial.
+     * Actualiza un registro de casa comercial existente.
      */
-    public function updateCasaComercial($id, array $data)
+    public function updateCasaComercial($id, array $data, $user = null)
     {
+        $user = $user ?? auth()->user();
         $casa = CasaComercial::findOrFail($id);
+
+        if ($user->cannot('update', $casa)) {
+            throw new AuthorizationException('No tiene permisos para actualizar esta casa comercial.');
+        }
 
         $casa->update([
             'laboratorio'     => $data['laboratorio'] ?? $casa->laboratorio,
@@ -67,11 +93,17 @@ class CasaComercialService
     }
 
     /**
-     * Delete an existing CasaComercial.
+     * Elimina un registro de casa comercial existente.
      */
-    public function deleteCasaComercial($id)
+    public function deleteCasaComercial($id, $user = null)
     {
+        $user = $user ?? auth()->user();
         $casa = CasaComercial::findOrFail($id);
+
+        if ($user->cannot('delete', $casa)) {
+            throw new AuthorizationException('No tiene permisos para eliminar esta casa comercial.');
+        }
+
         $casa->delete();
         return true;
     }

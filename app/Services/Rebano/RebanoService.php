@@ -8,46 +8,35 @@ use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Services\BaseService;
 
-class RebanoService
+class RebanoService extends BaseService
 {
     /**
-     * List all rebanos, paginated.
-     * Admin sees all, propietario sees only their own.
+     * Listar todos los rebaños, paginado.
+     * Admin ve todos, propietario ve solo los suyos.
      */
     public function listRebanos(array $filters, User $user)
     {
-        $query = Rebano::with(['finca.propietario', 'animales'])->active();
-
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario) {
-                throw new AuthorizationException('Usuario no es propietario');
-            }
-
-            $query->whereHas('finca', function ($q) use ($propietario) {
-                $q->where('propietario_id', $propietario->id);
-            });
+        if ($user->cannot('readAny', Rebano::class)) {
+            throw new AuthorizationException('Sin permisos para listar rebaños.');
         }
 
+        $query = Rebano::with(['finca.propietario', 'animales'])->active();
+
+        $this->applyFincaFilter($query, $user, null);
         return $query->paginate(15);
     }
 
     /**
-     * Store a new rebano.
+     * Crear un nuevo rebaño.
      */
     public function storeRebano(array $data, User $user)
     {
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario) {
-                throw new AuthorizationException('Usuario no es propietario');
-            }
-
-            $finca = Finca::find($data['finca_id']);
-            if (!$finca || $finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para crear rebaño en esta finca');
-            }
+        $fincaId = (int) $data['finca_id'];
+        
+        if ($user->cannot('create', [Rebano::class, $fincaId])) {
+            throw new AuthorizationException('No tiene permisos para crear rebaño en esta finca');
         }
 
         $rebano = Rebano::create([
@@ -62,7 +51,7 @@ class RebanoService
     }
 
     /**
-     * Get a specific rebano.
+     * Obtener un rebaño específico.
      */
     public function getRebano(int $id, User $user)
     {
@@ -72,27 +61,26 @@ class RebanoService
             throw new NotFoundHttpException('Rebaño no encontrado');
         }
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para ver este rebaño');
-            }
+        if ($user->cannot('read', $rebano)) {
+            throw new AuthorizationException('No tiene permisos para ver este rebaño');
         }
 
         return $rebano;
     }
 
     /**
-     * Update a rebano.
+     * Actualizar los datos de un rebaño.
      */
     public function updateRebano(int $id, array $data, User $user)
     {
         $rebano = $this->getRebano($id, $user);
 
-        if (!$user->isAdmin() && isset($data['finca_id'])) {
-            $propietario = $user->propietario;
-            $newFinca = Finca::find($data['finca_id']);
-            if (!$newFinca || $newFinca->propietario_id != $propietario->id) {
+        if ($user->cannot('update', $rebano)) {
+            throw new AuthorizationException('No tiene permisos para actualizar este rebaño');
+        }
+
+        if (isset($data['finca_id']) && (int) $data['finca_id'] !== $rebano->finca_id) {
+            if ($user->cannot('create', [Rebano::class, (int) $data['finca_id']])) {
                 throw new AuthorizationException('No tiene permisos para mover el rebaño a esa finca');
             }
         }
@@ -112,11 +100,15 @@ class RebanoService
     }
 
     /**
-     * Archive (soft delete) a rebano.
+     * Archivar (borrado lógico) un rebaño.
      */
     public function archiveRebano(int $id, User $user)
     {
         $rebano = $this->getRebano($id, $user);
+        
+        if ($user->cannot('delete', $rebano)) {
+            throw new AuthorizationException('No tiene permisos para archivar este rebaño');
+        }
 
         if ($rebano->animales()->count() > 0) {
             throw new ConflictHttpException('No se puede eliminar el rebaño, tiene animales asociados');

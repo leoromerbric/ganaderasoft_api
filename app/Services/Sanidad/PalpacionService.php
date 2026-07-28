@@ -7,13 +7,21 @@ use App\Models\EtapaAnimal;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Auth\Access\AuthorizationException;
 
-class PalpacionService
+use App\Services\BaseService;
+
+class PalpacionService extends BaseService
 {
     /**
-     * Retrieve paginated palpaciones with applied filters and user authorization.
+     * Obtiene una lista paginada de palpaciones basándose en los filtros y la autorización del usuario.
      */
-    public function getPaginatedPalpaciones(array $filters, $user, $perPage = 15)
+    public function getPaginatedPalpaciones(array $filters, $user = null, $perPage = 15)
     {
+        $user = $user ?? auth()->user();
+
+        if ($user->cannot('readAny', Palpacion::class)) {
+            throw new AuthorizationException('Sin permisos para listar palpaciones.');
+        }
+
         $query = Palpacion::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tecnico']);
 
         if (isset($filters['animal_id'])) {
@@ -31,28 +39,22 @@ class PalpacionService
             $query->whereBetween('fecha', [$filters['fecha_inicio'], $fechaFin]);
         }
 
+        $this->applyFincaFilter($query, $user, 'etapaAnimal.animal.rebano');
+
         if (isset($filters['nopaginate'])) {
             return $query->get();
-        }
-
-        // Authorization logic: Filter by propietario_id if the user is not an admin
-        if (!$user->isAdmin() && $user->isPropietario()) {
-            $propietario = $user->propietario;
-            if ($propietario) {
-                $query->whereHas('etapaAnimal.animal.rebano.finca', function ($q) use ($propietario) {
-                    $q->where('propietario_id', $propietario->id);
-                });
-            }
         }
 
         return $query->paginate($perPage);
     }
 
     /**
-     * Create a new Palpacion.
+     * Crea un nuevo registro de Palpación.
      */
-    public function createPalpacion(array $data)
+    public function createPalpacion(array $data, $user = null)
     {
+        $user = $user ?? auth()->user();
+
         if (!isset($data['animal_etapa_id']) && isset($data['animal_id']) && isset($data['etapa_id'])) {
             $etapaAnimal = EtapaAnimal::where('animal_id', $data['animal_id'])
                 ->where('etapa_id', $data['etapa_id'])
@@ -67,24 +69,40 @@ class PalpacionService
             }
         }
 
+        if ($user->cannot('create', [Palpacion::class, $data['animal_id'] ?? null, $data['animal_etapa_id'] ?? null])) {
+            throw new AuthorizationException('No tiene permisos para registrar palpación a este animal.');
+        }
+
         $palpacion = Palpacion::create($data);
         return $palpacion->load(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tecnico']);
     }
 
     /**
-     * Fetch a specific Palpacion by ID with its relationships.
+     * Obtiene una palpación específica por su ID.
      */
-    public function getPalpacionById($id)
+    public function getPalpacionById($id, $user = null)
     {
-        return Palpacion::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tecnico'])->findOrFail($id);
+        $user = $user ?? auth()->user();
+        $palpacion = Palpacion::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tecnico'])->findOrFail($id);
+
+        if ($user->cannot('read', $palpacion)) {
+            throw new AuthorizationException('No tiene permisos para ver esta palpación.');
+        }
+
+        return $palpacion;
     }
 
     /**
-     * Update an existing Palpacion.
+     * Actualiza un registro de palpación existente.
      */
-    public function updatePalpacion($id, array $data)
+    public function updatePalpacion($id, array $data, $user = null)
     {
+        $user = $user ?? auth()->user();
         $palpacion = Palpacion::findOrFail($id);
+
+        if ($user->cannot('update', $palpacion)) {
+            throw new AuthorizationException('No tiene permisos para actualizar esta palpación.');
+        }
 
         if (!isset($data['animal_etapa_id']) && isset($data['animal_id']) && isset($data['etapa_id'])) {
             $etapaAnimal = EtapaAnimal::where('animal_id', $data['animal_id'])
@@ -105,11 +123,17 @@ class PalpacionService
     }
 
     /**
-     * Delete an existing Palpacion.
+     * Elimina un registro de palpación existente.
      */
-    public function deletePalpacion($id)
+    public function deletePalpacion($id, $user = null)
     {
+        $user = $user ?? auth()->user();
         $palpacion = Palpacion::findOrFail($id);
+
+        if ($user->cannot('delete', $palpacion)) {
+            throw new AuthorizationException('No tiene permisos para eliminar esta palpación.');
+        }
+
         return $palpacion->delete();
     }
 }

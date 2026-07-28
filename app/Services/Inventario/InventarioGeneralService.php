@@ -8,24 +8,10 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
 
-class InventarioGeneralService
+use App\Services\BaseService;
+
+class InventarioGeneralService extends BaseService
 {
-    /**
-     * Verifica si el usuario tiene acceso a una finca específica.
-     *
-     * @param User $user
-     * @param int $fincaId
-     * @return bool
-     */
-    protected function userHasAccessToFinca(User $user, int $fincaId): bool
-    {
-        if ($user->isAdmin()) {
-            return true;
-        }
-
-        return $user->fincas()->where('fincas.id', $fincaId)->exists();
-    }
-
     /**
      * Obtener listado de Inventario General con filtros y paginación.
      *
@@ -36,18 +22,16 @@ class InventarioGeneralService
      */
     public function listInventarioGeneral(array $filters, User $user)
     {
+        if ($user->cannot('readAny', InventarioGeneral::class)) {
+            throw new AuthorizationException('Sin permisos para listar inventarios.');
+        }
+
         $query = InventarioGeneral::with('finca');
 
-        if (!$user->isAdmin()) {
-            $userFincaIds = $user->fincas()->pluck('fincas.id')->toArray();
-            $query->whereIn('finca_id', $userFincaIds);
-        }
+        $this->applyFincaFilter($query, $user, null);
 
         $fincaId = $filters['finca_id'] ?? ($filters['id_finca'] ?? null);
         if ($fincaId) {
-            if (!$this->userHasAccessToFinca($user, $fincaId)) {
-                throw new AuthorizationException('No tiene permisos para acceder a los inventarios de esta finca.');
-            }
             $query->where('finca_id', $fincaId);
         }
 
@@ -58,7 +42,6 @@ class InventarioGeneralService
         if (!empty($filters['fecha_fin'])) {
             $query->where('fecha_inventario', '<=', $filters['fecha_fin']);
         }
-
         return $query->paginate(15);
     }
 
@@ -72,7 +55,9 @@ class InventarioGeneralService
      */
     public function storeInventarioGeneral(array $data, User $user)
     {
-        if (isset($data['finca_id']) && !$this->userHasAccessToFinca($user, $data['finca_id'])) {
+        $fincaId = (int) $data['finca_id'];
+
+        if ($user->cannot('create', [InventarioGeneral::class, $fincaId])) {
             throw new AuthorizationException('No tiene permisos para crear inventarios en esta finca.');
         }
 
@@ -92,7 +77,7 @@ class InventarioGeneralService
     {
         $inventario = InventarioGeneral::with('finca')->findOrFail($id);
 
-        if (!$this->userHasAccessToFinca($user, $inventario->finca_id)) {
+        if ($user->cannot('read', $inventario)) {
             throw new AuthorizationException('No tiene permisos para ver este inventario.');
         }
 
@@ -113,12 +98,12 @@ class InventarioGeneralService
     {
         $inventario = InventarioGeneral::findOrFail($id);
 
-        if (!$this->userHasAccessToFinca($user, $inventario->finca_id)) {
+        if ($user->cannot('update', $inventario)) {
             throw new AuthorizationException('No tiene permisos para actualizar este inventario.');
         }
 
-        if (isset($data['finca_id']) && $data['finca_id'] != $inventario->finca_id) {
-            if (!$this->userHasAccessToFinca($user, $data['finca_id'])) {
+        if (isset($data['finca_id']) && (int) $data['finca_id'] !== $inventario->finca_id) {
+            if ($user->cannot('create', [InventarioGeneral::class, (int) $data['finca_id']])) {
                 throw new AuthorizationException('No tiene permisos para asignar el inventario a la nueva finca.');
             }
         }
@@ -141,7 +126,7 @@ class InventarioGeneralService
     {
         $inventario = InventarioGeneral::findOrFail($id);
 
-        if (!$this->userHasAccessToFinca($user, $inventario->finca_id)) {
+        if ($user->cannot('delete', $inventario)) {
             throw new AuthorizationException('No tiene permisos para eliminar este inventario.');
         }
 

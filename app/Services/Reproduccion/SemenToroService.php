@@ -8,13 +8,21 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 
-class SemenToroService
+use App\Services\BaseService;
+
+class SemenToroService extends BaseService
 {
     /**
-     * Retrieve paginated semen records with applied filters and authorization.
+     * Obtiene una lista paginada de registros de semen basándose en los filtros y la autorización del usuario.
      */
-    public function getPaginatedSemen(array $filters, $user, $perPage = 15)
+    public function getPaginatedSemen(array $filters, $user = null, $perPage = 15)
     {
+        $user = $user ?? auth()->user();
+
+        if ($user->cannot('readAny', SemenToro::class)) {
+            throw new AuthorizationException('Sin permisos para listar semen de toros.');
+        }
+
         $query = SemenToro::with('toro');
 
         if (isset($filters['toro_id'])) {
@@ -29,28 +37,27 @@ class SemenToroService
             }
         }
 
+        $this->applyFincaFilter($query, $user, 'toro.rebano');
+
         if (isset($filters['nopaginate'])) {
             return $query->get();
-        }
-
-        // Control de acceso para propietarios no-administradores
-        if (!$user->isAdmin() && $user->isPropietario()) {
-            $propietario = $user->propietario;
-            if ($propietario) {
-                $query->whereHas('toro.rebano.finca', function ($q) use ($propietario) {
-                    $q->where('propietario_id', $propietario->id);
-                });
-            }
         }
 
         return $query->paginate($perPage);
     }
 
     /**
-     * Create a new SemenToro record.
+     * Crea un nuevo registro de SemenToro.
      */
-    public function createSemen(array $data)
+    public function createSemen(array $data, $user = null)
     {
+        $user = $user ?? auth()->user();
+        $animalId = $data['animal_id'] ?? null;
+
+        if ($user->cannot('create', [SemenToro::class, $animalId])) {
+            throw new AuthorizationException('No tiene permisos para registrar semen a este toro.');
+        }
+
         if (isset($data['animal_id'])) {
             $this->validateToro($data['animal_id']);
         }
@@ -65,21 +72,36 @@ class SemenToroService
     }
 
     /**
-     * Fetch a specific SemenToro by ID with relationships.
+     * Obtiene un registro de SemenToro específico por su ID.
      */
-    public function getSemenById($id)
+    public function getSemenById($id, $user = null)
     {
-        return SemenToro::with(['toro', 'servicios'])->findOrFail($id);
+        $user = $user ?? auth()->user();
+        $semen = SemenToro::with(['toro', 'servicios'])->findOrFail($id);
+
+        if ($user->cannot('read', $semen)) {
+            throw new AuthorizationException('No tiene permisos para ver este registro de semen.');
+        }
+
+        return $semen;
     }
 
     /**
-     * Update an existing SemenToro record.
+     * Actualiza un registro de SemenToro existente.
      */
-    public function updateSemen($id, array $data)
+    public function updateSemen($id, array $data, $user = null)
     {
+        $user = $user ?? auth()->user();
         $semen = SemenToro::findOrFail($id);
 
+        if ($user->cannot('update', $semen)) {
+            throw new AuthorizationException('No tiene permisos para actualizar este registro de semen.');
+        }
+
         if (isset($data['animal_id']) && $data['animal_id'] != $semen->animal_id) {
+            if ($user->cannot('create', [SemenToro::class, (int) $data['animal_id']])) {
+                throw new AuthorizationException('No tiene permisos para asignar semen a ese nuevo toro.');
+            }
             $this->validateToro($data['animal_id']);
         }
 
@@ -100,11 +122,17 @@ class SemenToroService
     }
 
     /**
-     * Delete an existing SemenToro record.
+     * Elimina un registro de SemenToro existente.
      */
-    public function deleteSemen($id)
+    public function deleteSemen($id, $user = null)
     {
+        $user = $user ?? auth()->user();
         $semen = SemenToro::findOrFail($id);
+
+        if ($user->cannot('delete', $semen)) {
+            throw new AuthorizationException('No tiene permisos para eliminar este registro de semen.');
+        }
+
         return $semen->delete();
     }
 

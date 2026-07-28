@@ -8,7 +8,9 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-class EstadoAnimalService
+use App\Services\BaseService;
+
+class EstadoAnimalService extends BaseService
 {
     /**
      * Obtiene el listado de asignaciones de estado de salud con filtros.
@@ -18,8 +20,14 @@ class EstadoAnimalService
      * @return LengthAwarePaginator
      * @throws AuthorizationException
      */
-    public function listEstados(array $filters, $user)
+    public function listEstados(array $filters, $user = null)
     {
+        $user = $user ?? auth()->user();
+
+        if ($user->cannot('readAny', EstadoAnimal::class)) {
+            throw new AuthorizationException('Sin permisos para listar estados de los animales.');
+        }
+
         $query = EstadoAnimal::with(['animal.rebano.finca', 'estadoSalud']);
 
         if (!empty($filters['animal_id'])) {
@@ -34,17 +42,7 @@ class EstadoAnimalService
             $query->whereNull('fecha_fin')->orWhere('fecha_fin', '>=', now()->toDateString());
         }
 
-        // Control de accesos
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario) {
-                throw new AuthorizationException('Usuario no registrado como propietario.');
-            }
-
-            $query->whereHas('animal.rebano.finca', function ($q) use ($propietario) {
-                $q->where('propietario_id', $propietario->id);
-            });
-        }
+        $this->applyFincaFilter($query, $user, 'animal.rebano');
 
         if (!empty($filters['nopaginate'])) {
             return $query->get();
@@ -62,16 +60,16 @@ class EstadoAnimalService
      * @throws AuthorizationException
      * @throws ModelNotFoundException
      */
-    public function createEstado(array $data, $user): EstadoAnimal
+    public function createEstado(array $data, $user = null): EstadoAnimal
     {
-        $animal = Animal::findOrFail($data['animal_id']);
+        $user = $user ?? auth()->user();
+        $animalId = (int) $data['animal_id'];
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para modificar el estado de salud de este animal.');
-            }
+        if ($user->cannot('create', [EstadoAnimal::class, $animalId])) {
+            throw new AuthorizationException('No tiene permisos para modificar el estado de salud de este animal.');
         }
+
+        $animal = Animal::findOrFail($animalId);
 
         // Regla biológica: Cerrar el estado activo anterior si el nuevo estado es activo (sin fecha_fin)
         if (empty($data['fecha_fin'])) {
@@ -99,15 +97,13 @@ class EstadoAnimalService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function getEstadoById(int $id, $user): EstadoAnimal
+    public function getEstadoById(int $id, $user = null): EstadoAnimal
     {
+        $user = $user ?? auth()->user();
         $estadoAnimal = EstadoAnimal::with(['animal.rebano.finca', 'estadoSalud'])->findOrFail($id);
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $estadoAnimal->animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para ver este estado de animal.');
-            }
+        if ($user->cannot('read', $estadoAnimal)) {
+            throw new AuthorizationException('No tiene permisos para ver este estado de animal.');
         }
 
         return $estadoAnimal;
@@ -123,23 +119,19 @@ class EstadoAnimalService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function updateEstado(int $id, array $data, $user): EstadoAnimal
+    public function updateEstado(int $id, array $data, $user = null): EstadoAnimal
     {
+        $user = $user ?? auth()->user();
         $estadoAnimal = EstadoAnimal::findOrFail($id);
-        $animal = $estadoAnimal->animal;
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para actualizar este estado de animal.');
-            }
+        if ($user->cannot('update', $estadoAnimal)) {
+            throw new AuthorizationException('No tiene permisos para actualizar este estado de animal.');
+        }
 
-            // Si intenta cambiar de animal, verificar permisos sobre el nuevo
-            if (!empty($data['animal_id'])) {
-                $newAnimal = Animal::findOrFail($data['animal_id']);
-                if ($newAnimal->rebano->finca->propietario_id != $propietario->id) {
-                    throw new AuthorizationException('No tiene permisos para asignar estado a ese animal.');
-                }
+        // Si intenta cambiar de animal, verificar permisos sobre el nuevo
+        if (!empty($data['animal_id']) && $data['animal_id'] != $estadoAnimal->animal_id) {
+            if ($user->cannot('create', [EstadoAnimal::class, (int) $data['animal_id']])) {
+                throw new AuthorizationException('No tiene permisos para asignar estado a ese nuevo animal.');
             }
         }
 
@@ -163,16 +155,13 @@ class EstadoAnimalService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function deleteEstado(int $id, $user): bool
+    public function deleteEstado(int $id, $user = null): bool
     {
+        $user = $user ?? auth()->user();
         $estadoAnimal = EstadoAnimal::findOrFail($id);
-        $animal = $estadoAnimal->animal;
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para eliminar este estado de animal.');
-            }
+        if ($user->cannot('delete', $estadoAnimal)) {
+            throw new AuthorizationException('No tiene permisos para eliminar este estado de animal.');
         }
 
         return $estadoAnimal->delete();

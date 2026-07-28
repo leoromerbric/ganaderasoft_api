@@ -11,18 +11,18 @@ class AdminUserSeeder extends Seeder
     {
         // ── Administrador Global ──────────────────────────────────────────────
         $personaAdminId = DB::table('personas')->insertGetId([
-            'cedula'     => 'V12345678',
+            'cedula'     => 'V00000001',
             'nombre'     => 'Admin',
-            'apellido'   => 'Global',
-            'telefono'   => '0000000000',
+            'apellido'   => 'Sistema',
+            'telefono'   => '04140000001',
             'status'     => 'activo',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
         $userAdminId = DB::table('users')->insertGetId([
-            'name'       => 'Administrador',
-            'email'      => 'admin@ganaderasoft.com',
+            'name'       => 'Administrador del Sistema',
+            'email'      => 'admin1@ucv.com',
             'password'   => Hash::make('123456789'),
             'created_at' => now(),
             'updated_at' => now(),
@@ -48,98 +48,43 @@ class AdminUserSeeder extends Seeder
             'updated_at' => now(),
         ]);
 
-        // ── Usuarios de prueba (propietarios y técnicos) ─────────────────────
-        $legacyUsers = [
-            [
-                'cedula'         => 'V30028485',
-                'nombre'         => 'Propietario',
-                'apellido'       => 'Pruebas',
-                'email'          => 'propietario1.ganaderosoft@yopmail.com',
-                'role_id'        => 2, // propietario
-                'is_propietario' => true,
-            ],
-            [
-                'cedula'         => 'V10000001',
-                'nombre'         => 'Ingeniero',
-                'apellido'       => 'Test',
-                'email'          => 'ingeniero1.ganaderosoft@yopmail.com',
-                'role_id'        => 3, // tecnico
-                'is_propietario' => false,
-            ],
-            [
-                'cedula'         => 'V10000002',
-                'nombre'         => 'Veterinario',
-                'apellido'       => 'Test',
-                'email'          => 'veterinario1.ganaderosoft@yopmail.com',
-                'role_id'        => 3,
-                'is_propietario' => false,
-            ],
-            [
-                'cedula'         => 'V10000003',
-                'nombre'         => 'Asistente',
-                'apellido'       => 'Test',
-                'email'          => 'asistente1.ganaderosoft@yopmail.com',
-                'role_id'        => 3,
-                'is_propietario' => false,
-            ],
-            [
-                'cedula'         => 'V10000004',
-                'nombre'         => 'Pedro',
-                'apellido'       => 'Test',
-                'email'          => 'pedro@gmail.com',
-                'role_id'        => 2,
-                'is_propietario' => true,
-            ],
-            [
-                'cedula'         => 'V10000005',
-                'nombre'         => 'Nuevo',
-                'apellido'       => 'Test',
-                'email'          => 'nuevoviernes@yopmail.com',
-                'role_id'        => 2,
-                'is_propietario' => true,
-            ],
-        ];
+        // ── Propietario de Ejemplo ───────────────────────────────────────────
+        $personaPropietarioId = DB::table('personas')->insertGetId([
+            'cedula'     => 'V12345678',
+            'nombre'     => 'Juan',
+            'apellido'   => 'Pérez',
+            'telefono'   => '04141234567',
+            'status'     => 'activo',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-        foreach ($legacyUsers as $data) {
-            $personaId = DB::table('personas')->insertGetId([
-                'cedula'     => $data['cedula'],
-                'nombre'     => $data['nombre'],
-                'apellido'   => $data['apellido'],
-                'telefono'   => '04140659739',
-                'status'     => 'activo',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+        $userPropietarioId = DB::table('users')->insertGetId([
+            'name'       => 'Juan Pérez',
+            'email'      => 'propietario1@ucv.com',
+            'password'   => Hash::make('123456789'),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-            $userId = DB::table('users')->insertGetId([
-                'name'       => $data['nombre'],
-                'email'      => $data['email'],
-                'password'   => Hash::make('123456789'),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+        DB::table('persona_user')->insert([
+            'user_id'    => $userPropietarioId,
+            'persona_id' => $personaPropietarioId,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-            DB::table('persona_user')->insert([
-                'user_id'    => $userId,
-                'persona_id' => $personaId,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+        DB::table('role_user')->insert([
+            'user_id'    => $userPropietarioId,
+            'role_id'    => 2, // propietario
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-            DB::table('role_user')->insert([
-                'user_id'    => $userId,
-                'role_id'    => $data['role_id'],
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-            if ($data['is_propietario']) {
-                DB::table('propietarios')->insert([
-                    'persona_id' => $personaId,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            }
-        }
+        DB::table('propietarios')->insert([
+            'persona_id' => $personaPropietarioId,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 }

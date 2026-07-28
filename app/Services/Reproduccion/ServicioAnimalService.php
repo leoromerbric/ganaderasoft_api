@@ -9,13 +9,21 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 
-class ServicioAnimalService
+use App\Services\BaseService;
+
+class ServicioAnimalService extends BaseService
 {
     /**
-     * Retrieve paginated servicios with applied filters and authorization.
+     * Obtiene una lista paginada de servicios a animales basándose en los filtros y la autorización del usuario.
      */
-    public function getPaginatedServicios(array $filters, $user, $perPage = 15)
+    public function getPaginatedServicios(array $filters, $user = null, $perPage = 15)
     {
+        $user = $user ?? auth()->user();
+
+        if ($user->cannot('readAny', ServicioAnimal::class)) {
+            throw new AuthorizationException('Sin permisos para listar servicios.');
+        }
+
         $query = ServicioAnimal::with(['animal', 'semen', 'tecnico', 'registroCelo']);
 
         if (isset($filters['animal_id'])) {
@@ -29,28 +37,27 @@ class ServicioAnimalService
             $query->byDateRange($filters['fecha_inicio'], $fechaFin);
         }
 
+        $this->applyFincaFilter($query, $user, 'animal.rebano');
+
         if (isset($filters['nopaginate'])) {
             return $query->get();
-        }
-
-        // Control de acceso para propietarios no-administradores
-        if (!$user->isAdmin() && $user->isPropietario()) {
-            $propietario = $user->propietario;
-            if ($propietario) {
-                $query->whereHas('animal.rebano.finca', function ($q) use ($propietario) {
-                    $q->where('propietario_id', $propietario->id);
-                });
-            }
         }
 
         return $query->paginate($perPage);
     }
 
     /**
-     * Create a new ServicioAnimal.
+     * Crea un nuevo registro de servicio, resolviendo animal_etapa_id si es necesario.
      */
-    public function createServicio(array $data)
+    public function createServicio(array $data, $user = null)
     {
+        $user = $user ?? auth()->user();
+        $animalId = $data['animal_id'] ?? null;
+
+        if ($user->cannot('create', [ServicioAnimal::class, $animalId])) {
+            throw new AuthorizationException('No tiene permisos para registrar un servicio a este animal.');
+        }
+
         if (isset($data['animal_id'])) {
             $this->validateFemaleAnimal($data['animal_id']);
             if (!empty($data['registro_celo_id'])) {
@@ -72,24 +79,39 @@ class ServicioAnimalService
     }
 
     /**
-     * Fetch a specific ServicioAnimal by ID with relationships.
+     * Obtiene un servicio específico por su ID.
      */
-    public function getServicioById($id)
+    public function getServicioById($id, $user = null)
     {
-        return ServicioAnimal::with(['animal', 'semen', 'tecnico', 'registroCelo'])->findOrFail($id);
+        $user = $user ?? auth()->user();
+        $servicio = ServicioAnimal::with(['animal', 'semen', 'tecnico', 'registroCelo'])->findOrFail($id);
+
+        if ($user->cannot('read', $servicio)) {
+            throw new AuthorizationException('No tiene permisos para ver este servicio.');
+        }
+
+        return $servicio;
     }
 
     /**
-     * Update an existing ServicioAnimal.
+     * Actualiza un registro de servicio existente.
      */
-    public function updateServicio($id, array $data)
+    public function updateServicio($id, array $data, $user = null)
     {
+        $user = $user ?? auth()->user();
         $servicio = ServicioAnimal::findOrFail($id);
+
+        if ($user->cannot('update', $servicio)) {
+            throw new AuthorizationException('No tiene permisos para actualizar este servicio.');
+        }
 
         $targetAnimalId = $data['animal_id'] ?? $servicio->animal_id;
         $targetCeloId = array_key_exists('registro_celo_id', $data) ? $data['registro_celo_id'] : $servicio->registro_celo_id;
 
         if (isset($data['animal_id']) && $data['animal_id'] != $servicio->animal_id) {
+            if ($user->cannot('create', [ServicioAnimal::class, (int) $data['animal_id']])) {
+                throw new AuthorizationException('No tiene permisos para asignar un servicio a ese nuevo animal.');
+            }
             $this->validateFemaleAnimal($targetAnimalId);
         }
 
@@ -115,11 +137,17 @@ class ServicioAnimalService
     }
 
     /**
-     * Delete an existing ServicioAnimal.
+     * Elimina un registro de servicio existente.
      */
-    public function deleteServicio($id)
+    public function deleteServicio($id, $user = null)
     {
+        $user = $user ?? auth()->user();
         $servicio = ServicioAnimal::findOrFail($id);
+
+        if ($user->cannot('delete', $servicio)) {
+            throw new AuthorizationException('No tiene permisos para eliminar este servicio.');
+        }
+
         return $servicio->delete();
     }
 

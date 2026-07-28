@@ -15,7 +15,12 @@ class Persona extends Model
         'apellido',
         'telefono',
         'correo',
+        'fecha_nacimiento',
         'status',
+    ];
+
+    protected $casts = [
+        'fecha_nacimiento' => 'date',
     ];
 
     /**

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Terreno;
+namespace App\Services\Finca;
 
 use App\Models\Terreno;
 use App\Models\Finca;
@@ -8,11 +8,12 @@ use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Services\BaseService;
 
-class TerrenoService
+class TerrenoService extends BaseService
 {
     /**
-     * List all terrenos with pagination.
+     * Obtener lista de terrenos paginada.
      *
      * @param array $filters
      * @param User $user
@@ -21,29 +22,20 @@ class TerrenoService
      */
     public function listTerrenos(array $filters, User $user): LengthAwarePaginator
     {
-        $query = Terreno::with('finca');
-
-        if ($user->isAdmin()) {
-            $this->applyFilters($query, $filters);
-            return $query->paginate(15);
-        }
-
-        $propietario = $user->propietario;
-        if (!$propietario) {
+        if ($user->cannot('readAny', Terreno::class)) {
             throw new AuthorizationException('Sin permisos para listar terrenos.');
         }
 
-        $query->whereHas('finca', function ($q) use ($propietario) {
-            $q->where('propietario_id', $propietario->id);
-        });
+        $query = Terreno::with('finca');
+
+        $this->applyFincaFilter($query, $user, null);
 
         $this->applyFilters($query, $filters);
-
         return $query->paginate(15);
     }
 
     /**
-     * Store a newly created terreno.
+     * Almacenar un nuevo terreno.
      *
      * @param array $data
      * @param User $user
@@ -54,14 +46,12 @@ class TerrenoService
     public function storeTerreno(array $data, User $user): Terreno
     {
         $fincaId = (int) $data['finca_id'];
-        $finca = Finca::findOrFail($fincaId);
-
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $finca->propietario_id !== $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para crear terreno en esta finca.');
-            }
+        
+        if ($user->cannot('create', [Terreno::class, $fincaId])) {
+            throw new AuthorizationException('No tiene permisos para crear terreno en esta finca.');
         }
+        
+        Finca::findOrFail($fincaId);
 
         $terreno = Terreno::create($data);
 
@@ -69,7 +59,7 @@ class TerrenoService
     }
 
     /**
-     * Get a specific terreno.
+     * Obtener un terreno específico.
      *
      * @param int $id
      * @param User $user
@@ -81,18 +71,15 @@ class TerrenoService
     {
         $terreno = Terreno::with('finca')->findOrFail($id);
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $terreno->finca->propietario_id !== $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para ver este terreno.');
-            }
+        if ($user->cannot('read', $terreno)) {
+            throw new AuthorizationException('No tiene permisos para ver este terreno.');
         }
 
         return $terreno;
     }
 
     /**
-     * Update a terreno.
+     * Actualizar los datos de un terreno.
      *
      * @param int $id
      * @param array $data
@@ -105,22 +92,15 @@ class TerrenoService
     {
         $terreno = Terreno::with('finca')->findOrFail($id);
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $terreno->finca->propietario_id !== $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para actualizar este terreno.');
-            }
+        if ($user->cannot('update', $terreno)) {
+            throw new AuthorizationException('No tiene permisos para actualizar este terreno.');
+        }
 
-            if (isset($data['finca_id']) && (int) $data['finca_id'] !== $terreno->finca_id) {
-                $nuevaFinca = Finca::findOrFail((int) $data['finca_id']);
-                if ($nuevaFinca->propietario_id !== $propietario->id) {
-                    throw new AuthorizationException('No tiene permisos para mover el terreno a esta finca.');
-                }
+        if (isset($data['finca_id']) && (int) $data['finca_id'] !== $terreno->finca_id) {
+            if ($user->cannot('create', [Terreno::class, (int) $data['finca_id']])) {
+                throw new AuthorizationException('No tiene permisos para mover el terreno a esta finca.');
             }
-        } else {
-            if (isset($data['finca_id']) && (int) $data['finca_id'] !== $terreno->finca_id) {
-                Finca::findOrFail((int) $data['finca_id']);
-            }
+            Finca::findOrFail((int) $data['finca_id']);
         }
 
         $terreno->update($data);
@@ -129,7 +109,7 @@ class TerrenoService
     }
 
     /**
-     * Delete a terreno (physical delete).
+     * Eliminar físicamente un terreno.
      *
      * @param int $id
      * @param User $user
@@ -141,18 +121,15 @@ class TerrenoService
     {
         $terreno = Terreno::with('finca')->findOrFail($id);
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $terreno->finca->propietario_id !== $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para eliminar este terreno.');
-            }
+        if ($user->cannot('delete', $terreno)) {
+            throw new AuthorizationException('No tiene permisos para eliminar este terreno.');
         }
 
         return $terreno->delete();
     }
 
     /**
-     * Apply optional filters to the query.
+     * Aplicar filtros opcionales de búsqueda a la consulta.
      *
      * @param \Illuminate\Database\Eloquent\Builder $query
      * @param array $filters

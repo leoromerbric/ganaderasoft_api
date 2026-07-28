@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('apellido')->nullable();
             $table->string('telefono')->nullable();
             $table->string('correo')->unique()->nullable();
+            $table->date('fecha_nacimiento')->nullable();
             $table->enum('status', ['activo', 'inactivo'])->default('activo');
              $table->timestamps();
         });

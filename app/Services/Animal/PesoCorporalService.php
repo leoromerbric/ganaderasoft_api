@@ -11,7 +11,9 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
-class PesoCorporalService
+use App\Services\BaseService;
+
+class PesoCorporalService extends BaseService
 {
     /**
      * Constructor del servicio.
@@ -32,8 +34,14 @@ class PesoCorporalService
      * @return LengthAwarePaginator
      * @throws AuthorizationException
      */
-    public function listPesos(array $filters, $user)
+    public function listPesos(array $filters, $user = null)
     {
+        $user = $user ?? auth()->user();
+
+        if ($user->cannot('readAny', PesoCorporal::class)) {
+            throw new AuthorizationException('Sin permisos para listar los pesos corporales.');
+        }
+
         $query = PesoCorporal::with(['etapaAnimal.etapa', 'etapaAnimal.animal']);
 
         if (!empty($filters['animal_id'])) {
@@ -47,17 +55,7 @@ class PesoCorporalService
             $query->byDateRange($filters['fecha_inicio'], $endDate);
         }
 
-        // Control de accesos para no administradores
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario) {
-                throw new AuthorizationException('Usuario no tiene propietario asociado.');
-            }
-
-            $query->whereHas('etapaAnimal.animal.rebano.finca', function ($q) use ($propietario) {
-                $q->where('propietario_id', $propietario->id);
-            });
-        }
+        $this->applyFincaFilter($query, $user, 'etapaAnimal.animal.rebano');
 
         if (!empty($filters['nopaginate'])) {
             return $query->get();
@@ -76,15 +74,13 @@ class PesoCorporalService
      * @throws ModelNotFoundException
      * @throws UnprocessableEntityHttpException
      */
-    public function createPeso(array $data, $user): array
+    public function createPeso(array $data, $user = null): array
     {
+        $user = $user ?? auth()->user();
         $animal = Animal::findOrFail($data['animal_id']);
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para registrar peso a este animal.');
-            }
+        if ($user->cannot('create', [PesoCorporal::class, $animal->id])) {
+            throw new AuthorizationException('No tiene permisos para registrar peso a este animal.');
         }
 
         // Ejecutar el clasificador biológico para ver en qué etapa debe estar el animal
@@ -127,15 +123,13 @@ class PesoCorporalService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function getPesoById(int $id, $user): PesoCorporal
+    public function getPesoById(int $id, $user = null): PesoCorporal
     {
+        $user = $user ?? auth()->user();
         $pesoCorporal = PesoCorporal::with(['etapaAnimal.etapa', 'etapaAnimal.animal.rebano.finca'])->findOrFail($id);
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $pesoCorporal->etapaAnimal->animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para ver este peso corporal.');
-            }
+        if ($user->cannot('read', $pesoCorporal)) {
+            throw new AuthorizationException('No tiene permisos para ver este peso corporal.');
         }
 
         return $pesoCorporal;
@@ -151,16 +145,14 @@ class PesoCorporalService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function updatePeso(int $id, array $data, $user): array
+    public function updatePeso(int $id, array $data, $user = null): array
     {
+        $user = $user ?? auth()->user();
         $pesoCorporal = PesoCorporal::with(['etapaAnimal.animal.rebano.finca'])->findOrFail($id);
         $animal = $pesoCorporal->etapaAnimal->animal;
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para editar este peso corporal.');
-            }
+        if ($user->cannot('update', $pesoCorporal)) {
+            throw new AuthorizationException('No tiene permisos para editar este peso corporal.');
         }
 
         $payload = [];
@@ -214,16 +206,14 @@ class PesoCorporalService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function deletePeso(int $id, $user): bool
+    public function deletePeso(int $id, $user = null): bool
     {
+        $user = $user ?? auth()->user();
         $pesoCorporal = PesoCorporal::with(['etapaAnimal.animal.rebano.finca'])->findOrFail($id);
         $animal = $pesoCorporal->etapaAnimal->animal;
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para eliminar este peso corporal.');
-            }
+        if ($user->cannot('delete', $pesoCorporal)) {
+            throw new AuthorizationException('No tiene permisos para eliminar este peso corporal.');
         }
 
         $result = $pesoCorporal->delete();

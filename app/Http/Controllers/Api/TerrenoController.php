@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Services\Terreno\TerrenoService;
-use App\Http\Resources\Terreno\TerrenoResource;
+use App\Services\Finca\TerrenoService;
+use App\Http\Resources\Finca\TerrenoResource;
 use App\Http\Middleware\Legacy\Terreno\NormalizeIndex;
 use App\Http\Middleware\Legacy\Terreno\NormalizeStore;
 use App\Http\Middleware\Legacy\Terreno\NormalizeShow;

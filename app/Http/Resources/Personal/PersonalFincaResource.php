@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\PersonalFinca;
+namespace App\Http\Resources\Personal;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -20,6 +20,7 @@ class PersonalFincaResource extends JsonResource
                 'apellido' => $this->persona->apellido ?? null,
                 'telefono' => $this->persona->telefono ?? null,
                 'correo' => $this->persona->correo ?? null,
+                'fecha_nacimiento' => $this->persona->fecha_nacimiento ? $this->persona->fecha_nacimiento->format('Y-m-d') : null,
             ],
             'tipo_trabajador' => [
                 'id' => $this->tipoTrabajador->id ?? null,

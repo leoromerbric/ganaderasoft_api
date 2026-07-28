@@ -10,11 +10,12 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Services\BaseService;
 
-class PropietarioService
+class PropietarioService extends BaseService
 {
     /**
-     * List all propietarios with pagination based on user permissions.
+     * Obtener lista de propietarios paginada según permisos.
      *
      * @param array $filters
      * @param User $user
@@ -23,22 +24,24 @@ class PropietarioService
      */
     public function listPropietarios(array $filters, User $user): LengthAwarePaginator
     {
+        if ($user->cannot('readAny', Propietario::class)) {
+            throw new AuthorizationException('Sin permisos para listar propietarios.');
+        }
+
         $query = Propietario::with(['persona.users', 'fincas'])->active();
 
-        if ($user->isAdmin()) {
-            return $query->paginate(15);
+        if (!$user->isAdmin()) {
+            $propietario = $user->propietario;
+            if (!$propietario) {
+                throw new AuthorizationException('El usuario no está registrado como propietario.');
+            }
+            $query->where('id', $propietario->id);
         }
-
-        $propietario = $user->propietario;
-        if (!$propietario) {
-            throw new AuthorizationException('El usuario no está registrado como propietario.');
-        }
-
-        return $query->where('id', $propietario->id)->paginate(15);
+        return $query->paginate(15);
     }
 
     /**
-     * Store a newly created propietario.
+     * Crear un nuevo propietario.
      *
      * @param array $data
      * @param User $user
@@ -50,20 +53,19 @@ class PropietarioService
     {
         $targetUserId = (int) $data['user_id'];
 
-        // Access control: Only admin can create propietario profiles for other users
-        if (!$user->isAdmin() && $targetUserId !== $user->id) {
+        if ($user->cannot('create', [Propietario::class, $targetUserId])) {
             throw new AuthorizationException('No tiene permisos para crear propietario para otro usuario.');
         }
 
         $targetUser = User::findOrFail($targetUserId);
 
-        // Check if propietario profile already exists for the user
+        // Verificar si el perfil de propietario ya existe para este usuario
         if ($targetUser->propietario) {
             throw new ConflictHttpException('Ya existe un propietario para este usuario.');
         }
 
         return DB::transaction(function () use ($data, $targetUser) {
-            // Create the Persona physical entity
+            // Crear la entidad física de la Persona
             $persona = Persona::create([
                 'cedula' => $data['cedula'],
                 'nombre' => $data['nombre'],
@@ -73,10 +75,10 @@ class PropietarioService
                 'status' => 'activo'
             ]);
 
-            // Associate the Persona with the User
+            // Asociar la Persona con el Usuario
             $targetUser->personas()->attach($persona->id);
 
-            // Create the Propietario role profile
+            // Crear el perfil del rol de Propietario
             $propietario = Propietario::create([
                 'persona_id' => $persona->id
             ]);
@@ -86,7 +88,7 @@ class PropietarioService
     }
 
     /**
-     * Get a specific propietario detailing permissions.
+     * Obtener un propietario específico validando permisos.
      *
      * @param int $id
      * @param User $user
@@ -98,19 +100,15 @@ class PropietarioService
     {
         $propietario = Propietario::with(['persona.users', 'fincas'])->findOrFail($id);
 
-        // Access control: Admin can see all, Propietario only their own profile
-        if (!$user->isAdmin()) {
-            $propietarioUser = $propietario->persona->users->first();
-            if (!$propietarioUser || $user->id !== $propietarioUser->id) {
-                throw new AuthorizationException('No tiene permisos para ver este propietario.');
-            }
+        if ($user->cannot('read', $propietario)) {
+            throw new AuthorizationException('No tiene permisos para ver este propietario.');
         }
 
         return $propietario;
     }
 
     /**
-     * Update the details of a propietario's persona.
+     * Actualizar los detalles de la persona del propietario.
      *
      * @param int $id
      * @param array $data
@@ -123,15 +121,11 @@ class PropietarioService
     {
         $propietario = Propietario::with(['persona.users', 'fincas'])->findOrFail($id);
 
-        // Access control: Admin can update all, Propietario only their own
-        if (!$user->isAdmin()) {
-            $propietarioUser = $propietario->persona->users->first();
-            if (!$propietarioUser || $user->id !== $propietarioUser->id) {
-                throw new AuthorizationException('No tiene permisos para actualizar este propietario.');
-            }
+        if ($user->cannot('update', $propietario)) {
+            throw new AuthorizationException('No tiene permisos para actualizar este propietario.');
         }
 
-        // Selectively update persona attributes
+        // Actualizar selectivamente los atributos de la persona
         $personaData = [];
         if (array_key_exists('cedula', $data)) $personaData['cedula'] = $data['cedula'];
         if (array_key_exists('nombre', $data)) $personaData['nombre'] = $data['nombre'];
@@ -147,7 +141,7 @@ class PropietarioService
     }
 
     /**
-     * Soft-delete/Archive a propietario (sets associated persona status to 'inactivo').
+     * Archivar un propietario (cambia el estado de la persona a 'inactivo').
      *
      * @param int $id
      * @param User $user
@@ -157,8 +151,9 @@ class PropietarioService
      */
     public function archivePropietario(int $id, User $user): void
     {
-        // Only admin can archive/delete propietarios
-        if (!$user->isAdmin()) {
+        $propietario = Propietario::findOrFail($id);
+
+        if ($user->cannot('delete', $propietario)) {
             throw new AuthorizationException('No tiene permisos para eliminar propietarios.');
         }
 

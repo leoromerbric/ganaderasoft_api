@@ -8,13 +8,19 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 
-class LecheService
+use App\Services\BaseService;
+
+class LecheService extends BaseService
 {
     /**
-     * Retrieve paginated leche records with applied filters and authorization.
+     * Obtener registros de leche paginados con filtros y autorización aplicada.
      */
     public function getPaginatedLeche(array $filters, $user, $perPage = 15)
     {
+        if ($user->cannot('readAny', Leche::class)) {
+            throw new AuthorizationException('Sin permisos para listar registros de leche.');
+        }
+
         $query = Leche::with(['lactancia.animal', 'lactancia.etapa']);
 
         if (isset($filters['lactancia_id'])) {
@@ -30,43 +36,25 @@ class LecheService
             $query->minProduction($filters['produccion_minima']);
         }
 
+        $this->applyFincaFilter($query, $user, 'lactancia.animal.rebano');
+
         if (isset($filters['nopaginate'])) {
             return $query->get();
-        }
-
-        if (!$user->isAdmin() && $user->isPropietario()) {
-            $propietario = $user->propietario;
-            if ($propietario) {
-                $query->whereHas('lactancia.animal.rebano.finca', function ($q) use ($propietario) {
-                    $q->where('propietario_id', $propietario->id);
-                });
-            }
         }
 
         return $query->paginate($perPage);
     }
 
     /**
-     * Create a new Leche record checking permissions and loading relations.
+     * Crear un nuevo registro de Leche validando permisos.
      */
-    public function createLeche(array $data, $user)
+    public function createLeche(array $data, $user = null)
     {
-        $lactancia = Lactancia::with(['animal.rebano.finca'])->find($data['lactancia_id']);
+        $user = $user ?? auth()->user();
+        $lactanciaId = (int) $data['lactancia_id'];
 
-        if (!$lactancia) {
-            throw new ModelNotFoundException('Lactancia no encontrada');
-        }
-
-        if (!$user->isAdmin()) {
-            if ($user->isPropietario()) {
-                $propietario = $user->propietario;
-                $ownerId = optional(optional(optional($lactancia->animal)->rebano)->finca)->propietario_id;
-                if (!$propietario || !$ownerId || $ownerId !== $propietario->id) {
-                    throw new AuthorizationException('No tiene permisos para registrar leche a esta lactancia');
-                }
-            } else {
-                throw new AuthorizationException('No tiene permisos para registrar leche');
-            }
+        if ($user->cannot('create', [Leche::class, $lactanciaId])) {
+            throw new AuthorizationException('No tiene permisos para registrar leche a esta lactancia');
         }
 
         $leche = Leche::create([
@@ -79,25 +67,31 @@ class LecheService
     }
 
     /**
-     * Fetch a specific Leche record by ID with relationships and permission check.
+     * Obtener un registro específico de Leche por ID validando permisos.
      */
-    public function getLecheById($id, $user)
+    public function getLecheById($id, $user = null)
     {
+        $user = $user ?? auth()->user();
         $leche = Leche::with(['lactancia.animal', 'lactancia.etapa'])->findOrFail($id);
 
-        $this->checkPermissions($leche, $user, 'ver este registro de leche');
+        if ($user->cannot('read', $leche)) {
+            throw new AuthorizationException('No tiene permisos para ver este registro de leche.');
+        }
 
         return $leche;
     }
 
     /**
-     * Update an existing Leche record.
+     * Actualizar un registro existente de Leche.
      */
-    public function updateLeche($id, array $data, $user)
+    public function updateLeche($id, array $data, $user = null)
     {
-        $leche = Leche::with(['lactancia.animal.rebano.finca'])->findOrFail($id);
+        $user = $user ?? auth()->user();
+        $leche = Leche::findOrFail($id);
 
-        $this->checkPermissions($leche, $user, 'editar este registro de leche');
+        if ($user->cannot('update', $leche)) {
+            throw new AuthorizationException('No tiene permisos para editar este registro de leche.');
+        }
 
         $leche->update($data);
 
@@ -105,32 +99,17 @@ class LecheService
     }
 
     /**
-     * Delete a Leche record.
+     * Eliminar un registro de Leche.
      */
-    public function deleteLeche($id, $user)
+    public function deleteLeche($id, $user = null)
     {
-        $leche = Leche::with(['lactancia.animal.rebano.finca'])->findOrFail($id);
+        $user = $user ?? auth()->user();
+        $leche = Leche::findOrFail($id);
 
-        $this->checkPermissions($leche, $user, 'eliminar este registro de leche');
+        if ($user->cannot('delete', $leche)) {
+            throw new AuthorizationException('No tiene permisos para eliminar este registro de leche.');
+        }
 
         return $leche->delete();
-    }
-
-    /**
-     * Check if user has permission to interact with the Leche record.
-     */
-    protected function checkPermissions(Leche $leche, $user, string $actionMessage)
-    {
-        if (!$user->isAdmin()) {
-            if ($user->isPropietario()) {
-                $propietario = $user->propietario;
-                $ownerId = optional(optional(optional(optional($leche->lactancia)->animal)->rebano)->finca)->propietario_id;
-                if (!$propietario || !$ownerId || $ownerId !== $propietario->id) {
-                    throw new AuthorizationException("No tiene permisos para {$actionMessage}");
-                }
-            } else {
-                throw new AuthorizationException("No tiene permisos para {$actionMessage}");
-            }
-        }
     }
 }

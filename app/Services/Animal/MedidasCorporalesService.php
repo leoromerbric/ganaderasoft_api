@@ -8,7 +8,9 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-class MedidasCorporalesService
+use App\Services\BaseService;
+
+class MedidasCorporalesService extends BaseService
 {
     /**
      * Obtiene el listado de medidas corporales aplicando filtros.
@@ -18,8 +20,14 @@ class MedidasCorporalesService
      * @return LengthAwarePaginator
      * @throws AuthorizationException
      */
-    public function listMedidas(array $filters, $user)
+    public function listMedidas(array $filters, $user = null)
     {
+        $user = $user ?? auth()->user();
+
+        if ($user->cannot('readAny', MedidasCorporales::class)) {
+            throw new AuthorizationException('Sin permisos para listar las medidas corporales.');
+        }
+
         $query = MedidasCorporales::with(['etapaAnimal.etapa', 'etapaAnimal.animal']);
 
         if (!empty($filters['animal_id'])) {
@@ -34,17 +42,7 @@ class MedidasCorporalesService
             });
         }
 
-        // Control de accesos para no administradores
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario) {
-                throw new AuthorizationException('Usuario no tiene propietario asociado.');
-            }
-
-            $query->whereHas('etapaAnimal.animal.rebano.finca', function ($q) use ($propietario) {
-                $q->where('propietario_id', $propietario->id);
-            });
-        }
+        $this->applyFincaFilter($query, $user, 'etapaAnimal.animal.rebano');
 
         if (!empty($filters['nopaginate'])) {
             return $query->get();
@@ -62,18 +60,17 @@ class MedidasCorporalesService
      * @throws AuthorizationException
      * @throws ModelNotFoundException
      */
-    public function createMedidas(array $data, $user): MedidasCorporales
+    public function createMedidas(array $data, $user = null): MedidasCorporales
     {
+        $user = $user ?? auth()->user();
+
         // Obtener el animal a través de la etapa seleccionada para verificar permisos
         $animal = Animal::whereHas('etapaAnimales', function ($q) use ($data) {
             $q->where('id', $data['animal_etapa_id']);
         })->firstOrFail();
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para registrar medidas a este animal.');
-            }
+        if ($user->cannot('create', [MedidasCorporales::class, $animal->id])) {
+            throw new AuthorizationException('No tiene permisos para registrar medidas a este animal.');
         }
 
         return MedidasCorporales::create([
@@ -97,15 +94,13 @@ class MedidasCorporalesService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function getMedidasById(int $id, $user): MedidasCorporales
+    public function getMedidasById(int $id, $user = null): MedidasCorporales
     {
+        $user = $user ?? auth()->user();
         $medidasCorporales = MedidasCorporales::with(['etapaAnimal.etapa', 'etapaAnimal.animal.rebano.finca'])->findOrFail($id);
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $medidasCorporales->etapaAnimal->animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para ver estas medidas corporales.');
-            }
+        if ($user->cannot('read', $medidasCorporales)) {
+            throw new AuthorizationException('No tiene permisos para ver estas medidas corporales.');
         }
 
         return $medidasCorporales;
@@ -121,16 +116,13 @@ class MedidasCorporalesService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function updateMedidas(int $id, array $data, $user): MedidasCorporales
+    public function updateMedidas(int $id, array $data, $user = null): MedidasCorporales
     {
+        $user = $user ?? auth()->user();
         $medidasCorporales = MedidasCorporales::findOrFail($id);
-        $animal = $medidasCorporales->animal;
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para editar estas medidas corporales.');
-            }
+        if ($user->cannot('update', $medidasCorporales)) {
+            throw new AuthorizationException('No tiene permisos para editar estas medidas corporales.');
         }
 
         $payload = [];
@@ -156,16 +148,13 @@ class MedidasCorporalesService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function deleteMedidas(int $id, $user): bool
+    public function deleteMedidas(int $id, $user = null): bool
     {
+        $user = $user ?? auth()->user();
         $medidasCorporales = MedidasCorporales::findOrFail($id);
-        $animal = $medidasCorporales->animal;
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para eliminar estas medidas corporales.');
-            }
+        if ($user->cannot('delete', $medidasCorporales)) {
+            throw new AuthorizationException('No tiene permisos para eliminar estas medidas corporales.');
         }
 
         return $medidasCorporales->delete();

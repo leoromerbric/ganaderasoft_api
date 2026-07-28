@@ -9,11 +9,12 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Services\BaseService;
 
-class FincaService
+class FincaService extends BaseService
 {
     /**
-     * List all fincas with pagination based on user permissions.
+     * Obtener lista de fincas paginada según permisos.
      *
      * @param array $filters
      * @param User $user
@@ -22,22 +23,18 @@ class FincaService
      */
     public function listFincas(array $filters, User $user): LengthAwarePaginator
     {
+        if ($user->cannot('readAny', Finca::class)) {
+            throw new AuthorizationException('Sin permisos para listar fincas.');
+        }
+
         $query = Finca::with(['propietario.persona.users', 'terreno'])->active();
 
-        if ($user->isAdmin()) {
-            return $query->paginate(15);
-        }
-
-        $propietario = $user->propietario;
-        if (!$propietario) {
-            throw new AuthorizationException('El usuario no está registrado como propietario.');
-        }
-
-        return $query->forPropietario($propietario->id)->paginate(15);
+        $this->applyFincaFilter($query, $user, null, 'id');
+        return $query->paginate(15);
     }
 
     /**
-     * Store a newly created finca.
+     * Crear una nueva finca.
      *
      * @param array $data
      * @param User $user
@@ -46,6 +43,10 @@ class FincaService
      */
     public function storeFinca(array $data, User $user): Finca
     {
+        if ($user->cannot('create', Finca::class)) {
+            throw new AuthorizationException('No tiene permisos para crear fincas.');
+        }
+
         $propietarioId = (int) $data['propietario_id'];
 
         if (!$user->isAdmin()) {
@@ -74,7 +75,7 @@ class FincaService
     }
 
     /**
-     * Get a specific finca detailing permissions.
+     * Obtener una finca específica validando permisos.
      *
      * @param int $id
      * @param User $user
@@ -86,18 +87,15 @@ class FincaService
     {
         $finca = Finca::with(['propietario.persona.users', 'terreno'])->findOrFail($id);
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $finca->propietario_id !== $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para ver esta finca.');
-            }
+        if ($user->cannot('read', $finca)) {
+            throw new AuthorizationException('No tiene permisos para ver esta finca.');
         }
 
         return $finca;
     }
 
     /**
-     * Update a finca.
+     * Actualizar los datos de una finca.
      *
      * @param int $id
      * @param array $data
@@ -110,13 +108,13 @@ class FincaService
     {
         $finca = Finca::with(['propietario.persona.users', 'terreno'])->findOrFail($id);
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $finca->propietario_id !== $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para actualizar esta finca.');
-            }
+        if ($user->cannot('update', $finca)) {
+            throw new AuthorizationException('No tiene permisos para actualizar esta finca.');
+        }
 
+        if (!$user->isAdmin()) {
             // Propietario cannot change ownership
+            $propietario = $user->propietario;
             if (isset($data['propietario_id']) && (int) $data['propietario_id'] !== $propietario->id) {
                 throw new AuthorizationException('No puede cambiar el propietario de la finca.');
             }
@@ -148,7 +146,7 @@ class FincaService
     }
 
     /**
-     * Archive a finca (sets archived to true).
+     * Archivar una finca (estado archivado = true).
      *
      * @param int $id
      * @param User $user
@@ -160,11 +158,8 @@ class FincaService
     {
         $finca = Finca::findOrFail($id);
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $finca->propietario_id !== $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para eliminar esta finca.');
-            }
+        if ($user->cannot('delete', $finca)) {
+            throw new AuthorizationException('No tiene permisos para eliminar esta finca.');
         }
 
         $finca->update(['archivado' => true]);

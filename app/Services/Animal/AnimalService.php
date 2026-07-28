@@ -9,9 +9,11 @@ use App\Models\EtapaAnimal;
 use App\Models\PesoCorporal;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Services\BaseService;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-class AnimalService
+class AnimalService extends BaseService
 {
     /**
      * Constructor del servicio.
@@ -33,6 +35,10 @@ class AnimalService
      */
     public function listAnimals(array $filters, $user)
     {
+        if ($user->cannot('readAny', Animal::class)) {
+            throw new AuthorizationException('No tiene permisos para listar animales.');
+        }
+
         $query = Animal::with(['rebano.finca.propietario.persona', 'composicionRaza'])
             ->active();
 
@@ -45,23 +51,7 @@ class AnimalService
             $query->bySex($filters['sexo']);
         }
 
-        // Si el usuario es administrador, puede ver todos los animales
-        if ($user->isAdmin()) {
-            if (!empty($filters['nopaginate'])) {
-                return $query->get();
-            }
-            return $query->paginate(15);
-        }
-
-        // Si es propietario, restringimos la búsqueda solo a los animales de sus fincas
-        $propietario = $user->propietario;
-        if (!$propietario) {
-            throw new AuthorizationException('El usuario no está registrado como propietario.');
-        }
-
-        $query->whereHas('rebano.finca', function ($q) use ($propietario) {
-            $q->where('propietario_id', $propietario->id);
-        });
+        $this->applyFincaFilter($query, $user, 'rebano');
 
         if (!empty($filters['nopaginate'])) {
             return $query->get();
@@ -80,17 +70,9 @@ class AnimalService
      */
     public function storeAnimal(array $data, $user): array
     {
-        // Validación de permisos para no administradores
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario) {
-                throw new AuthorizationException('El usuario no está registrado como propietario.');
-            }
-
-            $rebano = Rebano::with('finca')->find($data['rebano_id']);
-            if (!$rebano || $rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para agregar un animal a este rebaño.');
-            }
+        // Validación de permisos
+        if ($user->cannot('create', [Animal::class, (int)$data['rebano_id']])) {
+            throw new AuthorizationException('No tiene permisos para agregar un animal a este rebaño.');
         }
 
         // Creación del animal mapeando los campos del request a las columnas actuales de la DB
@@ -153,12 +135,8 @@ class AnimalService
             'etapaActual.etapa'
         ])->findOrFail($id);
 
-        // Control de acceso para no administradores
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para ver este animal.');
-            }
+        if ($user->cannot('read', $animal)) {
+            throw new AuthorizationException('No tiene permisos para ver este animal.');
         }
 
         return $animal;
@@ -179,18 +157,14 @@ class AnimalService
         $animal = Animal::findOrFail($id);
 
         // Validación de permisos
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para actualizar este animal.');
-            }
+        if ($user->cannot('update', $animal)) {
+            throw new AuthorizationException('No tiene permisos para actualizar este animal.');
+        }
 
-            // Si intenta cambiar de rebaño, valida pertenencia en el nuevo rebaño
-            if (!empty($data['rebano_id'])) {
-                $newRebano = Rebano::with('finca')->find($data['rebano_id']);
-                if (!$newRebano || $newRebano->finca->propietario_id != $propietario->id) {
-                    throw new AuthorizationException('No tiene permisos para mover el animal a ese rebaño.');
-                }
+        // Si intenta cambiar de rebaño, valida pertenencia en el nuevo rebaño
+        if (!empty($data['rebano_id']) && $data['rebano_id'] != $animal->rebano_id) {
+            if ($user->cannot('create', [Animal::class, (int)$data['rebano_id']])) {
+                throw new AuthorizationException('No tiene permisos para mover el animal a ese rebaño.');
             }
         }
 
@@ -229,11 +203,8 @@ class AnimalService
     {
         $animal = Animal::findOrFail($id);
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para archivar este animal.');
-            }
+        if ($user->cannot('delete', $animal)) {
+            throw new AuthorizationException('No tiene permisos para archivar este animal.');
         }
 
         $animal->update(['archivado' => true]);

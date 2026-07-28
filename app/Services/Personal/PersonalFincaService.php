@@ -1,26 +1,28 @@
 <?php
 
-namespace App\Services\PersonalFinca;
+namespace App\Services\Personal;
 
 use App\Models\PersonalFinca;
 use App\Models\Persona;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
+use App\Services\BaseService;
 
-class PersonalFincaService
+class PersonalFincaService extends BaseService
 {
+    /**
+     * Obtener lista de personal paginada.
+     */
     public function listPersonal(array $filters, User $user)
     {
+        if ($user->cannot('readAny', PersonalFinca::class)) {
+            throw new AuthorizationException('Sin permisos para listar personal.');
+        }
+
         $query = PersonalFinca::with(['finca', 'persona', 'tipoTrabajador']);
 
-        if (!$user->isAdmin()) {
-            if (!$user->isPropietario()) {
-                throw new AuthorizationException('No tiene permisos para ver esta informacion');
-            }
-            $fincaIds = $user->propietario->fincas()->pluck('fincas.id');
-            $query->whereIn('finca_id', $fincaIds);
-        }
+        $this->applyFincaFilter($query, $user, null);
 
         if (isset($filters['finca_id'])) {
             $query->forFinca($filters['finca_id']);
@@ -33,20 +35,18 @@ class PersonalFincaService
         if (isset($filters['nombre'])) {
             $query->byName($filters['nombre']);
         }
-
         return $query->paginate(15);
     }
 
+    /**
+     * Crear un nuevo registro de personal.
+     */
     public function storePersonal(array $data, User $user)
     {
-        if (!$user->isAdmin()) {
-            if (!$user->isPropietario()) {
-                throw new AuthorizationException('No tiene permisos para agregar personal');
-            }
-            $fincaIds = $user->propietario->fincas()->pluck('fincas.id');
-            if (!$fincaIds->contains($data['finca_id'])) {
-                throw new AuthorizationException('No tiene permisos para agregar personal a esta finca');
-            }
+        $fincaId = (int) $data['finca_id'];
+        
+        if ($user->cannot('create', [PersonalFinca::class, $fincaId])) {
+            throw new AuthorizationException('No tiene permisos para agregar personal a esta finca');
         }
 
         return DB::transaction(function () use ($data) {
@@ -79,36 +79,33 @@ class PersonalFincaService
         });
     }
 
+    /**
+     * Obtener un registro específico de personal.
+     */
     public function getPersonal(int $id, User $user)
     {
         $personal = PersonalFinca::with(['finca', 'persona', 'tipoTrabajador'])->findOrFail($id);
 
-        if (!$user->isAdmin()) {
-            if (!$user->isPropietario()) {
-                throw new AuthorizationException('No tiene permisos para ver esta informacion');
-            }
-            $fincaIds = $user->propietario->fincas()->pluck('fincas.id');
-            if (!$fincaIds->contains($personal->finca_id)) {
-                throw new AuthorizationException('No tiene permisos para ver este personal');
-            }
+        if ($user->cannot('read', $personal)) {
+            throw new AuthorizationException('No tiene permisos para ver este personal');
         }
 
         return $personal;
     }
 
+    /**
+     * Actualizar datos del personal.
+     */
     public function updatePersonal(int $id, array $data, User $user)
     {
         $personal = PersonalFinca::findOrFail($id);
 
-        if (!$user->isAdmin()) {
-            if (!$user->isPropietario()) {
-                throw new AuthorizationException('No tiene permisos para editar personal');
-            }
-            $fincaIds = $user->propietario->fincas()->pluck('fincas.id');
-            if (!$fincaIds->contains($personal->finca_id)) {
-                throw new AuthorizationException('No tiene permisos para editar este personal');
-            }
-            if (isset($data['finca_id']) && !$fincaIds->contains($data['finca_id'])) {
+        if ($user->cannot('update', $personal)) {
+            throw new AuthorizationException('No tiene permisos para editar este personal');
+        }
+
+        if (isset($data['finca_id']) && (int) $data['finca_id'] !== $personal->finca_id) {
+            if ($user->cannot('create', [PersonalFinca::class, (int) $data['finca_id']])) {
                 throw new AuthorizationException('No tiene permisos para asignar personal a la nueva finca');
             }
         }
@@ -140,18 +137,15 @@ class PersonalFincaService
         });
     }
 
+    /**
+     * Eliminar registro de personal.
+     */
     public function deletePersonal(int $id, User $user)
     {
         $personal = PersonalFinca::findOrFail($id);
 
-        if (!$user->isAdmin()) {
-            if (!$user->isPropietario()) {
-                throw new AuthorizationException('No tiene permisos para eliminar personal');
-            }
-            $fincaIds = $user->propietario->fincas()->pluck('fincas.id');
-            if (!$fincaIds->contains($personal->finca_id)) {
-                throw new AuthorizationException('No tiene permisos para eliminar este personal');
-            }
+        if ($user->cannot('delete', $personal)) {
+            throw new AuthorizationException('No tiene permisos para eliminar este personal');
         }
 
         $personal->delete();

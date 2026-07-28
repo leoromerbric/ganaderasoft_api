@@ -69,7 +69,24 @@ class User extends Authenticatable
      */
     public function roles()
     {
-        return $this->belongsToMany(Role::class, 'role_user');
+        return $this->belongsToMany(Role::class, 'role_user')
+            ->withTimestamps();
+    }
+
+    /**
+     * Verificar si el usuario tiene un permiso específico a nivel global.
+     */
+    public function hasPermissionTo($permissionCode): bool
+    {
+        // 1. Si es global_admin o admin, puede hacer todo
+        if ($this->isAdmin()) {
+            return true;
+        }
+
+        // 2. Buscar si alguno de sus roles globales contiene el permiso requerido
+        return $this->roles()->whereHas('permissions', function ($q) use ($permissionCode) {
+            $q->where('code', $permissionCode);
+        })->exists();
     }
 
     /**
@@ -89,23 +106,31 @@ class User extends Authenticatable
     }
 
     /**
-     * Verificar si el usuario es un técnico.
-     */
-    public function isTecnico(): bool
-    {
-        return $this->roles()->where('code', 'tecnico')->exists();
-    }
-
-    /**
      * Obtener el tipo de usuario (para retrocompatibilidad con frontend).
+     * Como ahora pueden haber N roles dinámicos, agrupamos genéricamente.
      */
     public function getTypeUserAttribute(): string
     {
-        $role = $this->roles->first();
-        if ($role) {
-            return $role->code === 'global_admin' ? 'admin' : $role->code;
+        if ($this->isAdmin()) return 'admin';
+        if ($this->isPropietario()) return 'propietario';
+        
+        return 'empleado'; // Para todos los demás roles (Gestores, Veterinarios, etc.)
+    }
+
+    /**
+     * Obtener un arreglo con los IDs de las fincas a las que el usuario tiene acceso.
+     */
+    public function getAllowedFincasIds(): array
+    {
+        $fincasIds = $this->fincas()->pluck('fincas.id')->toArray();
+        
+        // Si el usuario es propietario, también tiene acceso a las fincas de las cuales es dueño
+        if ($this->isPropietario() && $this->propietario) {
+            $ownedFincasIds = $this->propietario->fincas()->pluck('id')->toArray();
+            $fincasIds = array_unique(array_merge($fincasIds, $ownedFincasIds));
         }
-        return 'tecnico';
+        
+        return $fincasIds;
     }
 
 

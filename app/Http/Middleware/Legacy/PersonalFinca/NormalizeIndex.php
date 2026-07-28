@@ -24,6 +24,8 @@ class NormalizeIndex
                         'Apellido' => $item['persona']['apellido'] ?? null,
                         'Telefono' => $item['persona']['telefono'] ?? null,
                         'Correo' => $item['persona']['correo'] ?? null,
+                        'Fecha_Nacimiento' => $item['persona']['fecha_nacimiento'] ?? null,
+                        'Fecha_Ingreso' => $item['fecha_ingreso'] ?? null,
                         'Tipo_Trabajador' => $item['tipo_trabajador']['nombre'] ?? null,
                         'created_at' => $item['created_at'] ?? null,
                         'updated_at' => $item['updated_at'] ?? null,

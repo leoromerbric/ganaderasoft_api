@@ -9,13 +9,21 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 
-class RegistroCeloService
+use App\Services\BaseService;
+
+class RegistroCeloService extends BaseService
 {
     /**
-     * Retrieve paginated registros de celo with applied filters and authorization.
+     * Obtiene una lista paginada de registros de celo basándose en los filtros y la autorización del usuario.
      */
-    public function getPaginatedCelos(array $filters, $user, $perPage = 15)
+    public function getPaginatedCelos(array $filters, $user = null, $perPage = 15)
     {
+        $user = $user ?? auth()->user();
+
+        if ($user->cannot('readAny', RegistroCelo::class)) {
+            throw new AuthorizationException('Sin permisos para listar registros de celo.');
+        }
+
         $query = RegistroCelo::with(['etapaAnimal.animal', 'etapaAnimal.etapa']);
 
         if (isset($filters['animal_id'])) {
@@ -29,28 +37,22 @@ class RegistroCeloService
             $query->whereBetween('fecha', [$filters['fecha_inicio'], $fechaFin]);
         }
 
+        $this->applyFincaFilter($query, $user, 'etapaAnimal.animal.rebano');
+
         if (isset($filters['nopaginate'])) {
             return $query->get();
-        }
-
-        // Control de acceso para propietarios no-administradores
-        if (!$user->isAdmin() && $user->isPropietario()) {
-            $propietario = $user->propietario;
-            if ($propietario) {
-                $query->whereHas('etapaAnimal.animal.rebano.finca', function ($q) use ($propietario) {
-                    $q->where('propietario_id', $propietario->id);
-                });
-            }
         }
 
         return $query->paginate($perPage);
     }
 
     /**
-     * Create a new Registro de Celo resolving animal_etapa_id if needed.
+     * Crea un nuevo registro de celo, resolviendo animal_etapa_id si es necesario.
      */
-    public function createCelo(array $data)
+    public function createCelo(array $data, $user = null)
     {
+        $user = $user ?? auth()->user();
+
         if (!isset($data['animal_etapa_id']) && isset($data['animal_id']) && isset($data['etapa_id'])) {
             $etapaAnimal = EtapaAnimal::where('animal_id', $data['animal_id'])
                 ->where('etapa_id', $data['etapa_id'])
@@ -63,6 +65,10 @@ class RegistroCeloService
                     'animal_etapa_id' => ['La combinación de animal y etapa especificada no existe.']
                 ]);
             }
+        }
+
+        if ($user->cannot('create', [RegistroCelo::class, $data['animal_id'] ?? null, $data['animal_etapa_id'] ?? null])) {
+            throw new AuthorizationException('No tiene permisos para registrar celo a este animal.');
         }
 
         if (isset($data['animal_etapa_id'])) {
@@ -81,19 +87,31 @@ class RegistroCeloService
     }
 
     /**
-     * Fetch a specific RegistroCelo by ID with relationships.
+     * Obtiene un registro de celo específico por su ID.
      */
-    public function getCeloById($id)
+    public function getCeloById($id, $user = null)
     {
-        return RegistroCelo::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'servicios'])->findOrFail($id);
+        $user = $user ?? auth()->user();
+        $celo = RegistroCelo::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'servicios'])->findOrFail($id);
+
+        if ($user->cannot('read', $celo)) {
+            throw new AuthorizationException('No tiene permisos para ver este registro de celo.');
+        }
+
+        return $celo;
     }
 
     /**
-     * Update an existing RegistroCelo.
+     * Actualiza un registro de celo existente.
      */
-    public function updateCelo($id, array $data)
+    public function updateCelo($id, array $data, $user = null)
     {
+        $user = $user ?? auth()->user();
         $celo = RegistroCelo::findOrFail($id);
+
+        if ($user->cannot('update', $celo)) {
+            throw new AuthorizationException('No tiene permisos para actualizar este registro de celo.');
+        }
 
         if (!isset($data['animal_etapa_id']) && isset($data['animal_id']) && isset($data['etapa_id'])) {
             $etapaAnimal = EtapaAnimal::where('animal_id', $data['animal_id'])
@@ -132,11 +150,17 @@ class RegistroCeloService
     }
 
     /**
-     * Delete an existing RegistroCelo.
+     * Elimina un registro de celo existente.
      */
-    public function deleteCelo($id)
+    public function deleteCelo($id, $user = null)
     {
+        $user = $user ?? auth()->user();
         $celo = RegistroCelo::findOrFail($id);
+
+        if ($user->cannot('delete', $celo)) {
+            throw new AuthorizationException('No tiene permisos para eliminar este registro de celo.');
+        }
+
         return $celo->delete();
     }
 

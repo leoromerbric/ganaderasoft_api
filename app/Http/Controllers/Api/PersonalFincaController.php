@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
-use App\Services\PersonalFinca\PersonalFincaService;
-use App\Http\Resources\PersonalFinca\PersonalFincaResource;
+use App\Services\Personal\PersonalFincaService;
+use App\Http\Resources\Personal\PersonalFincaResource;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 

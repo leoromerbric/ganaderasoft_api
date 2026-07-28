@@ -9,13 +9,21 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 
-class ReproduccionAnimalService
+use App\Services\BaseService;
+
+class ReproduccionAnimalService extends BaseService
 {
     /**
-     * Retrieve paginated reproducciones with applied filters and authorization.
+     * Obtiene una lista paginada de registros de reproducción basándose en los filtros y la autorización del usuario.
      */
-    public function getPaginatedReproducciones(array $filters, $user, $perPage = 15)
+    public function getPaginatedReproducciones(array $filters, $user = null, $perPage = 15)
     {
+        $user = $user ?? auth()->user();
+
+        if ($user->cannot('readAny', ReproduccionAnimal::class)) {
+            throw new AuthorizationException('Sin permisos para listar registros de reproducción.');
+        }
+
         $query = ReproduccionAnimal::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'animal', 'etapa']);
 
         if (isset($filters['animal_id'])) {
@@ -29,28 +37,22 @@ class ReproduccionAnimalService
             $query->byDateRange($filters['fecha_inicio'], $fechaFin);
         }
 
+        $this->applyFincaFilter($query, $user, 'etapaAnimal.animal.rebano');
+
         if (isset($filters['nopaginate'])) {
             return $query->get();
-        }
-
-        // Control de acceso para propietarios no-administradores
-        if (!$user->isAdmin() && $user->isPropietario()) {
-            $propietario = $user->propietario;
-            if ($propietario) {
-                $query->whereHas('etapaAnimal.animal.rebano.finca', function ($q) use ($propietario) {
-                    $q->where('propietario_id', $propietario->id);
-                });
-            }
         }
 
         return $query->paginate($perPage);
     }
 
     /**
-     * Create a new ReproduccionAnimal resolving animal_etapa_id if needed.
+     * Crea un nuevo registro de reproducción, resolviendo animal_etapa_id si es necesario.
      */
-    public function createReproduccion(array $data)
+    public function createReproduccion(array $data, $user = null)
     {
+        $user = $user ?? auth()->user();
+
         if (!isset($data['animal_etapa_id']) && isset($data['animal_id']) && isset($data['etapa_id'])) {
             $etapaAnimal = EtapaAnimal::where('animal_id', $data['animal_id'])
                 ->where('etapa_id', $data['etapa_id'])
@@ -63,6 +65,10 @@ class ReproduccionAnimalService
                     'animal_etapa_id' => ['La combinación de animal y etapa especificada no existe.']
                 ]);
             }
+        }
+
+        if ($user->cannot('create', [ReproduccionAnimal::class, $data['animal_id'] ?? null, $data['animal_etapa_id'] ?? null])) {
+            throw new AuthorizationException('No tiene permisos para registrar reproducción a este animal.');
         }
 
         if (isset($data['animal_etapa_id'])) {
@@ -82,19 +88,31 @@ class ReproduccionAnimalService
     }
 
     /**
-     * Fetch a specific ReproduccionAnimal by ID with relationships.
+     * Obtiene un registro de reproducción específico por su ID.
      */
-    public function getReproduccionById($id)
+    public function getReproduccionById($id, $user = null)
     {
-        return ReproduccionAnimal::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'animal', 'etapa'])->findOrFail($id);
+        $user = $user ?? auth()->user();
+        $repro = ReproduccionAnimal::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'animal', 'etapa'])->findOrFail($id);
+
+        if ($user->cannot('read', $repro)) {
+            throw new AuthorizationException('No tiene permisos para ver este registro de reproducción.');
+        }
+
+        return $repro;
     }
 
     /**
-     * Update an existing ReproduccionAnimal.
+     * Actualiza un registro de reproducción existente.
      */
-    public function updateReproduccion($id, array $data)
+    public function updateReproduccion($id, array $data, $user = null)
     {
+        $user = $user ?? auth()->user();
         $repro = ReproduccionAnimal::findOrFail($id);
+
+        if ($user->cannot('update', $repro)) {
+            throw new AuthorizationException('No tiene permisos para actualizar este registro de reproducción.');
+        }
 
         if (!isset($data['animal_etapa_id']) && isset($data['animal_id']) && isset($data['etapa_id'])) {
             $etapaAnimal = EtapaAnimal::where('animal_id', $data['animal_id'])
@@ -136,11 +154,17 @@ class ReproduccionAnimalService
     }
 
     /**
-     * Delete an existing ReproduccionAnimal.
+     * Elimina un registro de reproducción existente.
      */
-    public function deleteReproduccion($id)
+    public function deleteReproduccion($id, $user = null)
     {
+        $user = $user ?? auth()->user();
         $repro = ReproduccionAnimal::findOrFail($id);
+
+        if ($user->cannot('delete', $repro)) {
+            throw new AuthorizationException('No tiene permisos para eliminar este registro de reproducción.');
+        }
+
         return $repro->delete();
     }
 

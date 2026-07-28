@@ -9,17 +9,28 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
+use Illuminate\Auth\Access\AuthorizationException;
 
-class MovimientoRebanoService
+use App\Services\BaseService;
+
+class MovimientoRebanoService extends BaseService
 {
     /**
      * Obtiene la lista de movimientos de rebaño con filtros.
      *
      * @param array $filters Filtros.
+     * @param mixed $user Usuario.
      * @return LengthAwarePaginator
+     * @throws AuthorizationException
      */
-    public function listMovimientos(array $filters)
+    public function listMovimientos(array $filters, $user = null)
     {
+        $user = $user ?? auth()->user();
+
+        if ($user->cannot('readAny', MovimientoRebano::class)) {
+            throw new AuthorizationException('Sin permisos para listar los movimientos de rebaño.');
+        }
+
         $query = MovimientoRebano::with([
             'fincaOrigen', 'rebanoOrigen',
             'fincaDestino', 'rebanoDestino',
@@ -34,6 +45,8 @@ class MovimientoRebanoService
             $query->forRebano($filters['rebano_id']);
         }
 
+        $this->applyFincaFilter($query, $user, 'fincaOrigen');
+
         if (!empty($filters['nopaginate'])) {
             return $query->get();
         }
@@ -45,11 +58,18 @@ class MovimientoRebanoService
      * Registra un nuevo movimiento de rebaño y actualiza la ubicación de los animales en una transacción.
      *
      * @param array $data Datos.
+     * @param mixed $user Usuario.
      * @return MovimientoRebano
      * @throws UnprocessableEntityHttpException
+     * @throws AuthorizationException
      */
-    public function createMovimiento(array $data): MovimientoRebano
+    public function createMovimiento(array $data, $user = null): MovimientoRebano
     {
+        $user = $user ?? auth()->user();
+
+        if ($user->cannot('create', [MovimientoRebano::class, (int) $data['finca_id'], (int) $data['finca_destino_id']])) {
+            throw new AuthorizationException('No tiene permisos para crear un movimiento entre estas fincas.');
+        }
         if ((int) $data['finca_id'] === (int) $data['finca_destino_id']) {
             throw new UnprocessableEntityHttpException('La finca de destino debe ser diferente a la de origen.');
         }
@@ -99,16 +119,25 @@ class MovimientoRebanoService
      * Obtiene el detalle de un movimiento específico.
      *
      * @param int $id ID.
+     * @param mixed $user Usuario.
      * @return MovimientoRebano
      * @throws ModelNotFoundException
+     * @throws AuthorizationException
      */
-    public function getMovimientoById(int $id): MovimientoRebano
+    public function getMovimientoById(int $id, $user = null): MovimientoRebano
     {
-        return MovimientoRebano::with([
+        $user = $user ?? auth()->user();
+        $movimiento = MovimientoRebano::with([
             'fincaOrigen', 'rebanoOrigen',
             'fincaDestino', 'rebanoDestino',
             'animales.animal'
         ])->findOrFail($id);
+
+        if ($user->cannot('read', $movimiento)) {
+            throw new AuthorizationException('No tiene permisos para ver este movimiento.');
+        }
+
+        return $movimiento;
     }
 
     /**
@@ -116,12 +145,19 @@ class MovimientoRebanoService
      *
      * @param int $id ID.
      * @param array $data Datos.
+     * @param mixed $user Usuario.
      * @return MovimientoRebano
      * @throws ModelNotFoundException
+     * @throws AuthorizationException
      */
-    public function updateMovimiento(int $id, array $data): MovimientoRebano
+    public function updateMovimiento(int $id, array $data, $user = null): MovimientoRebano
     {
+        $user = $user ?? auth()->user();
         $movimiento = MovimientoRebano::findOrFail($id);
+
+        if ($user->cannot('update', $movimiento)) {
+            throw new AuthorizationException('No tiene permisos para actualizar este movimiento.');
+        }
 
         $payload = [];
         if (array_key_exists('rebano_destino', $data)) $payload['rebano_destino'] = $data['rebano_destino'];
@@ -136,12 +172,19 @@ class MovimientoRebanoService
      * Elimina un movimiento de rebaño.
      *
      * @param int $id ID.
+     * @param mixed $user Usuario.
      * @return bool
      * @throws ModelNotFoundException
+     * @throws AuthorizationException
      */
-    public function deleteMovimiento(int $id): bool
+    public function deleteMovimiento(int $id, $user = null): bool
     {
+        $user = $user ?? auth()->user();
         $movimiento = MovimientoRebano::findOrFail($id);
+
+        if ($user->cannot('delete', $movimiento)) {
+            throw new AuthorizationException('No tiene permisos para eliminar este movimiento.');
+        }
 
         DB::transaction(function () use ($movimiento) {
             // Obtener los IDs de los animales que participaron en este movimiento

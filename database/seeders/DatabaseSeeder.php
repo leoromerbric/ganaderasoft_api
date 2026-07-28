@@ -12,23 +12,23 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Catálogos base (sin dependencias)
         $this->call([
+            // 1. Core de Seguridad
+            PermissionSeeder::class,
             RoleSeeder::class,
+            AdminUserSeeder::class,
+
+            // 2. Catálogos del Sistema (No dependen del usuario)
             TipoAnimalSeeder::class,
             TipoTrabajadorSeeder::class,
             EstadoSaludSeeder::class,
-            DiaPalpacionSeeder::class,
-            FoliculoSeeder::class,
             EtapaSeeder::class,
             ComposicionRazaSeeder::class,
+            
+            // 3. Catálogos Reproductivos / Sanidad
+            DiaPalpacionSeeder::class,
+            FoliculoSeeder::class,
             SanidadSeeder::class,
-
-            // Usuarios y personas
-            AdminUserSeeder::class,
-
-            // Datos de prueba (Reemplaza al viejo TIMTestSeeder)
-            DemoDataSeeder::class,
         ]);
     }
 }

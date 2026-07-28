@@ -8,53 +8,52 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-class InventarioVacunoService
+use App\Services\BaseService;
+
+class InventarioVacunoService extends BaseService
 {
     /**
+     * Listar inventario vacuno.
      * @throws AuthorizationException
      */
     public function listInventarioVacuno(array $filters, User $user): LengthAwarePaginator
     {
+        if ($user->cannot('readAny', InventarioVacuno::class)) {
+            throw new AuthorizationException('Sin permisos para listar inventarios.');
+        }
+
         $query = InventarioVacuno::query()->with('finca');
 
-        if (!$user->isAdmin()) {
-            $fincaIds = $user->fincas()->pluck('fincas.id')->toArray();
-            
-            $fincaIdFilter = $filters['finca_id'] ?? $filters['id_finca'] ?? null;
-            
-            if ($fincaIdFilter) {
-                if (!in_array($fincaIdFilter, $fincaIds)) {
-                    throw new AuthorizationException('No tienes permiso para ver los inventarios de esta finca.');
-                }
-                $query->forFinca($fincaIdFilter);
-            } else {
-                $query->whereIn('finca_id', $fincaIds);
-            }
-        } else {
-            $fincaIdFilter = $filters['finca_id'] ?? $filters['id_finca'] ?? null;
-            if ($fincaIdFilter) {
-                $query->forFinca($fincaIdFilter);
-            }
+        $this->applyFincaFilter($query, $user, null);
+
+        $fincaIdFilter = $filters['finca_id'] ?? $filters['id_finca'] ?? null;
+        if ($fincaIdFilter) {
+            $query->forFinca($fincaIdFilter);
         }
 
         if (isset($filters['fecha_inicio'])) {
             $query->byDateRange($filters['fecha_inicio'], $filters['fecha_fin'] ?? null);
         }
-
         return $query->paginate(15);
     }
 
     /**
+     * Almacenar un nuevo registro de inventario vacuno.
      * @throws AuthorizationException
      */
     public function storeInventarioVacuno(array $data, User $user): InventarioVacuno
     {
-        $this->authorizeFinca($data['finca_id'], $user);
+        $fincaId = (int) $data['finca_id'];
+
+        if ($user->cannot('create', [InventarioVacuno::class, $fincaId])) {
+            throw new AuthorizationException('No tiene permisos para crear inventarios en esta finca.');
+        }
 
         return InventarioVacuno::create($data);
     }
 
     /**
+     * Obtener un registro específico de inventario vacuno.
      * @throws AuthorizationException
      * @throws ModelNotFoundException
      */
@@ -62,21 +61,30 @@ class InventarioVacunoService
     {
         $inventario = InventarioVacuno::with('finca')->findOrFail($id);
 
-        $this->authorizeFinca($inventario->finca_id, $user);
+        if ($user->cannot('read', $inventario)) {
+            throw new AuthorizationException('No tiene permisos para ver este inventario.');
+        }
 
         return $inventario;
     }
 
     /**
+     * Actualizar los datos del inventario vacuno.
      * @throws AuthorizationException
      * @throws ModelNotFoundException
      */
     public function updateInventarioVacuno(int $id, array $data, User $user): InventarioVacuno
     {
-        $inventario = $this->getInventarioVacuno($id, $user);
+        $inventario = InventarioVacuno::findOrFail($id);
 
-        if (isset($data['finca_id'])) {
-            $this->authorizeFinca($data['finca_id'], $user);
+        if ($user->cannot('update', $inventario)) {
+            throw new AuthorizationException('No tiene permisos para actualizar este inventario.');
+        }
+
+        if (isset($data['finca_id']) && (int) $data['finca_id'] !== $inventario->finca_id) {
+            if ($user->cannot('create', [InventarioVacuno::class, (int) $data['finca_id']])) {
+                throw new AuthorizationException('No tiene permisos para asignar el inventario a la nueva finca.');
+            }
         }
 
         $inventario->update($data);
@@ -85,29 +93,18 @@ class InventarioVacunoService
     }
 
     /**
+     * Eliminar el registro del inventario vacuno.
      * @throws AuthorizationException
      * @throws ModelNotFoundException
      */
     public function deleteInventarioVacuno(int $id, User $user): bool
     {
-        $inventario = $this->getInventarioVacuno($id, $user);
+        $inventario = InventarioVacuno::findOrFail($id);
+
+        if ($user->cannot('delete', $inventario)) {
+            throw new AuthorizationException('No tiene permisos para eliminar este inventario.');
+        }
 
         return $inventario->delete();
-    }
-
-    /**
-     * @throws AuthorizationException
-     */
-    protected function authorizeFinca(int $fincaId, User $user): void
-    {
-        if ($user->isAdmin()) {
-            return;
-        }
-
-        $isOwner = $user->fincas()->where('fincas.id', $fincaId)->exists();
-
-        if (!$isOwner) {
-            throw new AuthorizationException('No tienes permisos sobre esta finca.');
-        }
     }
 }
