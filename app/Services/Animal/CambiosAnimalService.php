@@ -8,7 +8,9 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-class CambiosAnimalService
+use App\Services\BaseService;
+
+class CambiosAnimalService extends BaseService
 {
     /**
      * Obtiene el listado de cambios de animal aplicando filtros y validando permisos.
@@ -20,6 +22,10 @@ class CambiosAnimalService
      */
     public function listCambios(array $filters, $user)
     {
+        if ($user->cannot('viewAny', CambiosAnimal::class)) {
+            throw new AuthorizationException('No tiene permisos para listar cambios de animal.');
+        }
+
         $query = CambiosAnimal::query();
 
         // Aplicar filtros V2
@@ -44,17 +50,7 @@ class CambiosAnimalService
             $query->byDateRange($filters['fecha_inicio'], $endDate);
         }
 
-        // Control de accesos para no administradores
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario) {
-                throw new AuthorizationException('El usuario no está registrado como propietario.');
-            }
-
-            $query->whereHas('animal.rebano.finca', function ($q) use ($propietario) {
-                $q->where('propietario_id', $propietario->id);
-            });
-        }
+        $this->applyFincaFilter($query, $user, 'animal.rebano');
 
         if (!empty($filters['nopaginate'])) {
             return $query->get();
@@ -78,11 +74,8 @@ class CambiosAnimalService
             $q->where('id', $data['animal_etapa_id']);
         })->firstOrFail();
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para registrar cambios a este animal.');
-            }
+        if ($user->cannot('create', [CambiosAnimal::class, $animal])) {
+            throw new AuthorizationException('No tiene permisos para registrar cambios a este animal.');
         }
 
         return CambiosAnimal::create([
@@ -110,11 +103,8 @@ class CambiosAnimalService
         $cambio = CambiosAnimal::findOrFail($id);
         $animal = $cambio->animal;
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para editar estos cambios de animal.');
-            }
+        if ($user->cannot('update', $cambio)) {
+            throw new AuthorizationException('No tiene permisos para editar estos cambios de animal.');
         }
 
         $payload = [];
@@ -143,11 +133,8 @@ class CambiosAnimalService
         $cambio = CambiosAnimal::findOrFail($id);
         $animal = $cambio->animal;
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para eliminar estos cambios de animal.');
-            }
+        if ($user->cannot('delete', $cambio)) {
+            throw new AuthorizationException('No tiene permisos para eliminar estos cambios de animal.');
         }
 
         return $cambio->delete();
@@ -167,11 +154,8 @@ class CambiosAnimalService
         $cambio = CambiosAnimal::with(['etapaAnimal'])->findOrFail($id);
         $animal = $cambio->animal;
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para ver estos cambios de animal.');
-            }
+        if ($user->cannot('view', $cambio)) {
+            throw new AuthorizationException('No tiene permisos para ver estos cambios de animal.');
         }
 
         return $cambio;

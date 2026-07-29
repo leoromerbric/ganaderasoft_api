@@ -42,7 +42,7 @@ class ComposicionRazaController extends Controller
     public function index(Request $request)
     {
         $filters = $request->only(['nombre', 'nopaginate']);
-        $paginator = $this->composicionService->listComposiciones($filters);
+        $paginator = $this->composicionService->listComposiciones($filters, $request->user());
         
         return response()->json([
             'success' => true,

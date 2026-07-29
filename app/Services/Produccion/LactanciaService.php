@@ -52,9 +52,8 @@ class LactanciaService extends BaseService
     /**
      * Crear un nuevo registro de Lactancia resolviendo animal_etapa_id y validando el sexo hembra.
      */
-    public function createLactancia(array $data, $user = null)
+    public function createLactancia(array $data, $user)
     {
-        $user = $user ?? auth()->user();
         if (!isset($data['animal_etapa_id']) && isset($data['animal_id']) && isset($data['etapa_id'])) {
             $etapaAnimal = EtapaAnimal::where('animal_id', $data['animal_id'])
                 ->where('etapa_id', $data['etapa_id'])
@@ -92,9 +91,8 @@ class LactanciaService extends BaseService
     /**
      * Obtener una Lactancia específica por ID con sus relaciones.
      */
-    public function getLactanciaById($id, $user = null)
+    public function getLactanciaById($id, $user)
     {
-        $user = $user ?? auth()->user();
         $lactancia = Lactancia::with(['animal', 'etapa', 'etapaAnimal', 'lecheRecords'])->findOrFail($id);
 
         if ($user->cannot('read', $lactancia)) {
@@ -107,9 +105,8 @@ class LactanciaService extends BaseService
     /**
      * Actualizar un registro existente de Lactancia.
      */
-    public function updateLactancia($id, array $data, $user = null)
+    public function updateLactancia($id, array $data, $user)
     {
-        $user = $user ?? auth()->user();
         $lactancia = Lactancia::findOrFail($id);
 
         if ($user->cannot('update', $lactancia)) {
@@ -158,9 +155,8 @@ class LactanciaService extends BaseService
     /**
      * Eliminar un registro existente de Lactancia.
      */
-    public function deleteLactancia($id, $user = null)
+    public function deleteLactancia($id, $user)
     {
-        $user = $user ?? auth()->user();
         $lactancia = Lactancia::findOrFail($id);
 
         if ($user->cannot('delete', $lactancia)) {

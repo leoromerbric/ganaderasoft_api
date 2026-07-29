@@ -9,7 +9,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 class UserResource extends JsonResource
 {
     /**
-     * Transform the resource into an array.
+     * Transforma el recurso en un arreglo.
      *
      * @return array<string, mixed>
      */
@@ -34,6 +34,9 @@ class UserResource extends JsonResource
                 if (!$persona || !$persona->relationLoaded('propietario')) return null;
                 return $persona->propietario ? new PropietarioResource($persona->propietario) : null;
             }),
+            
+            // Personas vinculadas
+            'personas' => $this->whenLoaded('personas'),
         ];
     }
 }

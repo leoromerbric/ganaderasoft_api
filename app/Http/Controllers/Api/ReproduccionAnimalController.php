@@ -59,7 +59,7 @@ class ReproduccionAnimalController extends Controller
         }
 
         try {
-            $repro = $this->reproduccionService->createReproduccion($request->all());
+            $repro = $this->reproduccionService->createReproduccion($request->all(), request()->user());
 
             return response()->json([
                 'success' => true,
@@ -78,7 +78,7 @@ class ReproduccionAnimalController extends Controller
     public function show($id)
     {
         try {
-            $repro = $this->reproduccionService->getReproduccionById((int)$id);
+            $repro = $this->reproduccionService->getReproduccionById((int)$id, request()->user());
 
             return response()->json([
                 'success' => true, 
@@ -113,7 +113,7 @@ class ReproduccionAnimalController extends Controller
         }
 
         try {
-            $repro = $this->reproduccionService->updateReproduccion((int)$id, $request->all());
+            $repro = $this->reproduccionService->updateReproduccion((int)$id, $request->all(), request()->user());
 
             return response()->json([
                 'success' => true,
@@ -137,7 +137,7 @@ class ReproduccionAnimalController extends Controller
     public function destroy($id)
     {
         try {
-            $this->reproduccionService->deleteReproduccion((int)$id);
+            $this->reproduccionService->deleteReproduccion((int)$id, request()->user());
 
             return response()->json([
                 'success' => true, 

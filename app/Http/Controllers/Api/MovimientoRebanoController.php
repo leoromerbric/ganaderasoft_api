@@ -44,7 +44,7 @@ class MovimientoRebanoController extends Controller
     public function index(Request $request)
     {
         $filters = $request->only(['finca_id', 'rebano_id', 'nopaginate']);
-        $paginator = $this->movimientoService->listMovimientos($filters);
+        $paginator = $this->movimientoService->listMovimientos($filters, request()->user());
 
         return response()->json([
             'success' => true,
@@ -80,7 +80,7 @@ class MovimientoRebanoController extends Controller
         }
 
         try {
-            $movimiento = $this->movimientoService->createMovimiento($request->all());
+            $movimiento = $this->movimientoService->createMovimiento($request->all(), request()->user());
             $movimiento->load('animales');
 
             return response()->json([
@@ -105,7 +105,7 @@ class MovimientoRebanoController extends Controller
     public function show($id)
     {
         try {
-            $movimiento = $this->movimientoService->getMovimientoById((int)$id);
+            $movimiento = $this->movimientoService->getMovimientoById((int)$id, request()->user());
 
             return response()->json([
                 'success' => true,
@@ -141,7 +141,7 @@ class MovimientoRebanoController extends Controller
         }
 
         try {
-            $movimiento = $this->movimientoService->updateMovimiento((int)$id, $request->all());
+            $movimiento = $this->movimientoService->updateMovimiento((int)$id, $request->all(), request()->user());
 
             return response()->json([
                 'success' => true,
@@ -165,7 +165,7 @@ class MovimientoRebanoController extends Controller
     public function destroy($id)
     {
         try {
-            $this->movimientoService->deleteMovimiento((int)$id);
+            $this->movimientoService->deleteMovimiento((int)$id, request()->user());
 
             return response()->json([
                 'success' => true,

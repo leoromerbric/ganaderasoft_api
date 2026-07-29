@@ -30,7 +30,7 @@ class PropietarioService extends BaseService
 
         $query = Propietario::with(['persona.users', 'fincas'])->active();
 
-        if (!$user->isAdmin()) {
+        if ($user->cannot('viewAll', Propietario::class)) {
             $propietario = $user->propietario;
             if (!$propietario) {
                 throw new AuthorizationException('El usuario no está registrado como propietario.');

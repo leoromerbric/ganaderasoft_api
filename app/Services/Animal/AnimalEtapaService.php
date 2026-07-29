@@ -25,12 +25,9 @@ class AnimalEtapaService
     {
         $animal = Animal::findOrFail($animalId);
 
-        // Control de permisos para no administradores
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para modificar el historial de etapas de este animal.');
-            }
+        // Control de permisos usando la política de Animal
+        if ($user->cannot('update', $animal)) {
+            throw new AuthorizationException('No tiene permisos para modificar el historial de etapas de este animal.');
         }
 
         // Verificamos si ya existe el registro de etapa para evitar duplicados debido a la clave única
@@ -76,11 +73,8 @@ class AnimalEtapaService
         $etapaAnimal = EtapaAnimal::with('animal.rebano.finca')->findOrFail($id);
 
         // Control de permisos
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $etapaAnimal->animal->rebano->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para actualizar este registro de etapa.');
-            }
+        if ($user->cannot('update', $etapaAnimal->animal)) {
+            throw new AuthorizationException('No tiene permisos para actualizar este registro de etapa.');
         }
 
         // Mapeo selectivo de atributos

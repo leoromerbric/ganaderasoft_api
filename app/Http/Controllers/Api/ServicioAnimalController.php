@@ -60,7 +60,7 @@ class ServicioAnimalController extends Controller
         }
 
         try {
-            $servicio = $this->servicioService->createServicio($request->all());
+            $servicio = $this->servicioService->createServicio($request->all(), request()->user());
 
             return response()->json([
                 'success' => true,
@@ -79,7 +79,7 @@ class ServicioAnimalController extends Controller
     public function show($id)
     {
         try {
-            $servicio = $this->servicioService->getServicioById((int)$id);
+            $servicio = $this->servicioService->getServicioById((int)$id, request()->user());
 
             return response()->json([
                 'success' => true, 
@@ -115,7 +115,7 @@ class ServicioAnimalController extends Controller
         }
 
         try {
-            $servicio = $this->servicioService->updateServicio((int)$id, $request->all());
+            $servicio = $this->servicioService->updateServicio((int)$id, $request->all(), request()->user());
 
             return response()->json([
                 'success' => true,
@@ -139,7 +139,7 @@ class ServicioAnimalController extends Controller
     public function destroy($id)
     {
         try {
-            $this->servicioService->deleteServicio((int)$id);
+            $this->servicioService->deleteServicio((int)$id, request()->user());
 
             return response()->json([
                 'success' => true, 

@@ -58,7 +58,7 @@ class RegistroCeloController extends Controller
         }
 
         try {
-            $celo = $this->celoService->createCelo($request->all());
+            $celo = $this->celoService->createCelo($request->all(), request()->user());
 
             return response()->json([
                 'success' => true,
@@ -77,7 +77,7 @@ class RegistroCeloController extends Controller
     public function show($id)
     {
         try {
-            $celo = $this->celoService->getCeloById((int)$id);
+            $celo = $this->celoService->getCeloById((int)$id, request()->user());
 
             return response()->json([
                 'success' => true, 
@@ -111,7 +111,7 @@ class RegistroCeloController extends Controller
         }
 
         try {
-            $celo = $this->celoService->updateCelo((int)$id, $request->all());
+            $celo = $this->celoService->updateCelo((int)$id, $request->all(), request()->user());
 
             return response()->json([
                 'success' => true,
@@ -135,7 +135,7 @@ class RegistroCeloController extends Controller
     public function destroy($id)
     {
         try {
-            $this->celoService->deleteCelo((int)$id);
+            $this->celoService->deleteCelo((int)$id, request()->user());
 
             return response()->json([
                 'success' => true, 

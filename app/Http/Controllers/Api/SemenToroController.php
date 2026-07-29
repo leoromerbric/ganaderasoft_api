@@ -56,7 +56,7 @@ class SemenToroController extends Controller
         }
 
         try {
-            $semen = $this->semenService->createSemen($request->all());
+            $semen = $this->semenService->createSemen($request->all(), request()->user());
 
             return response()->json([
                 'success' => true,
@@ -75,7 +75,7 @@ class SemenToroController extends Controller
     public function show($id)
     {
         try {
-            $semen = $this->semenService->getSemenById((int)$id);
+            $semen = $this->semenService->getSemenById((int)$id, request()->user());
 
             return response()->json([
                 'success' => true, 
@@ -107,7 +107,7 @@ class SemenToroController extends Controller
         }
 
         try {
-            $semen = $this->semenService->updateSemen((int)$id, $request->all());
+            $semen = $this->semenService->updateSemen((int)$id, $request->all(), request()->user());
 
             return response()->json([
                 'success' => true,
@@ -131,7 +131,7 @@ class SemenToroController extends Controller
     public function destroy($id)
     {
         try {
-            $this->semenService->deleteSemen((int)$id);
+            $this->semenService->deleteSemen((int)$id, request()->user());
 
             return response()->json([
                 'success' => true, 

@@ -10,6 +10,9 @@ use App\Services\Personal\PersonalFincaService;
 use App\Http\Resources\Personal\PersonalFincaResource;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Models\PersonalFinca;
+use App\Models\User;
+use Exception;
 
 class PersonalFincaController extends Controller
 {
@@ -173,6 +176,39 @@ class PersonalFincaController extends Controller
                 'success' => false,
                 'message' => 'Personal de finca no encontrado'
             ], Response::HTTP_NOT_FOUND);
+        }
+    }
+
+    public function createUserAccount(Request $request, $id)
+    {
+        $request->validate([
+            'password' => 'required|string|min:8|confirmed',
+            'password_confirmation' => 'required|string|same:password',
+            'role_code' => 'required|string|exists:roles,code'
+        ]);
+
+        try {
+            $personalFinca = PersonalFinca::findOrFail($id);
+            $user = $this->personalFincaService->convertToUser($personalFinca, $request->all(), $request->user());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cuenta de usuario creada exitosamente',
+                'data' => [
+                    'user' => $user
+                ]
+            ], Response::HTTP_CREATED);
+
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

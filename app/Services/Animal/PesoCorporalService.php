@@ -34,9 +34,8 @@ class PesoCorporalService extends BaseService
      * @return LengthAwarePaginator
      * @throws AuthorizationException
      */
-    public function listPesos(array $filters, $user = null)
+    public function listPesos(array $filters, $user)
     {
-        $user = $user ?? auth()->user();
 
         if ($user->cannot('readAny', PesoCorporal::class)) {
             throw new AuthorizationException('Sin permisos para listar los pesos corporales.');
@@ -74,9 +73,8 @@ class PesoCorporalService extends BaseService
      * @throws ModelNotFoundException
      * @throws UnprocessableEntityHttpException
      */
-    public function createPeso(array $data, $user = null): array
+    public function createPeso(array $data, $user): array
     {
-        $user = $user ?? auth()->user();
         $animal = Animal::findOrFail($data['animal_id']);
 
         if ($user->cannot('create', [PesoCorporal::class, $animal->id])) {
@@ -123,9 +121,8 @@ class PesoCorporalService extends BaseService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function getPesoById(int $id, $user = null): PesoCorporal
+    public function getPesoById(int $id, $user): PesoCorporal
     {
-        $user = $user ?? auth()->user();
         $pesoCorporal = PesoCorporal::with(['etapaAnimal.etapa', 'etapaAnimal.animal.rebano.finca'])->findOrFail($id);
 
         if ($user->cannot('read', $pesoCorporal)) {
@@ -145,9 +142,8 @@ class PesoCorporalService extends BaseService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function updatePeso(int $id, array $data, $user = null): array
+    public function updatePeso(int $id, array $data, $user): array
     {
-        $user = $user ?? auth()->user();
         $pesoCorporal = PesoCorporal::with(['etapaAnimal.animal.rebano.finca'])->findOrFail($id);
         $animal = $pesoCorporal->etapaAnimal->animal;
 
@@ -206,9 +202,8 @@ class PesoCorporalService extends BaseService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function deletePeso(int $id, $user = null): bool
+    public function deletePeso(int $id, $user): bool
     {
-        $user = $user ?? auth()->user();
         $pesoCorporal = PesoCorporal::with(['etapaAnimal.animal.rebano.finca'])->findOrFail($id);
         $animal = $pesoCorporal->etapaAnimal->animal;
 

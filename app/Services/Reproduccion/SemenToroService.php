@@ -15,9 +15,8 @@ class SemenToroService extends BaseService
     /**
      * Obtiene una lista paginada de registros de semen basándose en los filtros y la autorización del usuario.
      */
-    public function getPaginatedSemen(array $filters, $user = null, $perPage = 15)
+    public function getPaginatedSemen(array $filters, $user, $perPage = 15)
     {
-        $user = $user ?? auth()->user();
 
         if ($user->cannot('readAny', SemenToro::class)) {
             throw new AuthorizationException('Sin permisos para listar semen de toros.');
@@ -49,9 +48,8 @@ class SemenToroService extends BaseService
     /**
      * Crea un nuevo registro de SemenToro.
      */
-    public function createSemen(array $data, $user = null)
+    public function createSemen(array $data, $user)
     {
-        $user = $user ?? auth()->user();
         $animalId = $data['animal_id'] ?? null;
 
         if ($user->cannot('create', [SemenToro::class, $animalId])) {
@@ -74,9 +72,8 @@ class SemenToroService extends BaseService
     /**
      * Obtiene un registro de SemenToro específico por su ID.
      */
-    public function getSemenById($id, $user = null)
+    public function getSemenById($id, $user)
     {
-        $user = $user ?? auth()->user();
         $semen = SemenToro::with(['toro', 'servicios'])->findOrFail($id);
 
         if ($user->cannot('read', $semen)) {
@@ -89,9 +86,8 @@ class SemenToroService extends BaseService
     /**
      * Actualiza un registro de SemenToro existente.
      */
-    public function updateSemen($id, array $data, $user = null)
+    public function updateSemen($id, array $data, $user)
     {
-        $user = $user ?? auth()->user();
         $semen = SemenToro::findOrFail($id);
 
         if ($user->cannot('update', $semen)) {
@@ -124,9 +120,8 @@ class SemenToroService extends BaseService
     /**
      * Elimina un registro de SemenToro existente.
      */
-    public function deleteSemen($id, $user = null)
+    public function deleteSemen($id, $user)
     {
-        $user = $user ?? auth()->user();
         $semen = SemenToro::findOrFail($id);
 
         if ($user->cannot('delete', $semen)) {

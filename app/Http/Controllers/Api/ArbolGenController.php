@@ -31,13 +31,20 @@ class ArbolGenController extends Controller
     /**
      * Devuelve el árbol genealógico completo de un animal (3 generaciones).
      */
-    public function getTree(Animal $animal)
+    public function getTree(Request $request, Animal $animal)
     {
-        $treeData = $this->arbolGenService->showTree($animal);
-        return response()->json([
-            'success' => true,
-            'data' => $this->formatResource(ArbolGenResource::class, $treeData)
-        ]);
+        try {
+            $treeData = $this->arbolGenService->showTree($animal, $request->user());
+            return response()->json([
+                'success' => true,
+                'data' => $this->formatResource(ArbolGenResource::class, $treeData)
+            ]);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
+        }
     }
 
     /**
@@ -55,32 +62,48 @@ class ArbolGenController extends Controller
             return response()->json(['success' => false, 'errors' => $validator->errors()], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $relacion = $this->arbolGenService->store($animal, $request->tipo, (int) $request->padre_id);
+        try {
+            $relacion = $this->arbolGenService->store($animal, $request->tipo, (int) $request->padre_id, $request->user());
 
-        return response()->json([
-            'success' => true,
-            'message' => "Relación de {$request->tipo} guardada correctamente.",
-            'data'    => $relacion,
-        ], Response::HTTP_OK);
+            return response()->json([
+                'success' => true,
+                'message' => "Relación de {$request->tipo} guardada correctamente.",
+                'data'    => $relacion,
+            ], Response::HTTP_OK);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['success' => false, 'errors' => $e->errors()], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
+        }
     }
 
     /**
      * Elimina la relación padre o madre de un animal.
      * Route param: tipo = 'Padre'|'Madre'
      */
-    public function removeParent(Animal $animal, string $tipo)
+    public function removeParent(Request $request, Animal $animal, string $tipo)
     {
         if (!in_array($tipo, ['Padre', 'Madre'])) {
             return response()->json(['success' => false, 'message' => 'Tipo inválido. Use Padre o Madre.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $deleted = $this->arbolGenService->destroy($animal, $tipo);
+        try {
+            $deleted = $this->arbolGenService->destroy($animal, $tipo, $request->user());
 
-        if (!$deleted) {
-            return response()->json(['success' => false, 'message' => 'No se encontró la relación a eliminar.'], Response::HTTP_NOT_FOUND);
+            if (!$deleted) {
+                return response()->json(['success' => false, 'message' => 'No se encontró la relación a eliminar.'], Response::HTTP_NOT_FOUND);
+            }
+
+            return response()->json(['success' => true, 'message' => "Relación de {$tipo} eliminada."]);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
         }
-
-        return response()->json(['success' => true, 'message' => "Relación de {$tipo} eliminada."]);
     }
 
     /**
@@ -88,12 +111,19 @@ class ArbolGenController extends Controller
      */
     public function getAvailableParents(Request $request, Animal $animal)
     {
-        $tipo = $request->query('tipo');
-        $animales = $this->arbolGenService->getAvailableParents($animal, $tipo);
+        try {
+            $tipo = $request->query('tipo');
+            $animales = $this->arbolGenService->getAvailableParents($animal, $tipo, $request->user());
 
-        return response()->json([
-            'success' => true,
-            'data' => $this->formatCollection(AnimalResource::class, $animales)
-        ]);
+            return response()->json([
+                'success' => true,
+                'data' => $this->formatCollection(AnimalResource::class, $animales)
+            ]);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
+        }
     }
 }

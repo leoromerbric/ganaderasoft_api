@@ -48,9 +48,8 @@ class LecheService extends BaseService
     /**
      * Crear un nuevo registro de Leche validando permisos.
      */
-    public function createLeche(array $data, $user = null)
+    public function createLeche(array $data, $user)
     {
-        $user = $user ?? auth()->user();
         $lactanciaId = (int) $data['lactancia_id'];
 
         if ($user->cannot('create', [Leche::class, $lactanciaId])) {
@@ -69,9 +68,8 @@ class LecheService extends BaseService
     /**
      * Obtener un registro específico de Leche por ID validando permisos.
      */
-    public function getLecheById($id, $user = null)
+    public function getLecheById($id, $user)
     {
-        $user = $user ?? auth()->user();
         $leche = Leche::with(['lactancia.animal', 'lactancia.etapa'])->findOrFail($id);
 
         if ($user->cannot('read', $leche)) {
@@ -84,9 +82,8 @@ class LecheService extends BaseService
     /**
      * Actualizar un registro existente de Leche.
      */
-    public function updateLeche($id, array $data, $user = null)
+    public function updateLeche($id, array $data, $user)
     {
-        $user = $user ?? auth()->user();
         $leche = Leche::findOrFail($id);
 
         if ($user->cannot('update', $leche)) {
@@ -101,9 +98,8 @@ class LecheService extends BaseService
     /**
      * Eliminar un registro de Leche.
      */
-    public function deleteLeche($id, $user = null)
+    public function deleteLeche($id, $user)
     {
-        $user = $user ?? auth()->user();
         $leche = Leche::findOrFail($id);
 
         if ($user->cannot('delete', $leche)) {

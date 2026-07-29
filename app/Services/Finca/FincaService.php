@@ -43,17 +43,10 @@ class FincaService extends BaseService
      */
     public function storeFinca(array $data, User $user): Finca
     {
-        if ($user->cannot('create', Finca::class)) {
-            throw new AuthorizationException('No tiene permisos para crear fincas.');
-        }
-
         $propietarioId = (int) $data['propietario_id'];
 
-        if (!$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario || $propietario->id !== $propietarioId) {
-                throw new AuthorizationException('No tiene permisos para crear finca para este propietario.');
-            }
+        if ($user->cannot('create', [Finca::class, $propietarioId])) {
+            throw new AuthorizationException('No tiene permisos para crear fincas para este propietario.');
         }
 
         return DB::transaction(function () use ($data) {
@@ -108,16 +101,10 @@ class FincaService extends BaseService
     {
         $finca = Finca::with(['propietario.persona.users', 'terreno'])->findOrFail($id);
 
-        if ($user->cannot('update', $finca)) {
-            throw new AuthorizationException('No tiene permisos para actualizar esta finca.');
-        }
+        $nuevoPropietarioId = isset($data['propietario_id']) ? (int) $data['propietario_id'] : null;
 
-        if (!$user->isAdmin()) {
-            // Propietario cannot change ownership
-            $propietario = $user->propietario;
-            if (isset($data['propietario_id']) && (int) $data['propietario_id'] !== $propietario->id) {
-                throw new AuthorizationException('No puede cambiar el propietario de la finca.');
-            }
+        if ($user->cannot('update', [$finca, $nuevoPropietarioId])) {
+            throw new AuthorizationException('No tiene permisos para actualizar esta finca o cambiar su propietario.');
         }
 
         return DB::transaction(function () use ($finca, $data) {

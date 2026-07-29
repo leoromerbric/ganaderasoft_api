@@ -8,7 +8,10 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
-class EtapaService
+use App\Models\User;
+use App\Services\BaseService;
+
+class EtapaService extends BaseService
 {
     /**
      * Obtiene la lista de etapas aplicando filtros.
@@ -16,8 +19,12 @@ class EtapaService
      * @param array $filters Filtros a aplicar.
      * @return LengthAwarePaginator
      */
-    public function listEtapas(array $filters)
+    public function listEtapas(array $filters, User $user)
     {
+        if ($user->cannot('viewAny', Etapa::class)) {
+            throw new AuthorizationException('No tiene permisos para ver etapas.');
+        }
+
         $query = Etapa::with(['tipoAnimal']);
 
         if (!empty($filters['tipo_animal_id'])) {
@@ -49,7 +56,7 @@ class EtapaService
      */
     public function createEtapa(array $data, $user): Etapa
     {
-        if (!$user->isAdmin()) {
+        if ($user->cannot('create', Etapa::class)) {
             throw new AuthorizationException('No tiene permisos para crear etapas.');
         }
 
@@ -69,9 +76,15 @@ class EtapaService
      * @return Etapa
      * @throws ModelNotFoundException
      */
-    public function getEtapaById(int $id): Etapa
+    public function getEtapaById(int $id, User $user): Etapa
     {
-        return Etapa::with(['tipoAnimal', 'etapaAnimales.animal'])->findOrFail($id);
+        $etapa = Etapa::with(['tipoAnimal', 'etapaAnimales.animal'])->findOrFail($id);
+
+        if ($user->cannot('view', $etapa)) {
+            throw new AuthorizationException('No tiene permisos para ver esta etapa.');
+        }
+
+        return $etapa;
     }
 
     /**
@@ -86,11 +99,11 @@ class EtapaService
      */
     public function updateEtapa(int $id, array $data, $user): Etapa
     {
-        if (!$user->isAdmin()) {
+        $etapa = Etapa::findOrFail($id);
+
+        if ($user->cannot('update', $etapa)) {
             throw new AuthorizationException('No tiene permisos para actualizar etapas.');
         }
-
-        $etapa = Etapa::findOrFail($id);
 
         $payload = [];
         if (array_key_exists('nombre', $data)) $payload['nombre'] = $data['nombre'];
@@ -116,11 +129,11 @@ class EtapaService
      */
     public function deleteEtapa(int $id, $user): bool
     {
-        if (!$user->isAdmin()) {
+        $etapa = Etapa::findOrFail($id);
+
+        if ($user->cannot('delete', $etapa)) {
             throw new AuthorizationException('No tiene permisos para eliminar etapas.');
         }
-
-        $etapa = Etapa::findOrFail($id);
 
         if ($etapa->etapaAnimales()->count() > 0) {
             throw new ConflictHttpException('No se puede eliminar la etapa porque tiene registros de etapa animal asociados.');

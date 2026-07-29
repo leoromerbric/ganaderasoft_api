@@ -14,9 +14,8 @@ class PalpacionService extends BaseService
     /**
      * Obtiene una lista paginada de palpaciones basándose en los filtros y la autorización del usuario.
      */
-    public function getPaginatedPalpaciones(array $filters, $user = null, $perPage = 15)
+    public function getPaginatedPalpaciones(array $filters, $user, $perPage = 15)
     {
-        $user = $user ?? auth()->user();
 
         if ($user->cannot('readAny', Palpacion::class)) {
             throw new AuthorizationException('Sin permisos para listar palpaciones.');
@@ -51,9 +50,8 @@ class PalpacionService extends BaseService
     /**
      * Crea un nuevo registro de Palpación.
      */
-    public function createPalpacion(array $data, $user = null)
+    public function createPalpacion(array $data, $user)
     {
-        $user = $user ?? auth()->user();
 
         if (!isset($data['animal_etapa_id']) && isset($data['animal_id']) && isset($data['etapa_id'])) {
             $etapaAnimal = EtapaAnimal::where('animal_id', $data['animal_id'])
@@ -80,9 +78,8 @@ class PalpacionService extends BaseService
     /**
      * Obtiene una palpación específica por su ID.
      */
-    public function getPalpacionById($id, $user = null)
+    public function getPalpacionById($id, $user)
     {
-        $user = $user ?? auth()->user();
         $palpacion = Palpacion::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tecnico'])->findOrFail($id);
 
         if ($user->cannot('read', $palpacion)) {
@@ -95,9 +92,8 @@ class PalpacionService extends BaseService
     /**
      * Actualiza un registro de palpación existente.
      */
-    public function updatePalpacion($id, array $data, $user = null)
+    public function updatePalpacion($id, array $data, $user)
     {
-        $user = $user ?? auth()->user();
         $palpacion = Palpacion::findOrFail($id);
 
         if ($user->cannot('update', $palpacion)) {
@@ -125,9 +121,8 @@ class PalpacionService extends BaseService
     /**
      * Elimina un registro de palpación existente.
      */
-    public function deletePalpacion($id, $user = null)
+    public function deletePalpacion($id, $user)
     {
-        $user = $user ?? auth()->user();
         $palpacion = Palpacion::findOrFail($id);
 
         if ($user->cannot('delete', $palpacion)) {
@@ -136,4 +131,4 @@ class PalpacionService extends BaseService
 
         return $palpacion->delete();
     }
-}
+}

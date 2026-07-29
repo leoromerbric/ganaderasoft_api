@@ -13,9 +13,8 @@ class CasaComercialService extends BaseService
     /**
      * Obtiene una lista paginada de casas comerciales basándose en los filtros y la autorización del usuario.
      */
-    public function getPaginatedCasasComerciales(array $filters, $user = null, $perPage = 15)
+    public function getPaginatedCasasComerciales(array $filters, $user, $perPage = 15)
     {
-        $user = $user ?? auth()->user();
 
         if ($user->cannot('readAny', CasaComercial::class)) {
             throw new AuthorizationException('Sin permisos para listar casas comerciales.');
@@ -41,9 +40,8 @@ class CasaComercialService extends BaseService
     /**
      * Crea un nuevo registro de casa comercial.
      */
-    public function createCasaComercial(array $data, $user = null)
+    public function createCasaComercial(array $data, $user)
     {
-        $user = $user ?? auth()->user();
 
         if ($user->cannot('create', CasaComercial::class)) {
             throw new AuthorizationException('No tiene permisos para crear una casa comercial.');
@@ -59,9 +57,8 @@ class CasaComercialService extends BaseService
     /**
      * Obtiene una casa comercial específica por su ID.
      */
-    public function getCasaComercialById($id, $user = null)
+    public function getCasaComercialById($id, $user)
     {
-        $user = $user ?? auth()->user();
         $casaComercial = CasaComercial::with(['vacunas'])->findOrFail($id);
 
         if ($user->cannot('read', $casaComercial)) {
@@ -74,9 +71,8 @@ class CasaComercialService extends BaseService
     /**
      * Actualiza un registro de casa comercial existente.
      */
-    public function updateCasaComercial($id, array $data, $user = null)
+    public function updateCasaComercial($id, array $data, $user)
     {
-        $user = $user ?? auth()->user();
         $casa = CasaComercial::findOrFail($id);
 
         if ($user->cannot('update', $casa)) {
@@ -95,9 +91,8 @@ class CasaComercialService extends BaseService
     /**
      * Elimina un registro de casa comercial existente.
      */
-    public function deleteCasaComercial($id, $user = null)
+    public function deleteCasaComercial($id, $user)
     {
-        $user = $user ?? auth()->user();
         $casa = CasaComercial::findOrFail($id);
 
         if ($user->cannot('delete', $casa)) {

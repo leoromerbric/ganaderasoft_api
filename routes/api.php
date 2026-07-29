@@ -3,6 +3,10 @@
 use App\Http\Controllers\Api\ArbolGenController;
 use App\Http\Controllers\Api\AnimalController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\PermissionController;
+use App\Http\Controllers\Api\UserRoleController;
+use App\Http\Controllers\Api\RolePermissionController;
 use App\Http\Controllers\Api\CambiosAnimalController;
 use App\Http\Controllers\Api\CasaComercialController;
 use App\Http\Controllers\Api\ComposicionRazaController;
@@ -48,22 +52,33 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Public auth routes
+// Rutas públicas de autenticación
 Route::prefix('auth')->group(function () {
-    Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
 });
 
-// Protected routes
+// Rutas protegidas
 Route::middleware('auth:sanctum')->group(function () {
-    // User profile routes
+    // Rutas del perfil de usuario
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
+    Route::post('/auth/register', [AuthController::class, 'register']);
 
-    // Core entity CRUD routes
+    // Gestión de Roles y Permisos
+    Route::apiResource('roles', RoleController::class);
+    Route::apiResource('permissions', PermissionController::class);
+    
+    // Roles de Usuario y Permisos
+    Route::apiResource('users.roles', UserRoleController::class)->only(['index', 'store', 'destroy']);
+    Route::get('/users/{user}/permissions', [UserRoleController::class, 'getPermissions']);
+    
+    // Permisos del Rol
+    Route::apiResource('roles.permissions', RolePermissionController::class)->only(['index', 'store', 'destroy']);
+
+    // Rutas CRUD de entidades principales
     Route::apiResource('fincas', FincaController::class);
     Route::apiResource('propietarios', PropietarioController::class);
     Route::apiResource('rebanos', RebanoController::class);
@@ -75,7 +90,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('composicion-raza', ComposicionRazaController::class);
     Route::apiResource('etapas', EtapaController::class);
 
-    // New entity CRUD routes
+    // Nuevas rutas CRUD de entidades
+    Route::post('personal-finca/{personal_finca}/create-user', [PersonalFincaController::class, 'createUserAccount']);
     Route::apiResource('personal-finca', PersonalFincaController::class);
     Route::apiResource('peso-corporal', PesoCorporalController::class);
     Route::apiResource('lactancia', LactanciaController::class);

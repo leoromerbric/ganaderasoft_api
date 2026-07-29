@@ -7,7 +7,10 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-class TipoAnimalService
+use App\Models\User;
+use App\Services\BaseService;
+
+class TipoAnimalService extends BaseService
 {
     /**
      * Obtiene el listado de tipos de animal.
@@ -15,8 +18,12 @@ class TipoAnimalService
      * @param array $filters Filtros.
      * @return LengthAwarePaginator
      */
-    public function listTipos(array $filters)
+    public function listTipos(array $filters, User $user)
     {
+        if ($user->cannot('viewAny', TipoAnimal::class)) {
+            throw new AuthorizationException('No tiene permisos para ver tipos de animal.');
+        }
+
         $query = TipoAnimal::query();
 
         if (!empty($filters['search'])) {
@@ -40,7 +47,7 @@ class TipoAnimalService
      */
     public function createTipo(array $data, $user): TipoAnimal
     {
-        if (!$user->isAdmin()) {
+        if ($user->cannot('create', TipoAnimal::class)) {
             throw new AuthorizationException('No tiene permisos para crear tipos de animal.');
         }
 
@@ -56,9 +63,15 @@ class TipoAnimalService
      * @return TipoAnimal
      * @throws ModelNotFoundException
      */
-    public function getTipoById(int $id): TipoAnimal
+    public function getTipoById(int $id, User $user): TipoAnimal
     {
-        return TipoAnimal::findOrFail($id);
+        $tipoAnimal = TipoAnimal::findOrFail($id);
+
+        if ($user->cannot('view', $tipoAnimal)) {
+            throw new AuthorizationException('No tiene permisos para ver tipos de animal.');
+        }
+
+        return $tipoAnimal;
     }
 
     /**
@@ -73,11 +86,11 @@ class TipoAnimalService
      */
     public function updateTipo(int $id, array $data, $user): TipoAnimal
     {
-        if (!$user->isAdmin()) {
+        $tipoAnimal = TipoAnimal::findOrFail($id);
+
+        if ($user->cannot('update', $tipoAnimal)) {
             throw new AuthorizationException('No tiene permisos para actualizar tipos de animal.');
         }
-
-        $tipoAnimal = TipoAnimal::findOrFail($id);
 
         $payload = [];
         if (array_key_exists('nombre', $data)) $payload['nombre'] = $data['nombre'];
@@ -98,11 +111,11 @@ class TipoAnimalService
      */
     public function deleteTipo(int $id, $user): bool
     {
-        if (!$user->isAdmin()) {
+        $tipoAnimal = TipoAnimal::findOrFail($id);
+
+        if ($user->cannot('delete', $tipoAnimal)) {
             throw new AuthorizationException('No tiene permisos para eliminar tipos de animal.');
         }
-
-        $tipoAnimal = TipoAnimal::findOrFail($id);
 
         return $tipoAnimal->delete();
     }

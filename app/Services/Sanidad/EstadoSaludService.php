@@ -18,9 +18,8 @@ class EstadoSaludService extends BaseService
      * @param array $filters Filtros.
      * @return \Illuminate\Support\Collection|LengthAwarePaginator
      */
-    public function listEstados(array $filters, $user = null)
+    public function listEstados(array $filters, $user)
     {
-        $user = $user ?? auth()->user();
 
         if ($user->cannot('readAny', EstadoSalud::class)) {
             throw new AuthorizationException('Sin permisos para listar estados de salud.');
@@ -47,9 +46,8 @@ class EstadoSaludService extends BaseService
      * @return EstadoSalud
      * @throws AuthorizationException
      */
-    public function createEstado(array $data, $user = null): EstadoSalud
+    public function createEstado(array $data, $user): EstadoSalud
     {
-        $user = $user ?? auth()->user();
 
         if ($user->cannot('create', EstadoSalud::class)) {
             throw new AuthorizationException('No tiene permisos para crear estados de salud.');
@@ -67,9 +65,8 @@ class EstadoSaludService extends BaseService
      * @return EstadoSalud
      * @throws ModelNotFoundException
      */
-    public function getEstadoById(int $id, $user = null): EstadoSalud
+    public function getEstadoById(int $id, $user): EstadoSalud
     {
-        $user = $user ?? auth()->user();
         $estadoSalud = EstadoSalud::with(['estadosAnimal.animal'])->findOrFail($id);
 
         if ($user->cannot('read', $estadoSalud)) {
@@ -89,9 +86,8 @@ class EstadoSaludService extends BaseService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function updateEstado(int $id, array $data, $user = null): EstadoSalud
+    public function updateEstado(int $id, array $data, $user): EstadoSalud
     {
-        $user = $user ?? auth()->user();
         $estadoSalud = EstadoSalud::findOrFail($id);
 
         if ($user->cannot('update', $estadoSalud)) {
@@ -116,9 +112,8 @@ class EstadoSaludService extends BaseService
      * @throws AuthorizationException
      * @throws ConflictHttpException
      */
-    public function deleteEstado(int $id, $user = null): bool
+    public function deleteEstado(int $id, $user): bool
     {
-        $user = $user ?? auth()->user();
         $estadoSalud = EstadoSalud::findOrFail($id);
 
         if ($user->cannot('delete', $estadoSalud)) {

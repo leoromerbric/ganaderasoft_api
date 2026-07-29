@@ -23,9 +23,8 @@ class MovimientoRebanoService extends BaseService
      * @return LengthAwarePaginator
      * @throws AuthorizationException
      */
-    public function listMovimientos(array $filters, $user = null)
+    public function listMovimientos(array $filters, $user)
     {
-        $user = $user ?? auth()->user();
 
         if ($user->cannot('readAny', MovimientoRebano::class)) {
             throw new AuthorizationException('Sin permisos para listar los movimientos de rebaño.');
@@ -63,9 +62,8 @@ class MovimientoRebanoService extends BaseService
      * @throws UnprocessableEntityHttpException
      * @throws AuthorizationException
      */
-    public function createMovimiento(array $data, $user = null): MovimientoRebano
+    public function createMovimiento(array $data, $user): MovimientoRebano
     {
-        $user = $user ?? auth()->user();
 
         if ($user->cannot('create', [MovimientoRebano::class, (int) $data['finca_id'], (int) $data['finca_destino_id']])) {
             throw new AuthorizationException('No tiene permisos para crear un movimiento entre estas fincas.');
@@ -124,9 +122,8 @@ class MovimientoRebanoService extends BaseService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function getMovimientoById(int $id, $user = null): MovimientoRebano
+    public function getMovimientoById(int $id, $user): MovimientoRebano
     {
-        $user = $user ?? auth()->user();
         $movimiento = MovimientoRebano::with([
             'fincaOrigen', 'rebanoOrigen',
             'fincaDestino', 'rebanoDestino',
@@ -150,9 +147,8 @@ class MovimientoRebanoService extends BaseService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function updateMovimiento(int $id, array $data, $user = null): MovimientoRebano
+    public function updateMovimiento(int $id, array $data, $user): MovimientoRebano
     {
-        $user = $user ?? auth()->user();
         $movimiento = MovimientoRebano::findOrFail($id);
 
         if ($user->cannot('update', $movimiento)) {
@@ -177,9 +173,8 @@ class MovimientoRebanoService extends BaseService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function deleteMovimiento(int $id, $user = null): bool
+    public function deleteMovimiento(int $id, $user): bool
     {
-        $user = $user ?? auth()->user();
         $movimiento = MovimientoRebano::findOrFail($id);
 
         if ($user->cannot('delete', $movimiento)) {

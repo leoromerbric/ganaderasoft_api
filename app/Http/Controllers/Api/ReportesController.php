@@ -27,14 +27,21 @@ class ReportesController extends Controller
      */
     public function estadisticasFincas(Request $request)
     {
-        
+        try {
             $filters = $request->only(['propietario_id', 'finca_id']);
             $estadisticas = $this->reportesService->getEstadisticasFincas($filters, $request->user());
 
             return response()->json(new EstadisticasFincasResource($estadisticas));
-            throw $e; return response()->json([
+        } catch (AuthorizationException $e) {
+            return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
             ], Response::HTTP_FORBIDDEN);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], Response::HTTP_NOT_FOUND);
+        }
     }
 }

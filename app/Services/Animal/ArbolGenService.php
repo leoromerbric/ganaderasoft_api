@@ -4,15 +4,21 @@ namespace App\Services\Animal;
 
 use App\Models\Animal;
 use App\Models\ArbolGen;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
+use App\Models\User;
+use App\Services\BaseService;
 
-class ArbolGenService
+class ArbolGenService extends BaseService
 {
     /**
      * Construye el árbol de 3 generaciones para un animal.
      */
-    public function showTree(Animal $animal): array
+    public function showTree(Animal $animal, User $user): array
     {
+        if ($user->cannot('viewAny', ArbolGen::class)) {
+            throw new AuthorizationException('No tiene permisos para ver árboles genealógicos.');
+        }
         $animal->load([
             'registroPadre.progenitor.registroPadre.progenitor',
             'registroPadre.progenitor.registroMadre.progenitor',
@@ -56,8 +62,11 @@ class ArbolGenService
     /**
      * Registra o actualiza un progenitor (Padre o Madre) validando reglas de negocio.
      */
-    public function store(Animal $animal, string $tipo, int $progenitorId): ArbolGen
+    public function store(Animal $animal, string $tipo, int $progenitorId, User $user): ArbolGen
     {
+        if ($user->cannot('create', [ArbolGen::class, $animal])) {
+            throw new AuthorizationException('No tiene permisos para registrar progenitores a este animal.');
+        }
         if ((int)$animal->id === (int)$progenitorId) {
             throw ValidationException::withMessages(['id_padre' => 'Un animal no puede ser su propio progenitor.']);
         }
@@ -81,8 +90,11 @@ class ArbolGenService
     /**
      * Elimina la relación de progenitor.
      */
-    public function destroy(Animal $animal, string $tipo): bool
+    public function destroy(Animal $animal, string $tipo, User $user): bool
     {
+        if ($user->cannot('delete', [ArbolGen::class, null, $animal])) {
+            throw new AuthorizationException('No tiene permisos para eliminar progenitores de este animal.');
+        }
         $deleted = ArbolGen::where('hijo_id', $animal->id)
             ->where('tipo', $tipo)
             ->delete();
@@ -93,8 +105,11 @@ class ArbolGenService
     /**
      * Obtiene los candidatos a ser progenitores excluyendo línea familiar directa.
      */
-    public function getAvailableParents(Animal $animal, ?string $tipo)
+    public function getAvailableParents(Animal $animal, ?string $tipo, User $user)
     {
+        if ($user->cannot('viewAny', ArbolGen::class)) {
+            throw new AuthorizationException('No tiene permisos para buscar candidatos a progenitores.');
+        }
         $animal->load([
             'registroPadre.progenitor.registroPadre.progenitor',
             'registroPadre.progenitor.registroMadre.progenitor',

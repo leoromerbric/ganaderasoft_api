@@ -12,10 +12,15 @@ class PropietarioPolicy extends BasePolicy
      */
     public function readAny(User $user): bool
     {
-        // Administradores son aprobados por el before().
-        // Los demás usuarios pueden listar su propio perfil, así que siempre retornamos true.
-        // El filtro de la consulta se encargará de mostrarle solo el suyo.
-        return true; 
+        return $user->hasPermissionTo('propietario.read') || $user->propietario !== null;
+    }
+
+    /**
+     * Determina si el usuario puede ver la lista COMPLETA de propietarios.
+     */
+    public function viewAll(User $user): bool
+    {
+        return $user->hasPermissionTo('propietario.read');
     }
 
     /**

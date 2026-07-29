@@ -79,7 +79,7 @@ class PalpacionController extends Controller
     public function show($id)
     {
         try {
-            $palpacion = $this->palpacionService->getPalpacionById((int)$id);
+            $palpacion = $this->palpacionService->getPalpacionById((int)$id, request()->user());
             
             return response()->json([
                 'success' => true, 
@@ -139,7 +139,7 @@ class PalpacionController extends Controller
     public function destroy($id)
     {
         try {
-            $this->palpacionService->deletePalpacion((int)$id);
+            $this->palpacionService->deletePalpacion((int)$id, request()->user());
             
             return response()->json([
                 'success' => true, 
@@ -157,4 +157,4 @@ class PalpacionController extends Controller
             ], Response::HTTP_FORBIDDEN);
         }
     }
-}
+}

@@ -43,7 +43,7 @@ class EtapaController extends Controller
     public function index(Request $request)
     {
         $filters = $request->only(['tipo_animal_id', 'sexo', 'nombre', 'nopaginate']);
-        $paginator = $this->etapaService->listEtapas($filters);
+        $paginator = $this->etapaService->listEtapas($filters, $request->user());
         
         return response()->json([
             'success' => true,
@@ -99,10 +99,10 @@ class EtapaController extends Controller
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
         try {
-            $etapa = $this->etapaService->getEtapaById((int)$id);
+            $etapa = $this->etapaService->getEtapaById((int)$id, $request->user());
             
             return response()->json([
                 'success' => true,

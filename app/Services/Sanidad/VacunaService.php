@@ -13,9 +13,8 @@ class VacunaService extends BaseService
     /**
      * Obtiene una lista paginada de vacunas basándose en los filtros.
      */
-    public function getPaginatedVacunas(array $filters, $user = null, $perPage = 15)
+    public function getPaginatedVacunas(array $filters, $user, $perPage = 15)
     {
-        $user = $user ?? auth()->user();
 
         if ($user->cannot('readAny', Vacuna::class)) {
             throw new AuthorizationException('Sin permisos para listar vacunas.');
@@ -41,9 +40,8 @@ class VacunaService extends BaseService
     /**
      * Crea un nuevo registro de vacuna.
      */
-    public function createVacuna(array $data, $user = null)
+    public function createVacuna(array $data, $user)
     {
-        $user = $user ?? auth()->user();
 
         if ($user->cannot('create', Vacuna::class)) {
             throw new AuthorizationException('No tiene permisos para crear una vacuna.');
@@ -59,9 +57,8 @@ class VacunaService extends BaseService
     /**
      * Obtiene una vacuna específica por su ID.
      */
-    public function getVacunaById($id, $user = null)
+    public function getVacunaById($id, $user)
     {
-        $user = $user ?? auth()->user();
         $vacuna = Vacuna::with(['casasComerciales'])->findOrFail($id);
 
         if ($user->cannot('read', $vacuna)) {
@@ -74,9 +71,8 @@ class VacunaService extends BaseService
     /**
      * Actualiza un registro de vacuna existente.
      */
-    public function updateVacuna($id, array $data, $user = null)
+    public function updateVacuna($id, array $data, $user)
     {
-        $user = $user ?? auth()->user();
         $vacuna = Vacuna::findOrFail($id);
 
         if ($user->cannot('update', $vacuna)) {
@@ -95,9 +91,8 @@ class VacunaService extends BaseService
     /**
      * Elimina un registro de vacuna existente.
      */
-    public function deleteVacuna($id, $user = null)
+    public function deleteVacuna($id, $user)
     {
-        $user = $user ?? auth()->user();
         $vacuna = Vacuna::findOrFail($id);
 
         if ($user->cannot('delete', $vacuna)) {

@@ -20,9 +20,8 @@ class EstadoAnimalService extends BaseService
      * @return LengthAwarePaginator
      * @throws AuthorizationException
      */
-    public function listEstados(array $filters, $user = null)
+    public function listEstados(array $filters, $user)
     {
-        $user = $user ?? auth()->user();
 
         if ($user->cannot('readAny', EstadoAnimal::class)) {
             throw new AuthorizationException('Sin permisos para listar estados de los animales.');
@@ -60,9 +59,8 @@ class EstadoAnimalService extends BaseService
      * @throws AuthorizationException
      * @throws ModelNotFoundException
      */
-    public function createEstado(array $data, $user = null): EstadoAnimal
+    public function createEstado(array $data, $user): EstadoAnimal
     {
-        $user = $user ?? auth()->user();
         $animalId = (int) $data['animal_id'];
 
         if ($user->cannot('create', [EstadoAnimal::class, $animalId])) {
@@ -97,9 +95,8 @@ class EstadoAnimalService extends BaseService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function getEstadoById(int $id, $user = null): EstadoAnimal
+    public function getEstadoById(int $id, $user): EstadoAnimal
     {
-        $user = $user ?? auth()->user();
         $estadoAnimal = EstadoAnimal::with(['animal.rebano.finca', 'estadoSalud'])->findOrFail($id);
 
         if ($user->cannot('read', $estadoAnimal)) {
@@ -119,9 +116,8 @@ class EstadoAnimalService extends BaseService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function updateEstado(int $id, array $data, $user = null): EstadoAnimal
+    public function updateEstado(int $id, array $data, $user): EstadoAnimal
     {
-        $user = $user ?? auth()->user();
         $estadoAnimal = EstadoAnimal::findOrFail($id);
 
         if ($user->cannot('update', $estadoAnimal)) {
@@ -155,9 +151,8 @@ class EstadoAnimalService extends BaseService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function deleteEstado(int $id, $user = null): bool
+    public function deleteEstado(int $id, $user): bool
     {
-        $user = $user ?? auth()->user();
         $estadoAnimal = EstadoAnimal::findOrFail($id);
 
         if ($user->cannot('delete', $estadoAnimal)) {

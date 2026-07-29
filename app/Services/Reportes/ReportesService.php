@@ -11,8 +11,9 @@ use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
+use App\Services\BaseService;
 
-class ReportesService
+class ReportesService extends BaseService
 {
     /**
      * Get statistical reports for farms (fincas).
@@ -23,29 +24,20 @@ class ReportesService
      */
     public function getEstadisticasFincas(array $filters, User $user): array
     {
-        $propietarioId = null;
-
-        if ($user->isAdmin()) {
-            if (isset($filters['propietario_id'])) {
-                $propietario = Propietario::find($filters['propietario_id']);
-                if (!$propietario) {
-                    throw new ModelNotFoundException('Propietario no encontrado');
-                }
-                $propietarioId = $propietario->id;
-            }
-        } else {
-            $propietario = $user->propietario;
-            if (!$propietario) {
-                throw new AuthorizationException('Usuario no es propietario');
-            }
-            $propietarioId = $propietario->id;
+        if (!$user->hasPermissionTo('reportes.read')) {
+            throw new AuthorizationException('Sin permisos para ver reportes.');
         }
 
         $fincasQuery = Finca::where('archivado', false);
 
-        if ($propietarioId) {
-            $fincasQuery->where('propietario_id', $propietarioId);
+        // Si se pasa un filtro explícito de propietario (útil para administradores)
+        if (!empty($filters['propietario_id'])) {
+            $fincasQuery->where('propietario_id', $filters['propietario_id']);
         }
+
+        // Aplica el filtro de base de datos para que el usuario solo vea estadísticas
+        // de las fincas a las que tiene acceso (como admin, propietario o trabajador)
+        $this->applyFincaFilter($fincasQuery, $user, null, 'id');
 
         if (isset($filters['finca_id'])) {
             $fincasQuery->where('id', $filters['finca_id']);

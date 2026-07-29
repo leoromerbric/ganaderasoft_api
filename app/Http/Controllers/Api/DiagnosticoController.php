@@ -79,7 +79,7 @@ class DiagnosticoController extends Controller
     public function show($id)
     {
         try {
-            $diagnostico = $this->diagnosticoService->getDiagnosticoById((int)$id);
+            $diagnostico = $this->diagnosticoService->getDiagnosticoById((int)$id, request()->user());
             
             return response()->json([
                 'success' => true, 
@@ -139,7 +139,7 @@ class DiagnosticoController extends Controller
     public function destroy($id)
     {
         try {
-            $this->diagnosticoService->deleteDiagnostico((int)$id);
+            $this->diagnosticoService->deleteDiagnostico((int)$id, request()->user());
             
             return response()->json([
                 'success' => true, 
@@ -157,4 +157,4 @@ class DiagnosticoController extends Controller
             ], Response::HTTP_FORBIDDEN);
         }
     }
-}
+}

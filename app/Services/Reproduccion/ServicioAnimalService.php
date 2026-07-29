@@ -16,9 +16,8 @@ class ServicioAnimalService extends BaseService
     /**
      * Obtiene una lista paginada de servicios a animales basándose en los filtros y la autorización del usuario.
      */
-    public function getPaginatedServicios(array $filters, $user = null, $perPage = 15)
+    public function getPaginatedServicios(array $filters, $user, $perPage = 15)
     {
-        $user = $user ?? auth()->user();
 
         if ($user->cannot('readAny', ServicioAnimal::class)) {
             throw new AuthorizationException('Sin permisos para listar servicios.');
@@ -49,9 +48,8 @@ class ServicioAnimalService extends BaseService
     /**
      * Crea un nuevo registro de servicio, resolviendo animal_etapa_id si es necesario.
      */
-    public function createServicio(array $data, $user = null)
+    public function createServicio(array $data, $user)
     {
-        $user = $user ?? auth()->user();
         $animalId = $data['animal_id'] ?? null;
 
         if ($user->cannot('create', [ServicioAnimal::class, $animalId])) {
@@ -81,9 +79,8 @@ class ServicioAnimalService extends BaseService
     /**
      * Obtiene un servicio específico por su ID.
      */
-    public function getServicioById($id, $user = null)
+    public function getServicioById($id, $user)
     {
-        $user = $user ?? auth()->user();
         $servicio = ServicioAnimal::with(['animal', 'semen', 'tecnico', 'registroCelo'])->findOrFail($id);
 
         if ($user->cannot('read', $servicio)) {
@@ -96,9 +93,8 @@ class ServicioAnimalService extends BaseService
     /**
      * Actualiza un registro de servicio existente.
      */
-    public function updateServicio($id, array $data, $user = null)
+    public function updateServicio($id, array $data, $user)
     {
-        $user = $user ?? auth()->user();
         $servicio = ServicioAnimal::findOrFail($id);
 
         if ($user->cannot('update', $servicio)) {
@@ -139,9 +135,8 @@ class ServicioAnimalService extends BaseService
     /**
      * Elimina un registro de servicio existente.
      */
-    public function deleteServicio($id, $user = null)
+    public function deleteServicio($id, $user)
     {
-        $user = $user ?? auth()->user();
         $servicio = ServicioAnimal::findOrFail($id);
 
         if ($user->cannot('delete', $servicio)) {

@@ -30,21 +30,39 @@ class FincaPolicy extends BasePolicy
     /**
      * Determina si el usuario puede crear una finca.
      */
-    public function create(User $user): bool
+    public function create(User $user, ?int $propietarioId = null): bool
     {
-        return $user->hasPermissionTo('finca.create');
+        if (!$user->hasPermissionTo('finca.create')) {
+            return false;
+        }
+        
+        if ($propietarioId !== null) {
+            $propietario = $user->propietario;
+            return $propietario && $propietario->id === $propietarioId;
+        }
+        
+        return true;
     }
 
     /**
      * Determina si el usuario puede actualizar la finca.
      */
-    public function update(User $user, Finca $finca): bool
+    public function update(User $user, Finca $finca, ?int $nuevoPropietarioId = null): bool
     {
         if (!$user->hasPermissionTo('finca.update')) {
             return false;
         }
 
-        return $this->checkFincaAccess($user, $finca->id);
+        if (!$this->checkFincaAccess($user, $finca->id)) {
+            return false;
+        }
+
+        if ($nuevoPropietarioId !== null) {
+            $propietario = $user->propietario;
+            return $propietario && $propietario->id === $nuevoPropietarioId;
+        }
+
+        return true;
     }
 
     /**

@@ -14,6 +14,9 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use App\Services\User\AuthService;
+use Illuminate\Auth\Access\AuthorizationException;
+use Exception;
 
 class AuthController extends Controller
 {
@@ -29,7 +32,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Login user and create token
+     * Iniciar sesión del usuario y crear token
      */
     public function login(Request $request)
     {
@@ -71,7 +74,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Get authenticated user profile
+     * Obtener perfil del usuario autenticado
      */
     public function profile(Request $request)
     {
@@ -88,7 +91,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Logout user (revoke token)
+     * Cerrar sesión del usuario (revocar token)
      */
     public function logout(Request $request)
     {
@@ -101,14 +104,18 @@ class AuthController extends Controller
     }
 
     /**
-     * Register a new user
+     * Registrar un nuevo usuario
      */
-    public function register(Request $request)
+    public function register(Request $request, AuthService $authService)
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'cedula' => 'required|string|max:20',
+            'nombre' => 'required|string|max:255',
+            'apellido' => 'required|string|max:255',
+            'telefono' => 'nullable|string|max:20',
+            'correo' => 'required|string|email|max:255|unique:users,email|unique:personas,correo',
             'password' => 'required|string|min:8|confirmed',
+            'password_confirmation' => 'required|string|same:password',
             'role_code' => 'required|string|exists:roles,code'
         ]);
 
@@ -120,30 +127,27 @@ class AuthController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'status' => 'active'
-        ]);
+        try {
+            $user = $authService->registerUser($request->all(), $request->user());
 
-        // Asignar rol
-        $role = Role::where('code', $request->role_code)->first();
-        if ($role) {
-            $user->roles()->attach($role->id);
+            return response()->json([
+                'success' => true,
+                'message' => 'Usuario registrado exitosamente',
+                'data' => [
+                    'user' => $this->formatResource(UserResource::class, $user)
+                ]
+            ], Response::HTTP_CREATED);
+
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al registrar usuario: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        $user->load('roles');
-        $token = $user->createToken('GanaderaSoft API Token')->plainTextToken;
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Usuario registrado exitosamente',
-            'data' => [
-                'user' => $this->formatResource(UserResource::class, $user),
-                'token' => $token,
-                'token_type' => 'Bearer'
-            ]
-        ], Response::HTTP_CREATED);
     }
 }

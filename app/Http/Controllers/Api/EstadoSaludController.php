@@ -42,7 +42,7 @@ class EstadoSaludController extends Controller
     public function index(Request $request)
     {
         $filters = $request->only(['search', 'nopaginate']);
-        $paginator = $this->estadoService->listEstados($filters);
+        $paginator = $this->estadoService->listEstados($filters, request()->user());
 
         return response()->json([
             'success' => true,
@@ -96,7 +96,7 @@ class EstadoSaludController extends Controller
     public function show($id)
     {
         try {
-            $estado = $this->estadoService->getEstadoById((int)$id);
+            $estado = $this->estadoService->getEstadoById((int)$id, request()->user());
 
             return response()->json([
                 'success' => true,

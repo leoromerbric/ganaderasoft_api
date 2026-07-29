@@ -12,9 +12,8 @@ class TratamientoService extends BaseService
     /**
      * Obtiene una lista paginada de tratamientos basándose en los filtros.
      */
-    public function getPaginatedTratamientos(array $filters, $user = null, $perPage = 15)
+    public function getPaginatedTratamientos(array $filters, $user, $perPage = 15)
     {
-        $user = $user ?? auth()->user();
 
         if ($user->cannot('readAny', Tratamiento::class)) {
             throw new AuthorizationException('Sin permisos para listar tratamientos.');
@@ -38,9 +37,8 @@ class TratamientoService extends BaseService
     /**
      * Crea un nuevo registro de tratamiento resolviendo animal_etapa_id si es necesario.
      */
-    public function createTratamiento(array $data, $user = null)
+    public function createTratamiento(array $data, $user)
     {
-        $user = $user ?? auth()->user();
         $diagnosticoId = (int) $data['diagnostico_id'];
 
         if ($user->cannot('create', [Tratamiento::class, $diagnosticoId])) {
@@ -54,9 +52,8 @@ class TratamientoService extends BaseService
     /**
      * Obtiene un tratamiento específico por su ID.
      */
-    public function getTratamientoById($id, $user = null)
+    public function getTratamientoById($id, $user)
     {
-        $user = $user ?? auth()->user();
         $tratamiento = Tratamiento::with(['diagnostico.etapaAnimal.animal'])->findOrFail($id);
 
         if ($user->cannot('read', $tratamiento)) {
@@ -69,9 +66,8 @@ class TratamientoService extends BaseService
     /**
      * Actualiza un registro de tratamiento existente.
      */
-    public function updateTratamiento($id, array $data, $user = null)
+    public function updateTratamiento($id, array $data, $user)
     {
-        $user = $user ?? auth()->user();
         $tratamiento = Tratamiento::findOrFail($id);
 
         if ($user->cannot('update', $tratamiento)) {
@@ -85,9 +81,8 @@ class TratamientoService extends BaseService
     /**
      * Elimina un registro de tratamiento existente.
      */
-    public function deleteTratamiento($id, $user = null)
+    public function deleteTratamiento($id, $user)
     {
-        $user = $user ?? auth()->user();
         $tratamiento = Tratamiento::findOrFail($id);
         
         if ($user->cannot('delete', $tratamiento)) {

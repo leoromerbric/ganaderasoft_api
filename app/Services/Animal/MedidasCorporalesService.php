@@ -20,9 +20,8 @@ class MedidasCorporalesService extends BaseService
      * @return LengthAwarePaginator
      * @throws AuthorizationException
      */
-    public function listMedidas(array $filters, $user = null)
+    public function listMedidas(array $filters, $user)
     {
-        $user = $user ?? auth()->user();
 
         if ($user->cannot('readAny', MedidasCorporales::class)) {
             throw new AuthorizationException('Sin permisos para listar las medidas corporales.');
@@ -60,9 +59,8 @@ class MedidasCorporalesService extends BaseService
      * @throws AuthorizationException
      * @throws ModelNotFoundException
      */
-    public function createMedidas(array $data, $user = null): MedidasCorporales
+    public function createMedidas(array $data, $user): MedidasCorporales
     {
-        $user = $user ?? auth()->user();
 
         // Obtener el animal a través de la etapa seleccionada para verificar permisos
         $animal = Animal::whereHas('etapaAnimales', function ($q) use ($data) {
@@ -94,9 +92,8 @@ class MedidasCorporalesService extends BaseService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function getMedidasById(int $id, $user = null): MedidasCorporales
+    public function getMedidasById(int $id, $user): MedidasCorporales
     {
-        $user = $user ?? auth()->user();
         $medidasCorporales = MedidasCorporales::with(['etapaAnimal.etapa', 'etapaAnimal.animal.rebano.finca'])->findOrFail($id);
 
         if ($user->cannot('read', $medidasCorporales)) {
@@ -116,9 +113,8 @@ class MedidasCorporalesService extends BaseService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function updateMedidas(int $id, array $data, $user = null): MedidasCorporales
+    public function updateMedidas(int $id, array $data, $user): MedidasCorporales
     {
-        $user = $user ?? auth()->user();
         $medidasCorporales = MedidasCorporales::findOrFail($id);
 
         if ($user->cannot('update', $medidasCorporales)) {
@@ -148,9 +144,8 @@ class MedidasCorporalesService extends BaseService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function deleteMedidas(int $id, $user = null): bool
+    public function deleteMedidas(int $id, $user): bool
     {
-        $user = $user ?? auth()->user();
         $medidasCorporales = MedidasCorporales::findOrFail($id);
 
         if ($user->cannot('delete', $medidasCorporales)) {

@@ -65,7 +65,7 @@ class LactanciaController extends Controller
         }
 
         try {
-            $lactancia = $this->lactanciaService->createLactancia($request->all());
+            $lactancia = $this->lactanciaService->createLactancia($request->all(), request()->user());
 
             return response()->json([
                 'success' => true,
@@ -87,7 +87,7 @@ class LactanciaController extends Controller
     public function show($id)
     {
         try {
-            $lactancia = $this->lactanciaService->getLactanciaById((int)$id);
+            $lactancia = $this->lactanciaService->getLactanciaById((int)$id, request()->user());
 
             return response()->json([
                 'success' => true,
@@ -125,7 +125,7 @@ class LactanciaController extends Controller
         }
 
         try {
-            $lactancia = $this->lactanciaService->updateLactancia((int)$id, $request->all());
+            $lactancia = $this->lactanciaService->updateLactancia((int)$id, $request->all(), request()->user());
 
             return response()->json([
                 'success' => true,
@@ -152,7 +152,7 @@ class LactanciaController extends Controller
     public function destroy($id)
     {
         try {
-            $this->lactanciaService->deleteLactancia((int)$id);
+            $this->lactanciaService->deleteLactancia((int)$id, request()->user());
 
             return response()->json([
                 'success' => true,

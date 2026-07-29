@@ -9,7 +9,10 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
-class ComposicionRazaService
+use App\Models\User;
+use App\Services\BaseService;
+
+class ComposicionRazaService extends BaseService
 {
     /**
      * Obtiene el listado de composiciones de raza.
@@ -17,8 +20,12 @@ class ComposicionRazaService
      * @param array $filters Filtros.
      * @return LengthAwarePaginator
      */
-    public function listComposiciones(array $filters)
+    public function listComposiciones(array $filters, User $user)
     {
+        if ($user->cannot('viewAny', ComposicionRaza::class)) {
+            throw new AuthorizationException('No tiene permisos para ver composiciones de raza.');
+        }
+
         $query = ComposicionRaza::with(['finca', 'tipoAnimal']);
 
         if (!empty($filters['nombre'])) {
@@ -40,20 +47,13 @@ class ComposicionRazaService
      * @return ComposicionRaza
      * @throws AuthorizationException
      */
-    public function createComposicion(array $data, $user): ComposicionRaza
+    public function createComposicion(array $data, User $user): ComposicionRaza
     {
-        // Verificar permisos si se especifica una finca
-        if (!empty($data['finca_id']) && !$user->isAdmin()) {
-            $propietario = $user->propietario;
-            if (!$propietario) {
-                throw new AuthorizationException('Usuario no tiene propietario asociado.');
-            }
-
-            $finca = Finca::find($data['finca_id']);
-            if (!$finca || $finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para asociar esta composición con la finca especificada.');
-            }
+        $fincaId = $data['finca_id'] ?? null;
+        if ($user->cannot('create', [ComposicionRaza::class, $fincaId])) {
+            throw new AuthorizationException('No tiene permisos para crear una composición de raza.');
         }
+
 
         return ComposicionRaza::create([
             'nombre'                  => $data['nombre'],
@@ -78,15 +78,12 @@ class ComposicionRazaService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function getComposicionById(int $id, $user): ComposicionRaza
+    public function getComposicionById(int $id, User $user): ComposicionRaza
     {
         $composicionRaza = ComposicionRaza::with(['finca', 'tipoAnimal', 'animales'])->findOrFail($id);
 
-        if (!$user->isAdmin() && $composicionRaza->finca) {
-            $propietario = $user->propietario;
-            if (!$propietario || $composicionRaza->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para ver esta composición de raza.');
-            }
+        if ($user->cannot('view', $composicionRaza)) {
+            throw new AuthorizationException('No tiene permisos para ver esta composición de raza.');
         }
 
         return $composicionRaza;
@@ -102,15 +99,12 @@ class ComposicionRazaService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function updateComposicion(int $id, array $data, $user): ComposicionRaza
+    public function updateComposicion(int $id, array $data, User $user): ComposicionRaza
     {
         $composicionRaza = ComposicionRaza::findOrFail($id);
 
-        if (!$user->isAdmin() && $composicionRaza->finca) {
-            $propietario = $user->propietario;
-            if (!$propietario || $composicionRaza->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para actualizar esta composición de raza.');
-            }
+        if ($user->cannot('update', $composicionRaza)) {
+            throw new AuthorizationException('No tiene permisos para actualizar esta composición de raza.');
         }
 
         $payload = [];
@@ -140,15 +134,12 @@ class ComposicionRazaService
      * @throws AuthorizationException
      * @throws ConflictHttpException
      */
-    public function deleteComposicion(int $id, $user): bool
+    public function deleteComposicion(int $id, User $user): bool
     {
         $composicionRaza = ComposicionRaza::findOrFail($id);
 
-        if (!$user->isAdmin() && $composicionRaza->finca) {
-            $propietario = $user->propietario;
-            if (!$propietario || $composicionRaza->finca->propietario_id != $propietario->id) {
-                throw new AuthorizationException('No tiene permisos para eliminar esta composición de raza.');
-            }
+        if ($user->cannot('delete', $composicionRaza)) {
+            throw new AuthorizationException('No tiene permisos para eliminar esta composición de raza.');
         }
 
         if ($composicionRaza->animales()->count() > 0) {

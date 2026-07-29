@@ -29,7 +29,7 @@ class VacunaController extends Controller
     {
         $filters = $request->only(['nombre', 'activa', 'nopaginate']);
         
-        $records = $this->vacunaService->getPaginatedVacunas($filters);
+        $records = $this->vacunaService->getPaginatedVacunas($filters, request()->user());
 
         return response()->json([
             'success' => true,
@@ -54,7 +54,7 @@ class VacunaController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $vacuna = $this->vacunaService->createVacuna($request->all());
+        $vacuna = $this->vacunaService->createVacuna($request->all(), request()->user());
 
         return response()->json([
             'success' => true,
@@ -66,7 +66,7 @@ class VacunaController extends Controller
     public function show($id)
     {
         try {
-            $vacuna = $this->vacunaService->getVacunaById((int)$id);
+            $vacuna = $this->vacunaService->getVacunaById((int)$id, request()->user());
 
             return response()->json([
                 'success' => true, 
@@ -98,7 +98,7 @@ class VacunaController extends Controller
         }
 
         try {
-            $vacuna = $this->vacunaService->updateVacuna((int)$id, $request->all());
+            $vacuna = $this->vacunaService->updateVacuna((int)$id, $request->all(), request()->user());
 
             return response()->json([
                 'success' => true,
@@ -116,7 +116,7 @@ class VacunaController extends Controller
     public function destroy($id)
     {
         try {
-            $this->vacunaService->deleteVacuna((int)$id);
+            $this->vacunaService->deleteVacuna((int)$id, request()->user());
 
             return response()->json([
                 'success' => true, 

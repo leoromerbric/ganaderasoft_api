@@ -41,7 +41,7 @@ class TipoAnimalController extends Controller
     public function index(Request $request)
     {
         $filters = $request->only(['search', 'nopaginate']);
-        $paginator = $this->tipoAnimalService->listTipos($filters);
+        $paginator = $this->tipoAnimalService->listTipos($filters, $request->user());
 
         return response()->json([
             'success' => true,
@@ -92,10 +92,10 @@ class TipoAnimalController extends Controller
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
         try {
-            $tipoAnimal = $this->tipoAnimalService->getTipoById((int)$id);
+            $tipoAnimal = $this->tipoAnimalService->getTipoById((int)$id, $request->user());
 
             return response()->json([
                 'success' => true,

@@ -7,6 +7,8 @@ use App\Models\Persona;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use App\Models\Role;
 use App\Services\BaseService;
 
 class PersonalFincaService extends BaseService
@@ -151,5 +153,48 @@ class PersonalFincaService extends BaseService
         $personal->delete();
         
         return true;
+    }
+
+    /**
+     * Convierte un personal de finca a usuario.
+     */
+    public function convertToUser(PersonalFinca $personalFinca, array $data, User $adminUser)
+    {
+        if ($adminUser->cannot('create', User::class)) {
+            throw new AuthorizationException('No tienes permisos para crear usuarios.');
+        }
+
+        $persona = $personalFinca->persona;
+        if (!$persona) {
+            throw new \Exception('El personal no tiene una persona asociada.');
+        }
+
+        if ($persona->users()->exists()) {
+            throw new \Exception('Esta persona ya tiene una cuenta de usuario vinculada.');
+        }
+
+        if (empty($persona->correo)) {
+            throw new \Exception('La persona no tiene un correo asignado, es necesario para crear el usuario.');
+        }
+
+        $roleCode = $data['role_code'];
+        $role = Role::where('code', $roleCode)->first();
+        if (!$role) {
+            throw new \Exception("El rol especificado '{$roleCode}' no existe.");
+        }
+
+        return DB::transaction(function () use ($persona, $role, $data) {
+            $user = User::create([
+                'name' => $persona->nombre,
+                'email' => $persona->correo,
+                'password' => Hash::make($data['password']),
+                'status' => 'active',
+            ]);
+
+            $user->personas()->attach($persona->id);
+            $user->roles()->attach($role->id);
+
+            return $user->load('roles');
+        });
     }
 }

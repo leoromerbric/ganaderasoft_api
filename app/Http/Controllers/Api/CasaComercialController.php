@@ -21,7 +21,7 @@ class CasaComercialController extends Controller
     {
         $filters = $request->only(['laboratorio', 'activa', 'nopaginate']);
         
-        $records = $this->casaComercialService->getPaginatedCasasComerciales($filters);
+        $records = $this->casaComercialService->getPaginatedCasasComerciales($filters, request()->user());
 
         return response()->json([
             'success' => true,
@@ -46,7 +46,7 @@ class CasaComercialController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        $casa = $this->casaComercialService->createCasaComercial($request->all());
+        $casa = $this->casaComercialService->createCasaComercial($request->all(), request()->user());
 
         return response()->json([
             'success' => true,
@@ -58,7 +58,7 @@ class CasaComercialController extends Controller
     public function show($id)
     {
         try {
-            $casa = $this->casaComercialService->getCasaComercialById((int)$id);
+            $casa = $this->casaComercialService->getCasaComercialById((int)$id, request()->user());
 
             return response()->json([
                 'success' => true, 
@@ -90,7 +90,7 @@ class CasaComercialController extends Controller
         }
 
         try {
-            $casa = $this->casaComercialService->updateCasaComercial((int)$id, $request->all());
+            $casa = $this->casaComercialService->updateCasaComercial((int)$id, $request->all(), request()->user());
 
             return response()->json([
                 'success' => true,
@@ -108,7 +108,7 @@ class CasaComercialController extends Controller
     public function destroy($id)
     {
         try {
-            $this->casaComercialService->deleteCasaComercial((int)$id);
+            $this->casaComercialService->deleteCasaComercial((int)$id, request()->user());
 
             return response()->json([
                 'success' => true, 

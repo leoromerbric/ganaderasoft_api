@@ -14,9 +14,8 @@ class DiagnosticoService extends BaseService
     /**
      * Obtiene una lista paginada de diagnósticos basándose en los filtros y la autorización del usuario.
      */
-    public function getPaginatedDiagnosticos(array $filters, $user = null, $perPage = 15)
+    public function getPaginatedDiagnosticos(array $filters, $user, $perPage = 15)
     {
-        $user = $user ?? auth()->user();
 
         if ($user->cannot('readAny', Diagnostico::class)) {
             throw new AuthorizationException('Sin permisos para listar diagnósticos.');
@@ -51,9 +50,8 @@ class DiagnosticoService extends BaseService
     /**
      * Crea un nuevo registro de diagnóstico.
      */
-    public function createDiagnostico(array $data, $user = null)
+    public function createDiagnostico(array $data, $user)
     {
-        $user = $user ?? auth()->user();
 
         if (!isset($data['animal_etapa_id']) && isset($data['animal_id']) && isset($data['etapa_id'])) {
             $etapaAnimal = EtapaAnimal::where('animal_id', $data['animal_id'])
@@ -80,9 +78,8 @@ class DiagnosticoService extends BaseService
     /**
      * Obtiene un diagnóstico específico por su ID.
      */
-    public function getDiagnosticoById($id, $user = null)
+    public function getDiagnosticoById($id, $user)
     {
-        $user = $user ?? auth()->user();
         $diagnostico = Diagnostico::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tratamientos'])->findOrFail($id);
 
         if ($user->cannot('read', $diagnostico)) {
@@ -95,9 +92,8 @@ class DiagnosticoService extends BaseService
     /**
      * Actualiza un registro de diagnóstico existente.
      */
-    public function updateDiagnostico($id, array $data, $user = null)
+    public function updateDiagnostico($id, array $data, $user)
     {
-        $user = $user ?? auth()->user();
         $diagnostico = Diagnostico::findOrFail($id);
 
         if ($user->cannot('update', $diagnostico)) {
@@ -125,9 +121,8 @@ class DiagnosticoService extends BaseService
     /**
      * Elimina un registro de diagnóstico existente.
      */
-    public function deleteDiagnostico($id, $user = null)
+    public function deleteDiagnostico($id, $user)
     {
-        $user = $user ?? auth()->user();
         $diagnostico = Diagnostico::findOrFail($id);
 
         if ($user->cannot('delete', $diagnostico)) {
@@ -136,4 +131,4 @@ class DiagnosticoService extends BaseService
 
         return $diagnostico->delete();
     }
-}
+}

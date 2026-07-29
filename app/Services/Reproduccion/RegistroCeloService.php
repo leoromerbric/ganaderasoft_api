@@ -16,9 +16,8 @@ class RegistroCeloService extends BaseService
     /**
      * Obtiene una lista paginada de registros de celo basándose en los filtros y la autorización del usuario.
      */
-    public function getPaginatedCelos(array $filters, $user = null, $perPage = 15)
+    public function getPaginatedCelos(array $filters, $user, $perPage = 15)
     {
-        $user = $user ?? auth()->user();
 
         if ($user->cannot('readAny', RegistroCelo::class)) {
             throw new AuthorizationException('Sin permisos para listar registros de celo.');
@@ -49,9 +48,8 @@ class RegistroCeloService extends BaseService
     /**
      * Crea un nuevo registro de celo, resolviendo animal_etapa_id si es necesario.
      */
-    public function createCelo(array $data, $user = null)
+    public function createCelo(array $data, $user)
     {
-        $user = $user ?? auth()->user();
 
         if (!isset($data['animal_etapa_id']) && isset($data['animal_id']) && isset($data['etapa_id'])) {
             $etapaAnimal = EtapaAnimal::where('animal_id', $data['animal_id'])
@@ -89,9 +87,8 @@ class RegistroCeloService extends BaseService
     /**
      * Obtiene un registro de celo específico por su ID.
      */
-    public function getCeloById($id, $user = null)
+    public function getCeloById($id, $user)
     {
-        $user = $user ?? auth()->user();
         $celo = RegistroCelo::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'servicios'])->findOrFail($id);
 
         if ($user->cannot('read', $celo)) {
@@ -104,9 +101,8 @@ class RegistroCeloService extends BaseService
     /**
      * Actualiza un registro de celo existente.
      */
-    public function updateCelo($id, array $data, $user = null)
+    public function updateCelo($id, array $data, $user)
     {
-        $user = $user ?? auth()->user();
         $celo = RegistroCelo::findOrFail($id);
 
         if ($user->cannot('update', $celo)) {
@@ -152,9 +148,8 @@ class RegistroCeloService extends BaseService
     /**
      * Elimina un registro de celo existente.
      */
-    public function deleteCelo($id, $user = null)
+    public function deleteCelo($id, $user)
     {
-        $user = $user ?? auth()->user();
         $celo = RegistroCelo::findOrFail($id);
 
         if ($user->cannot('delete', $celo)) {

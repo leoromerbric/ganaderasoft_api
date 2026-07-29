@@ -77,7 +77,7 @@ class TratamientoController extends Controller
     public function show($id)
     {
         try {
-            $tratamiento = $this->tratamientoService->getTratamientoById((int)$id);
+            $tratamiento = $this->tratamientoService->getTratamientoById((int)$id, request()->user());
             
             return response()->json([
                 'success' => true, 
@@ -135,7 +135,7 @@ class TratamientoController extends Controller
     public function destroy($id)
     {
         try {
-            $this->tratamientoService->deleteTratamiento((int)$id);
+            $this->tratamientoService->deleteTratamiento((int)$id, request()->user());
             
             return response()->json([
                 'success' => true, 
