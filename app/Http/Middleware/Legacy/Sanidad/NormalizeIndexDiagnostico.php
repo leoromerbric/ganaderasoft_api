@@ -18,6 +18,7 @@ class NormalizeIndexDiagnostico
         }
 
         $cleanedInput = $this->transformToCleanFormat($request->all());
+        $cleanedInput['nopaginate'] = true; // Forzar a devolver listado completo sin paginador
         $request->replace($cleanedInput);
 
         $response = $next($request);

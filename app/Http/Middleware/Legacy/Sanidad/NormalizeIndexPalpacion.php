@@ -18,6 +18,7 @@ class NormalizeIndexPalpacion
         }
 
         $cleanedInput = $this->transformToCleanFormat($request->all());
+        $cleanedInput['nopaginate'] = true;
         $request->replace($cleanedInput);
 
         $response = $next($request);

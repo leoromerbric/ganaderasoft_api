@@ -10,6 +10,7 @@ class NormalizeIndexReproduccionAnimal
 {
     public function handle(Request $request, Closure $next): Response
     {
+        $request->merge(['nopaginate' => true]);
         $response = $next($request);
 
         if ($request->header('X-API-VERSION') === '2') {
