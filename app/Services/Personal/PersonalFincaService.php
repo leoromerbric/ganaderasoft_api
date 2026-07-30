@@ -183,7 +183,7 @@ class PersonalFincaService extends BaseService
             throw new \Exception("El rol especificado '{$roleCode}' no existe.");
         }
 
-        return DB::transaction(function () use ($persona, $role, $data) {
+        return DB::transaction(function () use ($persona, $role, $data, $personalFinca) {
             $user = User::create([
                 'name' => $persona->nombre,
                 'email' => $persona->correo,
@@ -194,7 +194,20 @@ class PersonalFincaService extends BaseService
             $user->personas()->attach($persona->id);
             $user->roles()->attach($role->id);
 
-            return $user->load('roles');
+            // Obtener todas las fincas en las que trabaja esta persona
+            $fincasIds = PersonalFinca::where('persona_id', $persona->id)
+                ->pluck('finca_id')
+                ->unique();
+
+            foreach ($fincasIds as $fincaId) {
+                $user->fincas()->attach($fincaId, [
+                    'access_level' => 'operator',
+                    'is_default' => false,
+                    'status' => 'active'
+                ]);
+            }
+
+            return $user->load('roles', 'fincas');
         });
     }
 }

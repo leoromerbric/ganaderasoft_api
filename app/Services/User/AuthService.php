@@ -16,7 +16,7 @@ class AuthService extends BaseService
 {
     /**
      * Registra un nuevo usuario con su persona y rol asociados.
-     *
+     * (Se asume que los usuarios creados con esta funcion son nuevos y no existen en la base de datos)
      * @param array $data Los datos del formulario de registro.
      * @param User $adminUser El administrador que ejecuta la acción.
      * @return User El usuario creado.
@@ -76,7 +76,23 @@ class AuthService extends BaseService
                 Administrador::create(['persona_id' => $persona->id]);
             }
 
-            $user->load('roles', 'personas');
+            // 9. Asignar Fincas (si se proveen)
+            if (!empty($data['fincas']) && is_array($data['fincas'])) {
+                foreach ($data['fincas'] as $fincaId) {
+                    // Si mandan un array de objetos [['id' => 1]], extraemos el id. Si mandan un array de enteros [1], lo usamos directo.
+                    $id = is_array($fincaId) ? $fincaId['id'] : $fincaId;
+                    
+                    $defaultAccess = in_array($role->code, ['propietario', 'admin', 'global_admin']) ? 'owner' : 'operator';
+                    
+                    $user->fincas()->attach($id, [
+                        'access_level' => $defaultAccess,
+                        'is_default' => false,
+                        'status' => 'active'
+                    ]);
+                }
+            }
+
+            $user->load('roles', 'personas', 'fincas');
             
             return $user;
         });

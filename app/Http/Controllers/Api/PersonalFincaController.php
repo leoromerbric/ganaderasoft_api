@@ -179,7 +179,7 @@ class PersonalFincaController extends Controller
         }
     }
 
-    public function createUserAccount(Request $request, $id)
+    public function convertToUser(Request $request, $id)
     {
         $request->validate([
             'password' => 'required|string|min:8|confirmed',

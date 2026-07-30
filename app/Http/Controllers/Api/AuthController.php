@@ -116,7 +116,9 @@ class AuthController extends Controller
             'correo' => 'required|string|email|max:255|unique:users,email|unique:personas,correo',
             'password' => 'required|string|min:8|confirmed',
             'password_confirmation' => 'required|string|same:password',
-            'role_code' => 'required|string|exists:roles,code'
+            'role_code' => 'required|string|exists:roles,code',
+            'fincas' => 'nullable|array',
+            'fincas.*.id' => 'required_with:fincas|exists:fincas,id',
         ]);
 
         if ($validator->fails()) {

@@ -91,7 +91,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('etapas', EtapaController::class);
 
     // Nuevas rutas CRUD de entidades
-    Route::post('personal-finca/{personal_finca}/create-user', [PersonalFincaController::class, 'createUserAccount']);
+    Route::post('personal-finca/{personal_finca}/create-user', [PersonalFincaController::class, 'convertToUser']);
     Route::apiResource('personal-finca', PersonalFincaController::class);
     Route::apiResource('peso-corporal', PesoCorporalController::class);
     Route::apiResource('lactancia', LactanciaController::class);
