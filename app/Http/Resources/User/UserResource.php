@@ -35,8 +35,23 @@ class UserResource extends JsonResource
                 return $persona->propietario ? new PropietarioResource($persona->propietario) : null;
             }),
             
-            // Personas vinculadas
-            'personas' => $this->whenLoaded('personas'),
+            // Persona vinculada
+            'persona' => $this->whenLoaded('personas', function() {
+                return $this->personas->first();
+            }),
+
+            // Fincas vinculadas y datos pivote
+            'fincas' => $this->whenLoaded('fincas', function() {
+                return $this->fincas->map(function($finca) {
+                    return [
+                        'id' => $finca->id,
+                        'nombre' => $finca->nombre,
+                        'access_level' => $finca->pivot->access_level,
+                        'is_default' => (bool) $finca->pivot->is_default,
+                        'status' => $finca->pivot->status
+                    ];
+                });
+            }),
         ];
     }
 }

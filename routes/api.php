@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\UserRoleController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\UserFincaController;
 use App\Http\Controllers\Api\RolePermissionController;
 use App\Http\Controllers\Api\CambiosAnimalController;
 use App\Http\Controllers\Api\CasaComercialController;
@@ -70,6 +72,16 @@ Route::middleware('auth:sanctum')->group(function () {
     // Gestión de Roles y Permisos
     Route::apiResource('roles', RoleController::class);
     Route::apiResource('permissions', PermissionController::class);
+    
+    // Usuarios y Fincas de Usuarios
+    Route::apiResource('users', UserController::class);
+    Route::patch('users/{user}/disable', [UserController::class, 'disable']);
+    Route::patch('users/{user}/enable', [UserController::class, 'enable']);
+    
+    // Fincas de Usuarios
+    Route::apiResource('users.access-fincas', UserFincaController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::patch('users/{user}/access-fincas/{access_finca}/disable', [UserFincaController::class, 'disableAccess']);
+    Route::patch('users/{user}/access-fincas/{access_finca}/enable', [UserFincaController::class, 'enableAccess']);
     
     // Roles de Usuario y Permisos
     Route::apiResource('users.roles', UserRoleController::class)->only(['index', 'store', 'destroy']);

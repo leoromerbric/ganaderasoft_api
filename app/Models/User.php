@@ -122,7 +122,7 @@ class User extends Authenticatable
      */
     public function getAllowedFincasIds(): array
     {
-        $fincasIds = $this->fincas()->pluck('fincas.id')->toArray();
+        $fincasIds = $this->fincas()->wherePivot('status', 'active')->pluck('fincas.id')->toArray();
         
         // Si el usuario es propietario, también tiene acceso a las fincas de las cuales es dueño
         if ($this->isPropietario() && $this->propietario) {

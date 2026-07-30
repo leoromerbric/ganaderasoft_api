@@ -12,7 +12,7 @@ class UserPolicy extends BasePolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('usuario.read');
     }
 
     /**
@@ -20,7 +20,7 @@ class UserPolicy extends BasePolicy
      */
     public function view(User $user, User $model): bool
     {
-        return $user->isAdmin() || $user->id === $model->id;
+        return $user->hasPermissionTo('usuario.read') || $user->id === $model->id;
     }
 
     /**
@@ -28,7 +28,7 @@ class UserPolicy extends BasePolicy
      */
     public function create(User $user): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('usuario.create');
     }
 
     /**
@@ -36,7 +36,7 @@ class UserPolicy extends BasePolicy
      */
     public function update(User $user, User $model): bool
     {
-        return $user->isAdmin() || $user->id === $model->id;
+        return $user->hasPermissionTo('usuario.update') || $user->id === $model->id;
     }
 
     /**
@@ -44,7 +44,7 @@ class UserPolicy extends BasePolicy
      */
     public function delete(User $user, User $model): bool
     {
-        return $user->isAdmin();
+        return $user->hasPermissionTo('usuario.delete');
     }
 
     /**

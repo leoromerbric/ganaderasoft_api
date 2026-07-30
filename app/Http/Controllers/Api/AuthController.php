@@ -59,6 +59,15 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
+
+        // Verificar si la cuenta está suspendida
+        if ($user->status === 'suspended') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tu cuenta ha sido suspendida. Contacta a un administrador.'
+            ], Response::HTTP_FORBIDDEN);
+        }
+
         $user->load('roles');
         $token = $user->createToken('GanaderaSoft API Token')->plainTextToken;
 

@@ -62,7 +62,10 @@ class PersonalFincaService extends BaseService
             ];
 
             if ($persona) {
-                $persona->update($personaData);
+                // Prevenir que un Propietario o Administrador sea registrado como trabajador
+                if ($persona->propietario()->exists() || $persona->administrador()->exists()) {
+                    throw new \Exception('Esta persona es un propietario o administrador y no puede ser registrada como personal de la finca.');
+                }
             } else {
                 $personaData['cedula'] = $data['cedula'];
                 $personaData['status'] = true;
