@@ -51,13 +51,13 @@ class UserService
             throw new AuthorizationException('No tienes permisos para crear usuarios.');
         }
 
-        $roleCode = $data['role_code'];
-        $role = Role::where('code', $roleCode)->first();
-        if (!$role) {
-            throw new \Exception("El rol especificado '{$roleCode}' no existe.");
+        $roleCodes = $data['roles'];
+        $roles = Role::whereIn('code', $roleCodes)->get();
+        if ($roles->count() !== count($roleCodes)) {
+            throw new \Exception("Algunos roles especificados no existen.");
         }
 
-        return DB::transaction(function () use ($data, $role) {
+        return DB::transaction(function () use ($data, $roles) {
             // Manejar Persona
             $persona = Persona::where('correo', $data['correo'])
                 ->orWhere('cedula', $data['cedula'])
@@ -87,13 +87,15 @@ class UserService
 
             // Vincular
             $user->personas()->attach($persona->id);
-            $user->roles()->attach($role->id);
+            $user->roles()->sync($roles->pluck('id')->toArray());
 
-            // Entidades opcionales como en registro
-            if ($role->code === 'propietario') {
-                Propietario::firstOrCreate(['persona_id' => $persona->id]);
-            } elseif (in_array($role->code, ['global_admin', 'admin'])) {
-                Administrador::firstOrCreate(['persona_id' => $persona->id]);
+            // Entidades asociadas al rol
+            foreach ($roles as $role) {
+                if ($role->code === 'propietario') {
+                    Propietario::firstOrCreate(['persona_id' => $persona->id]);
+                } elseif (in_array($role->code, ['global_admin', 'admin'])) {
+                    Administrador::firstOrCreate(['persona_id' => $persona->id]);
+                }
             }
 
             return $user->load('personas', 'roles');
@@ -159,17 +161,29 @@ class UserService
 
             $user->save();
 
-            // Manejar cambio de rol si se provee
-            if (!empty($data['role_code'])) {
-                $role = Role::where('code', $data['role_code'])->first();
-                if ($role) {
-                    $user->roles()->sync([$role->id]);
-                    
+            // Manejar cambio de roles si se proveen
+            if (isset($data['roles'])) {
+                $roleCodes = $data['roles'];
+                $roles = Role::whereIn('code', $roleCodes)->get();
+                if ($roles->count() === count($roleCodes)) {
+                    $user->roles()->sync($roles->pluck('id')->toArray());
+
                     if ($persona) {
-                        if ($role->code === 'propietario') {
+                        $newRoleCodes = $roles->pluck('code')->toArray();
+
+                        // Crear o mantener los que vienen en el array
+                        if (in_array('propietario', $newRoleCodes)) {
                             Propietario::firstOrCreate(['persona_id' => $persona->id]);
-                        } elseif (in_array($role->code, ['global_admin', 'admin'])) {
+                        } else {
+                            // Eliminar si ya no es propietario
+                            Propietario::where('persona_id', $persona->id)->delete();
+                        }
+
+                        if (in_array('global_admin', $newRoleCodes) || in_array('admin', $newRoleCodes)) {
                             Administrador::firstOrCreate(['persona_id' => $persona->id]);
+                        } else {
+                            // Eliminar si ya no es administrador
+                            Administrador::where('persona_id', $persona->id)->delete();
                         }
                     }
                 }

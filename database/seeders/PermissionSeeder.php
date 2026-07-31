@@ -18,7 +18,7 @@ class PermissionSeeder extends Seeder
         $modules = [
             'finca' => ['finca', 'terreno'],
             'personal' => ['personal_finca'],
-            'admin' => ['configuracion', 'propietario', 'usuario', 'finca_user'],
+            'admin' => ['configuracion', 'propietario', 'usuario', 'finca_user', 'persona'],
             'reportes' => ['reportes'],
             'animal' => ['animal', 'arbol_gen', 'cambios_animal', 'composicion_raza', 'tipo_animal', 'etapa', 'medidas_corporales', 'peso_corporal'],
             'rebano' => ['rebano', 'movimiento_rebano'],
@@ -34,7 +34,8 @@ class PermissionSeeder extends Seeder
         $customActions = [
             'reportes' => ['read'], // No es una tabla, solo se leen/generan
             'configuracion' => ['read', 'update'], // No es tabla, pero se puede leer y actualizar la config
-            'personal_finca' => ['read', 'create', 'update', 'delete', 'assign'] // Se le suma la acción assign
+            'personal_finca' => ['read', 'create', 'update', 'delete', 'assign'], // Se le suma la acción assign
+            'persona' => ['read', 'create', 'update', 'delete']
         ];
 
         $permissions = [];

@@ -56,7 +56,8 @@ class UserController extends Controller
             'telefono' => 'nullable|string|max:20',
             'correo' => 'required|string|email|max:255|unique:users,email|unique:personas,correo',
             'password' => 'required|string|min:8|confirmed',
-            'role_code' => 'required|string|exists:roles,code',
+            'roles' => 'required|array',
+            'roles.*' => 'string|exists:roles,code',
             'status' => 'nullable|string|in:active,suspended'
         ]);
 
@@ -128,7 +129,8 @@ class UserController extends Controller
             // En update permitimos el mismo correo si es el mismo usuario. Asumiremos que el frontend o servicio controla esto, pero idealmente:
             'correo' => 'sometimes|string|email|max:255|unique:users,email,'.$id, 
             'password' => 'sometimes|string|min:8|confirmed',
-            'role_code' => 'sometimes|string|exists:roles,code',
+            'roles' => 'sometimes|array',
+            'roles.*' => 'string|exists:roles,code',
             'status' => 'sometimes|string|in:active,suspended'
         ]);
 

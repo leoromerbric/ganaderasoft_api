@@ -61,14 +61,9 @@ class PersonalFincaService extends BaseService
                 'correo' => $data['correo'],
             ];
 
-            if ($persona) {
-                // Prevenir que un Propietario o Administrador sea registrado como trabajador
-                if ($persona->propietario()->exists() || $persona->administrador()->exists()) {
-                    throw new \Exception('Esta persona es un propietario o administrador y no puede ser registrada como personal de la finca.');
-                }
-            } else {
+            if (!$persona) {
                 $personaData['cedula'] = $data['cedula'];
-                $personaData['status'] = true;
+                $personaData['status'] = 'activo';
                 $persona = Persona::create($personaData);
             }
 
@@ -180,13 +175,13 @@ class PersonalFincaService extends BaseService
             throw new \Exception('La persona no tiene un correo asignado, es necesario para crear el usuario.');
         }
 
-        $roleCode = $data['role_code'];
-        $role = Role::where('code', $roleCode)->first();
-        if (!$role) {
-            throw new \Exception("El rol especificado '{$roleCode}' no existe.");
+        $roleCodes = $data['roles'];
+        $roles = Role::whereIn('code', $roleCodes)->get();
+        if ($roles->count() !== count($roleCodes)) {
+            throw new \Exception("Algunos roles especificados no existen.");
         }
 
-        return DB::transaction(function () use ($persona, $role, $data, $personalFinca) {
+        return DB::transaction(function () use ($persona, $roles, $data, $personalFinca) {
             $user = User::create([
                 'name' => $persona->nombre,
                 'email' => $persona->correo,
@@ -195,7 +190,16 @@ class PersonalFincaService extends BaseService
             ]);
 
             $user->personas()->attach($persona->id);
-            $user->roles()->attach($role->id);
+            $user->roles()->sync($roles->pluck('id')->toArray());
+
+            // Crear entidades físicas si se le otorgan roles de propietario/administrador
+            foreach ($roles as $role) {
+                if ($role->code === 'propietario') {
+                    Propietario::firstOrCreate(['persona_id' => $persona->id]);
+                } elseif (in_array($role->code, ['global_admin', 'admin'])) {
+                    Administrador::firstOrCreate(['persona_id' => $persona->id]);
+                }
+            }
 
             // Obtener todas las fincas en las que trabaja esta persona
             $fincasIds = PersonalFinca::where('persona_id', $persona->id)

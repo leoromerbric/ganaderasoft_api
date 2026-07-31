@@ -184,7 +184,8 @@ class PersonalFincaController extends Controller
         $request->validate([
             'password' => 'required|string|min:8|confirmed',
             'password_confirmation' => 'required|string|same:password',
-            'role_code' => 'required|string|exists:roles,code'
+            'roles' => 'required|array',
+            'roles.*' => 'string|exists:roles,code'
         ]);
 
         try {

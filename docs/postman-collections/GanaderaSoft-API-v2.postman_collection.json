@@ -8,193 +8,10 @@
     },
     "item": [
         {
-            "name": "🐂 Animal Relationships",
-            "item": [
-                {
-                    "name": "Create Estado Animal",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Accept",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "X-API-VERSION",
-                                "value": "2",
-                                "type": "text",
-                                "disabled": true
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}",
-                                "type": "text"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"esan_fecha_ini\": \"2024-01-01\",\n    \"esan_fecha_fin\": null,\n    \"esan_fk_estado_id\": 1\n}"
-                        },
-                        "url": {
-                            "raw": "{{base_url}}/api/animales/1/estado-animal",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "api",
-                                "animales",
-                                "1",
-                                "estado-animal"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Update Estado Animal",
-                    "request": {
-                        "method": "PUT",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Accept",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "X-API-VERSION",
-                                "value": "2",
-                                "type": "text",
-                                "disabled": true
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}",
-                                "type": "text"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"esan_fecha_fin\": \"2024-01-31\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{base_url}}/api/animales/1/estado-animal/1",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "api",
-                                "animales",
-                                "1",
-                                "estado-animal",
-                                "1"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Create Etapa Animal",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Accept",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "X-API-VERSION",
-                                "value": "2",
-                                "type": "text",
-                                "disabled": true
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}",
-                                "type": "text"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"etan_fecha_ini\": \"2024-01-01\",\n    \"etan_fecha_fin\": null,\n    \"etan_etapa_id\": 1\n}"
-                        },
-                        "url": {
-                            "raw": "{{base_url}}/api/animales/1/etapa-animal",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "api",
-                                "animales",
-                                "1",
-                                "etapa-animal"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Update Etapa Animal",
-                    "request": {
-                        "method": "PUT",
-                        "header": [
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "Accept",
-                                "value": "application/json"
-                            },
-                            {
-                                "key": "X-API-VERSION",
-                                "value": "2",
-                                "type": "text",
-                                "disabled": true
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}",
-                                "type": "text"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"etan_fecha_fin\": \"2024-06-30\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{base_url}}/api/animales/1/etapa-animal/1",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "api",
-                                "animales",
-                                "1",
-                                "etapa-animal",
-                                "1"
-                            ]
-                        }
-                    },
-                    "response": []
-                }
-            ]
-        },
-        {
             "name": "🐂 Animales",
             "item": [
                 {
-                    "name": "List Animales",
+                    "name": "List animales",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -235,7 +52,7 @@
                     "response": []
                 },
                 {
-                    "name": "List Animales by Rebaño",
+                    "name": "List animales by rebaño",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -280,7 +97,7 @@
                     "response": []
                 },
                 {
-                    "name": "List Animales by Sex",
+                    "name": "List animales by sex",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -325,7 +142,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Animal",
+                    "name": "Create animal",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -367,7 +184,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Animal (with relationships)",
+                    "name": "Show animal (with relationships)",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -402,7 +219,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Animal",
+                    "name": "Update animal",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -445,7 +262,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Animal",
+                    "name": "Delete animal",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -482,10 +299,10 @@
             ]
         },
         {
-            "name": "🌳 Árbol Genealógico",
+            "name": "🌳 Árbol genealógico",
             "item": [
                 {
-                    "name": "Ver Árbol",
+                    "name": "Show arbol genealogico",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -529,7 +346,7 @@
                     "response": []
                 },
                 {
-                    "name": "Asignar Progenitor",
+                    "name": "Assign progenitor",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -581,7 +398,7 @@
                     "response": []
                 },
                 {
-                    "name": "Candidatos Disponibles",
+                    "name": "List candidatos disponibles",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -629,7 +446,7 @@
                     "response": []
                 },
                 {
-                    "name": "Eliminar Progenitor",
+                    "name": "Delete progenitor",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -672,7 +489,7 @@
             "name": "🔐 Authentication",
             "item": [
                 {
-                    "name": "Register User",
+                    "name": "Register user",
                     "event": [
                         {
                             "listen": "test",
@@ -732,7 +549,7 @@
                     "response": []
                 },
                 {
-                    "name": "Login User",
+                    "name": "Login user",
                     "event": [
                         {
                             "listen": "test",
@@ -776,7 +593,7 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"email\": \"leoromerbric@gmail.com\",\n    \"password\": \"123456789\"\n}"
+                            "raw": "{\n    \"email\": \"propietario1@ucv.com\",\n    \"password\": \"123456789\"\n}"
                         },
                         "url": {
                             "raw": "{{base_url}}/api/auth/login",
@@ -793,7 +610,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Profile",
+                    "name": "Show profile",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -871,10 +688,10 @@
             ]
         },
         {
-            "name": "🔄 Cambios Animal",
+            "name": "🔄 Cambios animal",
             "item": [
                 {
-                    "name": "List Cambios Animal",
+                    "name": "List cambios animal",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -941,7 +758,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Cambios Animal",
+                    "name": "Create cambios animal",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -985,7 +802,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Cambios Animal",
+                    "name": "Show cambios animal",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -1021,7 +838,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Cambios Animal",
+                    "name": "Update cambios animal",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -1066,7 +883,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Cambios Animal",
+                    "name": "Delete cambios animal",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -1104,10 +921,10 @@
             ]
         },
         {
-            "name": "🏢 Casa Comercial",
+            "name": "🏢 Casa comercial",
             "item": [
                 {
-                    "name": "List Casa Comercial",
+                    "name": "List casa comercial",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -1153,7 +970,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Casa Comercial",
+                    "name": "Create casa comercial",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -1197,7 +1014,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Casa Comercial",
+                    "name": "Show casa comercial",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -1233,7 +1050,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Casa Comercial",
+                    "name": "Update casa comercial",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -1278,7 +1095,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Casa Comercial",
+                    "name": "Delete casa comercial",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -1316,10 +1133,10 @@
             ]
         },
         {
-            "name": "🧬 Composición Raza",
+            "name": "🧬 Composición raza",
             "item": [
                 {
-                    "name": "List Composición Raza",
+                    "name": "List composición raza",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -1370,7 +1187,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Composición Raza",
+                    "name": "Create composición raza",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -1412,7 +1229,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Composición Raza",
+                    "name": "Show composición raza",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -1447,7 +1264,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Composición Raza",
+                    "name": "Update composición raza",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -1490,7 +1307,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Composición Raza",
+                    "name": "Delete composición raza",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -1530,7 +1347,7 @@
             "name": "🔧 Configuración",
             "item": [
                 {
-                    "name": "Get Tipo Explotación",
+                    "name": "Show tipo explotación",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -1573,7 +1390,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Método Riego",
+                    "name": "Show método riego",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -1616,7 +1433,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get PH Suelo",
+                    "name": "Show ph suelo",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -1659,7 +1476,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Textura Suelo",
+                    "name": "Show textura suelo",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -1702,7 +1519,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Fuente Agua",
+                    "name": "Show fuente agua",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -1745,7 +1562,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Sexo",
+                    "name": "Show sexo",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -1788,7 +1605,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Tipo Relieve",
+                    "name": "Show tipo relieve",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -1836,7 +1653,7 @@
             "name": "🔬 Diagnostico",
             "item": [
                 {
-                    "name": "List Diagnostico",
+                    "name": "List diagnostico",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -1886,7 +1703,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Diagnostico",
+                    "name": "Create diagnostico",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -1930,7 +1747,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Diagnostico",
+                    "name": "Show diagnostico",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -1966,7 +1783,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Diagnostico",
+                    "name": "Update diagnostico",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -2011,7 +1828,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Diagnostico",
+                    "name": "Delete diagnostico",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -2049,226 +1866,10 @@
             ]
         },
         {
-            "name": "🧪 Dosis",
+            "name": "🏥 Estado salud",
             "item": [
                 {
-                    "name": "List Dosis",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json",
-                                "type": "text"
-                            },
-                            {
-                                "key": "X-API-VERSION",
-                                "value": "2",
-                                "type": "text",
-                                "disabled": true
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}",
-                                "type": "text"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/api/dosis?vacuna_id=1&vigentes=1",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "api",
-                                "dosis"
-                            ],
-                            "query": [
-                                {
-                                    "key": "vacuna_id",
-                                    "value": "1"
-                                },
-                                {
-                                    "key": "vigentes",
-                                    "value": "1"
-                                },
-                                {
-                                    "key": "nopaginate",
-                                    "value": "true",
-                                    "disabled": true
-                                }
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Create Dosis",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json",
-                                "type": "text"
-                            },
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json",
-                                "type": "text"
-                            },
-                            {
-                                "key": "X-API-VERSION",
-                                "value": "2",
-                                "type": "text",
-                                "disabled": true
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}",
-                                "type": "text"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"dosis_vacuna_id\": 1,\n    \"dosis_casa_id\": 1,\n    \"dosis_frecuencia\": 2,\n    \"dosis_costo\": 5.5,\n    \"dosis_costo_frasco\": 55.0,\n    \"dosis_fecha_uso_ini\": \"2024-01-01\",\n    \"dosis_etapa_animal_anid\": 1,\n    \"dosis_etapa_animal_etid\": 3\n}"
-                        },
-                        "url": {
-                            "raw": "{{base_url}}/api/dosis",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "api",
-                                "dosis"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Get Dosis",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json",
-                                "type": "text"
-                            },
-                            {
-                                "key": "X-API-VERSION",
-                                "value": "2",
-                                "type": "text",
-                                "disabled": true
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}",
-                                "type": "text"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/api/dosis/1",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "api",
-                                "dosis",
-                                "1"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Update Dosis",
-                    "request": {
-                        "method": "PUT",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json",
-                                "type": "text"
-                            },
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json",
-                                "type": "text"
-                            },
-                            {
-                                "key": "X-API-VERSION",
-                                "value": "2",
-                                "type": "text",
-                                "disabled": true
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}",
-                                "type": "text"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"dosis_costo\": 6.0\n}"
-                        },
-                        "url": {
-                            "raw": "{{base_url}}/api/dosis/1",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "api",
-                                "dosis",
-                                "1"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Delete Dosis",
-                    "request": {
-                        "method": "DELETE",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json",
-                                "type": "text"
-                            },
-                            {
-                                "key": "X-API-VERSION",
-                                "value": "2",
-                                "type": "text",
-                                "disabled": true
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}",
-                                "type": "text"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/api/dosis/1",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "api",
-                                "dosis",
-                                "1"
-                            ]
-                        }
-                    },
-                    "response": []
-                }
-            ]
-        },
-        {
-            "name": "🏥 Estado Salud",
-            "item": [
-                {
-                    "name": "List Estados de Salud",
+                    "name": "List estados de salud",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -2319,7 +1920,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Estado de Salud",
+                    "name": "Show estado de salud",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -2354,7 +1955,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Estado de Salud (Admin Only)",
+                    "name": "Create estado de salud (admin only)",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -2396,7 +1997,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Estado de Salud (Admin Only)",
+                    "name": "Update estado de salud (admin only)",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -2439,7 +2040,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Estado de Salud (Admin Only)",
+                    "name": "Delete estado de salud (admin only)",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -2476,10 +2077,10 @@
             ]
         },
         {
-            "name": "🩺 Estados Animal",
+            "name": "🩺 Estados animal",
             "item": [
                 {
-                    "name": "List Estados Animal",
+                    "name": "List estados animal",
                     "request": {
                         "auth": {
                             "type": "bearer",
@@ -2524,7 +2125,7 @@
                     }
                 },
                 {
-                    "name": "Get Estado Animal",
+                    "name": "Show estado animal",
                     "request": {
                         "auth": {
                             "type": "bearer",
@@ -2563,7 +2164,7 @@
                     }
                 },
                 {
-                    "name": "Create Estado Animal",
+                    "name": "Create estado animal",
                     "request": {
                         "auth": {
                             "type": "bearer",
@@ -2609,7 +2210,7 @@
                     }
                 },
                 {
-                    "name": "Update Estado Animal",
+                    "name": "Update estado animal",
                     "request": {
                         "auth": {
                             "type": "bearer",
@@ -2656,7 +2257,7 @@
                     }
                 },
                 {
-                    "name": "Delete Estado Animal",
+                    "name": "Delete estado animal",
                     "request": {
                         "auth": {
                             "type": "bearer",
@@ -2700,7 +2301,7 @@
             "name": "📈 Etapas",
             "item": [
                 {
-                    "name": "List Etapas",
+                    "name": "List etapas",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -2751,7 +2352,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Etapa (Admin Only)",
+                    "name": "Create etapa (admin only)",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -2793,7 +2394,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Etapa",
+                    "name": "Show etapa",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -2828,7 +2429,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Etapa (Admin Only)",
+                    "name": "Update etapa (admin only)",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -2871,7 +2472,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Etapa (Admin Only)",
+                    "name": "Delete etapa (admin only)",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -2911,7 +2512,7 @@
             "name": "🏡 Fincas",
             "item": [
                 {
-                    "name": "List Fincas",
+                    "name": "List fincas",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -2952,7 +2553,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Finca",
+                    "name": "Create finca",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -2994,7 +2595,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Finca",
+                    "name": "Show finca",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -3029,7 +2630,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Finca",
+                    "name": "Update finca",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -3072,7 +2673,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Finca",
+                    "name": "Delete finca",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -3109,226 +2710,10 @@
             ]
         },
         {
-            "name": "🗓️ Historico Aplicacion",
+            "name": "📋 Inventario general",
             "item": [
                 {
-                    "name": "List Historico Aplicacion",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json",
-                                "type": "text"
-                            },
-                            {
-                                "key": "X-API-VERSION",
-                                "value": "2",
-                                "type": "text",
-                                "disabled": true
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}",
-                                "type": "text"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/api/historico-aplicacion?vacuna_id=1&fecha_inicio=2024-01-01",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "api",
-                                "historico-aplicacion"
-                            ],
-                            "query": [
-                                {
-                                    "key": "vacuna_id",
-                                    "value": "1"
-                                },
-                                {
-                                    "key": "fecha_inicio",
-                                    "value": "2024-01-01"
-                                },
-                                {
-                                    "key": "nopaginate",
-                                    "value": "true",
-                                    "disabled": true
-                                }
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Create Historico Aplicacion",
-                    "request": {
-                        "method": "POST",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json",
-                                "type": "text"
-                            },
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json",
-                                "type": "text"
-                            },
-                            {
-                                "key": "X-API-VERSION",
-                                "value": "2",
-                                "type": "text",
-                                "disabled": true
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}",
-                                "type": "text"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"ha_vacuna_id\": 1,\n    \"ha_casa_id\": 1,\n    \"ha_dosis_id\": 1,\n    \"fecha_inyeccion\": \"2024-03-01\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{base_url}}/api/historico-aplicacion",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "api",
-                                "historico-aplicacion"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Get Historico Aplicacion",
-                    "request": {
-                        "method": "GET",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json",
-                                "type": "text"
-                            },
-                            {
-                                "key": "X-API-VERSION",
-                                "value": "2",
-                                "type": "text",
-                                "disabled": true
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}",
-                                "type": "text"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/api/historico-aplicacion/1",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "api",
-                                "historico-aplicacion",
-                                "1"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Update Historico Aplicacion",
-                    "request": {
-                        "method": "PUT",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json",
-                                "type": "text"
-                            },
-                            {
-                                "key": "Content-Type",
-                                "value": "application/json",
-                                "type": "text"
-                            },
-                            {
-                                "key": "X-API-VERSION",
-                                "value": "2",
-                                "type": "text",
-                                "disabled": true
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}",
-                                "type": "text"
-                            }
-                        ],
-                        "body": {
-                            "mode": "raw",
-                            "raw": "{\n    \"fecha_inyeccion\": \"2024-03-02\"\n}"
-                        },
-                        "url": {
-                            "raw": "{{base_url}}/api/historico-aplicacion/1",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "api",
-                                "historico-aplicacion",
-                                "1"
-                            ]
-                        }
-                    },
-                    "response": []
-                },
-                {
-                    "name": "Delete Historico Aplicacion",
-                    "request": {
-                        "method": "DELETE",
-                        "header": [
-                            {
-                                "key": "Accept",
-                                "value": "application/json",
-                                "type": "text"
-                            },
-                            {
-                                "key": "X-API-VERSION",
-                                "value": "2",
-                                "type": "text",
-                                "disabled": true
-                            },
-                            {
-                                "key": "Authorization",
-                                "value": "Bearer {{auth_token}}",
-                                "type": "text"
-                            }
-                        ],
-                        "url": {
-                            "raw": "{{base_url}}/api/historico-aplicacion/1",
-                            "host": [
-                                "{{base_url}}"
-                            ],
-                            "path": [
-                                "api",
-                                "historico-aplicacion",
-                                "1"
-                            ]
-                        }
-                    },
-                    "response": []
-                }
-            ]
-        },
-        {
-            "name": "📋 Inventario General",
-            "item": [
-                {
-                    "name": "List Inventario General",
+                    "name": "List inventario general",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -3374,7 +2759,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Inventario General",
+                    "name": "Create inventario general",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -3418,7 +2803,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Inventario General",
+                    "name": "Show inventario general",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -3454,7 +2839,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Inventario General",
+                    "name": "Update inventario general",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -3499,7 +2884,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Inventario General",
+                    "name": "Delete inventario general",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -3537,10 +2922,10 @@
             ]
         },
         {
-            "name": "🐄 Inventario Vacuno",
+            "name": "🐄 Inventario vacuno",
             "item": [
                 {
-                    "name": "List Inventario Vacuno",
+                    "name": "List inventario vacuno",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -3586,7 +2971,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Inventario Vacuno",
+                    "name": "Create inventario vacuno",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -3630,7 +3015,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Inventario Vacuno",
+                    "name": "Show inventario vacuno",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -3666,7 +3051,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Inventario Vacuno",
+                    "name": "Update inventario vacuno",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -3711,7 +3096,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Inventario Vacuno",
+                    "name": "Delete inventario vacuno",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -3749,10 +3134,10 @@
             ]
         },
         {
-            "name": "🦌 Inventarios Búfalo",
+            "name": "🦌 Inventarios búfalo",
             "item": [
                 {
-                    "name": "List Inventarios",
+                    "name": "List inventarios",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -3793,7 +3178,7 @@
                     "response": []
                 },
                 {
-                    "name": "List Inventarios by Finca",
+                    "name": "List inventarios by finca",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -3838,7 +3223,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Inventario",
+                    "name": "Create inventario",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -3880,7 +3265,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Inventario",
+                    "name": "Show inventario",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -3915,7 +3300,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Inventario",
+                    "name": "Update inventario",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -3958,7 +3343,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Inventario",
+                    "name": "Delete inventario",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -3998,7 +3383,7 @@
             "name": "🤱 Lactancia",
             "item": [
                 {
-                    "name": "List Lactancias",
+                    "name": "List lactancias",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -4060,7 +3445,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Lactancia",
+                    "name": "Create lactancia",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -4104,7 +3489,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Lactancia",
+                    "name": "Show lactancia",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -4140,7 +3525,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Lactancia",
+                    "name": "Update lactancia",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -4185,7 +3570,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Lactancia",
+                    "name": "Delete lactancia",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -4226,7 +3611,7 @@
             "name": "🥛 Leche",
             "item": [
                 {
-                    "name": "List Leche Records",
+                    "name": "List leche records",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -4288,7 +3673,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Leche Record",
+                    "name": "Create leche record",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -4332,7 +3717,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Leche Record",
+                    "name": "Show leche record",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -4368,7 +3753,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Leche Record",
+                    "name": "Update leche record",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -4413,7 +3798,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Leche Record",
+                    "name": "Delete leche record",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -4451,10 +3836,10 @@
             ]
         },
         {
-            "name": "📐 Medidas Corporales",
+            "name": "📐 Medidas corporales",
             "item": [
                 {
-                    "name": "List Medidas Corporales",
+                    "name": "List medidas corporales",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -4506,7 +3891,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Medidas Corporales",
+                    "name": "Create medidas corporales",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -4550,7 +3935,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Medidas Corporales",
+                    "name": "Show medidas corporales",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -4586,7 +3971,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Medidas Corporales",
+                    "name": "Update medidas corporales",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -4631,7 +4016,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Medidas Corporales",
+                    "name": "Delete medidas corporales",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -4669,10 +4054,10 @@
             ]
         },
         {
-            "name": "🚚 Movimiento Rebano",
+            "name": "🚚 Movimiento rebano",
             "item": [
                 {
-                    "name": "List Movimiento Rebano",
+                    "name": "List movimiento rebano",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -4722,7 +4107,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Movimiento Rebano",
+                    "name": "Create movimiento rebano",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -4766,7 +4151,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Movimiento Rebano",
+                    "name": "Show movimiento rebano",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -4802,7 +4187,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Movimiento Rebano",
+                    "name": "Update movimiento rebano",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -4847,7 +4232,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Movimiento Rebano",
+                    "name": "Delete movimiento rebano",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -4888,7 +4273,7 @@
             "name": "🧤 Palpacion",
             "item": [
                 {
-                    "name": "List Palpacion",
+                    "name": "List palpacion",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -4934,7 +4319,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Palpacion",
+                    "name": "Create palpacion",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -4978,7 +4363,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Palpacion",
+                    "name": "Show palpacion",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -5014,7 +4399,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Palpacion",
+                    "name": "Update palpacion",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -5059,7 +4444,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Palpacion",
+                    "name": "Delete palpacion",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -5097,10 +4482,10 @@
             ]
         },
         {
-            "name": "👥 Personal Finca",
+            "name": "👥 Personal finca",
             "item": [
                 {
-                    "name": "List Personal Finca",
+                    "name": "List personal finca",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -5157,7 +4542,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Personal Finca",
+                    "name": "Create personal finca",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -5201,7 +4586,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Personal Finca",
+                    "name": "Show personal finca",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -5237,7 +4622,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Personal Finca",
+                    "name": "Update personal finca",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -5282,7 +4667,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Personal Finca",
+                    "name": "Delete personal finca",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -5316,14 +4701,58 @@
                         }
                     },
                     "response": []
+                },
+                {
+                    "name": "Create user from personal",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/personal-finca/1/create-user",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "personal-finca",
+                                "1",
+                                "create-user"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"password\": \"123456789\",\n    \"password_confirmation\": \"123456789\",\n    \"roles\": [\"finca_user\"]\n}"
+                        }
+                    },
+                    "response": []
                 }
             ]
         },
         {
-            "name": "⚖️ Peso Corporal",
+            "name": "⚖️ Peso corporal",
             "item": [
                 {
-                    "name": "List Peso Corporal",
+                    "name": "List peso corporal",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -5380,7 +4809,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Peso Corporal",
+                    "name": "Create peso corporal",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -5424,7 +4853,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Peso Corporal",
+                    "name": "Show peso corporal",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -5460,7 +4889,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Peso Corporal",
+                    "name": "Update peso corporal",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -5505,7 +4934,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Peso Corporal",
+                    "name": "Delete peso corporal",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -5546,7 +4975,7 @@
             "name": "👨‍💼 Propietarios",
             "item": [
                 {
-                    "name": "List Propietarios",
+                    "name": "List propietarios",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -5587,7 +5016,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Propietario",
+                    "name": "Create propietario",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -5629,7 +5058,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Propietario",
+                    "name": "Show propietario",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -5664,7 +5093,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Propietario",
+                    "name": "Update propietario",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -5707,7 +5136,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Propietario (Admin only)",
+                    "name": "Delete propietario (admin only)",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -5747,7 +5176,7 @@
             "name": "🐄 Rebaños",
             "item": [
                 {
-                    "name": "List Rebaños",
+                    "name": "List rebaños",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -5788,7 +5217,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Rebaño",
+                    "name": "Create rebaño",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -5830,7 +5259,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Rebaño",
+                    "name": "Show rebaño",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -5865,7 +5294,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Rebaño",
+                    "name": "Update rebaño",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -5908,7 +5337,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Rebaño",
+                    "name": "Delete rebaño",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -5945,10 +5374,10 @@
             ]
         },
         {
-            "name": "💖 Registro Celo",
+            "name": "💖 Registro celo",
             "item": [
                 {
-                    "name": "List Registro Celo",
+                    "name": "List registro celo",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -5998,7 +5427,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Registro Celo",
+                    "name": "Create registro celo",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -6042,7 +5471,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Registro Celo",
+                    "name": "Show registro celo",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -6078,7 +5507,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Registro Celo",
+                    "name": "Update registro celo",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -6123,7 +5552,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Registro Celo",
+                    "name": "Delete registro celo",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -6164,7 +5593,7 @@
             "name": "📊 Reportes",
             "item": [
                 {
-                    "name": "Get Farm Statistics",
+                    "name": "Show farm statistics",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -6208,7 +5637,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Farm Statistics (Filtered by Finca)",
+                    "name": "Show farm statistics (filtered by finca)",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -6257,7 +5686,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Farm Statistics (Admin - Specific Propietario)",
+                    "name": "Show farm statistics (admin - specific propietario)",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -6306,7 +5735,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Farm Statistics (Error - No Propietario)",
+                    "name": "Show farm statistics (error - no propietario)",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -6350,7 +5779,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Farm Statistics (Error - No Farms Found)",
+                    "name": "Show farm statistics (error - no farms found)",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -6401,10 +5830,10 @@
             ]
         },
         {
-            "name": "🧬 Reproduccion Animal",
+            "name": "🧬 Reproduccion animal",
             "item": [
                 {
-                    "name": "List Reproduccion Animal",
+                    "name": "List reproduccion animal",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -6454,7 +5883,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Reproduccion Animal",
+                    "name": "Create reproduccion animal",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -6498,7 +5927,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Reproduccion Animal",
+                    "name": "Show reproduccion animal",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -6534,7 +5963,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Reproduccion Animal",
+                    "name": "Update reproduccion animal",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -6579,7 +6008,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Reproduccion Animal",
+                    "name": "Delete reproduccion animal",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -6617,10 +6046,10 @@
             ]
         },
         {
-            "name": "🧫 Semen Toro",
+            "name": "🧫 Semen toro",
             "item": [
                 {
-                    "name": "List Semen Toro",
+                    "name": "List semen toro",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -6670,7 +6099,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Semen Toro",
+                    "name": "Create semen toro",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -6714,7 +6143,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Semen Toro",
+                    "name": "Show semen toro",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -6750,7 +6179,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Semen Toro",
+                    "name": "Update semen toro",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -6795,7 +6224,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Semen Toro",
+                    "name": "Delete semen toro",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -6833,10 +6262,10 @@
             ]
         },
         {
-            "name": "🐴 Servicio Animal",
+            "name": "🐴 Servicio animal",
             "item": [
                 {
-                    "name": "List Servicio Animal",
+                    "name": "List servicio animal",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -6886,7 +6315,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Servicio Animal",
+                    "name": "Create servicio animal",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -6930,7 +6359,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Servicio Animal",
+                    "name": "Show servicio animal",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -6966,7 +6395,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Servicio Animal",
+                    "name": "Update servicio animal",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -7011,7 +6440,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Servicio Animal",
+                    "name": "Delete servicio animal",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -7052,7 +6481,7 @@
             "name": "🏞️ Terreno",
             "item": [
                 {
-                    "name": "List Terreno",
+                    "name": "List terreno",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -7098,7 +6527,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Terreno",
+                    "name": "Create terreno",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -7142,7 +6571,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Terreno",
+                    "name": "Show terreno",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -7178,7 +6607,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Terreno",
+                    "name": "Update terreno",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -7223,7 +6652,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Terreno",
+                    "name": "Delete terreno",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -7261,10 +6690,10 @@
             ]
         },
         {
-            "name": "🏷️ Tipos de Animal",
+            "name": "🏷️ Tipos de animal",
             "item": [
                 {
-                    "name": "Create Tipo de Animal (Admin only)",
+                    "name": "Create tipo de animal (admin only)",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -7306,7 +6735,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Tipo de Animal (Admin only)",
+                    "name": "Delete tipo de animal (admin only)",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -7341,7 +6770,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Tipo de Animal",
+                    "name": "Show tipo de animal",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -7376,7 +6805,7 @@
                     "response": []
                 },
                 {
-                    "name": "List Tipos de Animal",
+                    "name": "List tipos de animal",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -7417,7 +6846,7 @@
                     "response": []
                 },
                 {
-                    "name": "Search Tipos de Animal",
+                    "name": "Search tipos de animal",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -7462,7 +6891,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Tipo de Animal (Admin only)",
+                    "name": "Update tipo de animal (admin only)",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -7507,10 +6936,10 @@
             ]
         },
         {
-            "name": "🧬 Tipos de Animal",
+            "name": "🧬 Tipos de animal",
             "item": [
                 {
-                    "name": "List Tipo Animal",
+                    "name": "List tipo animal",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -7551,7 +6980,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Tipo Animal",
+                    "name": "Show tipo animal",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -7586,7 +7015,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Tipo Animal (Only Admin)",
+                    "name": "Create tipo animal (only admin)",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -7628,7 +7057,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Tipo Animal (Only Admin)",
+                    "name": "Update tipo animal (only admin)",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -7671,7 +7100,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Tipo Animal (Only Admin)",
+                    "name": "Delete tipo animal (only admin)",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -7711,7 +7140,7 @@
             "name": "💊 Tratamiento",
             "item": [
                 {
-                    "name": "List Tratamiento",
+                    "name": "List tratamiento",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -7757,7 +7186,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Tratamiento",
+                    "name": "Create tratamiento",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -7801,7 +7230,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Tratamiento",
+                    "name": "Show tratamiento",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -7837,7 +7266,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Tratamiento",
+                    "name": "Update tratamiento",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -7882,7 +7311,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Tratamiento",
+                    "name": "Delete tratamiento",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -7923,7 +7352,7 @@
             "name": "💉 Vacuna",
             "item": [
                 {
-                    "name": "List Vacuna",
+                    "name": "List vacuna",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -7969,7 +7398,7 @@
                     "response": []
                 },
                 {
-                    "name": "Create Vacuna",
+                    "name": "Create vacuna",
                     "request": {
                         "method": "POST",
                         "header": [
@@ -8013,7 +7442,7 @@
                     "response": []
                 },
                 {
-                    "name": "Get Vacuna",
+                    "name": "Show vacuna",
                     "request": {
                         "method": "GET",
                         "header": [
@@ -8049,7 +7478,7 @@
                     "response": []
                 },
                 {
-                    "name": "Update Vacuna",
+                    "name": "Update vacuna",
                     "request": {
                         "method": "PUT",
                         "header": [
@@ -8094,7 +7523,7 @@
                     "response": []
                 },
                 {
-                    "name": "Delete Vacuna",
+                    "name": "Delete vacuna",
                     "request": {
                         "method": "DELETE",
                         "header": [
@@ -8128,6 +7557,1878 @@
                         }
                     },
                     "response": []
+                }
+            ]
+        },
+        {
+            "name": "👥 Users",
+            "item": [
+                {
+                    "name": "List users",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users?nopaginate=1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users"
+                            ],
+                            "query": [
+                                {
+                                    "key": "nopaginate",
+                                    "value": "1",
+                                    "disabled": true
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create users",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"cedula\": \"12345678\",\n    \"nombre\": \"Juan\",\n    \"apellido\": \"P\\u00e9rez\",\n    \"telefono\": \"04121234567\",\n    \"correo\": \"juan.perez@example.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"status\": \"active\",\n    \"roles\": [\n        \"admin\"\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Show users",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update users",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"nombre\": \"Juan Carlos\",\n    \"apellido\": \"P\\u00e9rez\",\n    \"telefono\": \"04121234568\",\n    \"status\": \"suspended\",\n    \"roles\": [\n        \"operator\"\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete users",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Disable user",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/1/disable",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1",
+                                "disable"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \n}"
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Enable user",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/1/enable",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1",
+                                "enable"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \n}"
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "🏡 User access fincas",
+            "item": [
+                {
+                    "name": "List user access fincas",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/1/access-fincas?nopaginate=1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1",
+                                "access-fincas"
+                            ],
+                            "query": [
+                                {
+                                    "key": "nopaginate",
+                                    "value": "1",
+                                    "disabled": true
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create user access fincas",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/1/access-fincas",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1",
+                                "access-fincas"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"fincas\": [\n        {\n            \"id\": 1,\n            \"access_level\": \"operator\",\n            \"is_default\": true,\n            \"status\": \"active\"\n        }\n    ]\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Show user access fincas",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/1/access-fincas/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1",
+                                "access-fincas",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update user access fincas",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/1/access-fincas/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1",
+                                "access-fincas",
+                                "1"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"roles\": [\n        2\n    ],\n    \"fincas\": [\n        {\n            \"id\": 1,\n            \"access_level\": \"viewer\",\n            \"is_default\": false\n        }\n    ]\n}"
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete user access fincas",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/1/access-fincas/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1",
+                                "access-fincas",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Disable access finca",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/1/access-fincas/1/disable",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1",
+                                "access-fincas",
+                                "1",
+                                "disable"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \n}"
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Enable access finca",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/1/access-fincas/1/enable",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1",
+                                "access-fincas",
+                                "1",
+                                "enable"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \n}"
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "🔐 Roles",
+            "item": [
+                {
+                    "name": "List roles",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/roles?nopaginate=1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "roles"
+                            ],
+                            "query": [
+                                {
+                                    "key": "nopaginate",
+                                    "value": "1",
+                                    "disabled": true
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create roles",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/roles",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "roles"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"code\": \"manager\",\n    \"name\": \"Gerente\",\n    \"description\": \"Rol con acceso a gesti\\u00f3n de la finca\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Show roles",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/roles/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "roles",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update roles",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/roles/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "roles",
+                                "1"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Gerente General\",\n    \"description\": \"Rol con acceso a toda la gesti\\u00f3n de la finca\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete roles",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/roles/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "roles",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "🔑 Permissions",
+            "item": [
+                {
+                    "name": "List permissions",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/permissions?nopaginate=1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "permissions"
+                            ],
+                            "query": [
+                                {
+                                    "key": "nopaginate",
+                                    "value": "1",
+                                    "disabled": true
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create permissions",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/permissions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "permissions"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"code\": \"finca.create\",\n    \"module\": \"finca\",\n    \"action\": \"create\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Show permissions",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/permissions/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "permissions",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update permissions",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/permissions/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "permissions",
+                                "1"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"code\": \"finca.create\",\n    \"module\": \"finca\",\n    \"action\": \"create\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete permissions",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/permissions/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "permissions",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "🎭 User roles",
+            "item": [
+                {
+                    "name": "List user roles",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/1/roles",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1",
+                                "roles"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Assign user roles",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/1/roles",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1",
+                                "roles"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"roles\": [\n        2\n    ]\n}"
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Remove user role",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/1/roles/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1",
+                                "roles",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List user permissions",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/users/1/permissions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "users",
+                                "1",
+                                "permissions"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "🛡️ Role permissions",
+            "item": [
+                {
+                    "name": "List role permissions",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/roles/1/permissions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "roles",
+                                "1",
+                                "permissions"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Assign role permissions",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/roles/1/permissions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "roles",
+                                "1",
+                                "permissions"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"permissions\": [\n        1,\n        2\n    ]\n}"
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Remove role permission",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/roles/1/permissions/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "roles",
+                                "1",
+                                "permissions",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "💉 Vacunaciones",
+            "item": [
+                {
+                    "name": "List animales elegibles",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/vacunaciones/animales-elegibles",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "vacunaciones",
+                                "animales-elegibles"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "List vacunaciones",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/vacunaciones?nopaginate=1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "vacunaciones"
+                            ],
+                            "query": [
+                                {
+                                    "key": "nopaginate",
+                                    "value": "1",
+                                    "disabled": true
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create vacunaciones",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/vacunaciones",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "vacunaciones"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"vacuna_id\": 1,\n    \"fecha\": \"2024-01-01\",\n    \"proxima_fecha\": \"2024-06-01\",\n    \"responsable_id\": 1,\n    \"dosis\": \"2ml\",\n    \"costo\": 50,\n    \"observaciones\": \"\",\n    \"animales\": [\n        {\n            \"id\": 1,\n            \"dosis_aplicada\": \"2ml\"\n        }\n    ]\n}"
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Show vacunaciones",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/vacunaciones/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "vacunaciones",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update vacunaciones",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/vacunaciones/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "vacunaciones",
+                                "1"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"fecha\": \"2024-01-02\"\n}"
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete vacunaciones",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "X-API-VERSION",
+                                "value": "2",
+                                "type": "text",
+                                "disabled": true
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/vacunaciones/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "vacunaciones",
+                                "1"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Personas",
+            "item": [
+                {
+                    "name": "List personas",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/personas",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "personas"
+                            ],
+                            "query": [
+                                {
+                                    "key": "eligible_for_user",
+                                    "value": "true",
+                                    "disabled": true
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Show persona",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/personas/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "personas",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create persona",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"cedula\": \"V12345678\",\n    \"nombre\": \"Pedro\",\n    \"apellido\": \"P\\u00e9rez\",\n    \"telefono\": \"04141234567\",\n    \"correo\": \"pedro@example.com\",\n    \"fecha_nacimiento\": \"1990-01-01\",\n    \"status\": \"activo\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/personas",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "personas"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update persona",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json",
+                                "type": "text"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"telefono\": \"04241234567\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/personas/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "personas",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete persona",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/personas/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "personas",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Disable persona",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/personas/1/disable",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "personas",
+                                "1",
+                                "disable"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Enable persona",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json",
+                                "type": "text"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{auth_token}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/personas/1/enable",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "personas",
+                                "1",
+                                "enable"
+                            ]
+                        }
+                    }
                 }
             ]
         }

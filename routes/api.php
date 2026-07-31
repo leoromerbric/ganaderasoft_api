@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\UserRoleController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\PersonaController;
 use App\Http\Controllers\Api\UserFincaController;
 use App\Http\Controllers\Api\RolePermissionController;
 use App\Http\Controllers\Api\CambiosAnimalController;
@@ -75,6 +76,11 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Usuarios y Fincas de Usuarios
     Route::apiResource('users', UserController::class);
+    
+    // Gestión de Personas
+    Route::patch('/personas/{persona}/disable', [PersonaController::class, 'disable']);
+    Route::patch('/personas/{persona}/enable', [PersonaController::class, 'enable']);
+    Route::apiResource('personas', PersonaController::class);
     Route::patch('users/{user}/disable', [UserController::class, 'disable']);
     Route::patch('users/{user}/enable', [UserController::class, 'enable']);
     
