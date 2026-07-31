@@ -4,6 +4,7 @@ namespace App\Http\Resources\Persona;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\User\UserResource;
 
 class PersonaResource extends JsonResource
 {
@@ -27,7 +28,7 @@ class PersonaResource extends JsonResource
             'telefono' => $this->telefono,
             'correo' => $this->correo,
             'status' => $this->status,
-            'users' => \App\Http\Resources\User\UserResource::collection($this->whenLoaded('users')),
+            'users' => UserResource::collection($this->whenLoaded('users')),
         ];
     }
 }

@@ -22,7 +22,7 @@ class PropietarioService extends BaseService
      * @return LengthAwarePaginator
      * @throws AuthorizationException
      */
-    public function listPropietarios(array $filters, User $user): LengthAwarePaginator
+    public function listPropietarios(array $filters, User $user)
     {
         if ($user->cannot('readAny', Propietario::class)) {
             throw new AuthorizationException('Sin permisos para listar propietarios.');
@@ -37,6 +37,11 @@ class PropietarioService extends BaseService
             }
             $query->where('id', $propietario->id);
         }
+
+        if (isset($filters['nopaginate']) && filter_var($filters['nopaginate'], FILTER_VALIDATE_BOOLEAN)) {
+            return $query->get();
+        }
+
         return $query->paginate(15);
     }
 
