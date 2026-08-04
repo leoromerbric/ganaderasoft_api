@@ -20,16 +20,26 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
-# No copiamos el código de la aplicación aquí porque se montará a través de docker-compose.yml en desarrollo
-# Usaremos un script entrypoint para instalar dependencias cuando el contenedor inicie.
+# Instalar dependencias primero para optimización de caché de Docker
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
+
+# Copiar el código fuente de la aplicación
+COPY . .
+
+# Ejecutar scripts de composer
+RUN composer dump-autoload --optimize
 
 # Copiar configuraciones
 COPY docker/nginx/default.conf /etc/nginx/sites-available/default
 COPY docker/supervisor/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
 
-RUN chmod +x /usr/local/bin/entrypoint.sh && \
-    sed -i 's/\r$//' /usr/local/bin/entrypoint.sh
+# Establecer permisos
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod +x /usr/local/bin/entrypoint.sh \
+    && sed -i 's/\r$//' /usr/local/bin/entrypoint.sh
 
 EXPOSE 80
 
