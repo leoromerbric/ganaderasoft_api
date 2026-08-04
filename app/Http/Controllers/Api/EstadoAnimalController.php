@@ -3,10 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Sanidad\EstadoAnimalIndexResource;
-use App\Http\Resources\Sanidad\EstadoAnimalShowResource;
-use App\Http\Resources\Sanidad\EstadoAnimalStoreResource;
-use App\Http\Resources\Sanidad\EstadoAnimalUpdateResource;
+use App\Http\Resources\Sanidad\EstadoAnimalResource;
 use App\Http\Middleware\Legacy\Sanidad\NormalizeIndexEstadoAnimal;
 use App\Http\Middleware\Legacy\Sanidad\NormalizeShowEstadoAnimal;
 use App\Http\Middleware\Legacy\Sanidad\NormalizeStoreEstadoAnimal;
@@ -50,7 +47,7 @@ class EstadoAnimalController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Lista de estados de animales obtenida exitosamente',
-                'data'    => $this->formatCollection(EstadoAnimalIndexResource::class, $paginator)
+                'data'    => $this->formatCollection(EstadoAnimalResource::class, $paginator)
             ], Response::HTTP_OK);
         } catch (AuthorizationException $e) {
             return response()->json([
@@ -89,7 +86,7 @@ class EstadoAnimalController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Estado de animal creado exitosamente',
-                'data'    => $this->formatResource(EstadoAnimalStoreResource::class, $estadoAnimal)
+                'data'    => $this->formatResource(EstadoAnimalResource::class, $estadoAnimal)
             ], Response::HTTP_CREATED);
         } catch (AuthorizationException $e) {
             return response()->json([
@@ -114,7 +111,7 @@ class EstadoAnimalController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Detalle de estado de animal',
-                'data'    => $this->formatResource(EstadoAnimalShowResource::class, $estadoAnimal)
+                'data'    => $this->formatResource(EstadoAnimalResource::class, $estadoAnimal)
             ], Response::HTTP_OK);
         } catch (ModelNotFoundException $e) {
             return response()->json([
@@ -159,7 +156,7 @@ class EstadoAnimalController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Estado de animal actualizado exitosamente',
-                'data'    => $this->formatResource(EstadoAnimalUpdateResource::class, $estadoAnimal)
+                'data'    => $this->formatResource(EstadoAnimalResource::class, $estadoAnimal)
             ], Response::HTTP_OK);
         } catch (ModelNotFoundException $e) {
             return response()->json([

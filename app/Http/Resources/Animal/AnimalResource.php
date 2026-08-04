@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Animal;
 
 use App\Http\Resources\Rebano\RebanoResource;
+use App\Http\Resources\Sanidad\EstadoAnimalResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

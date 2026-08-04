@@ -7,7 +7,7 @@ use App\Services\Animal\AnimalService;
 use App\Services\Sanidad\EstadoAnimalService;
 use App\Services\Animal\AnimalEtapaService;
 use App\Http\Resources\Animal\AnimalResource;
-use App\Http\Resources\Animal\EstadoAnimalResource;
+use App\Http\Resources\Sanidad\EstadoAnimalResource;
 use App\Http\Resources\Animal\EtapaAnimalResource;
 use App\Http\Middleware\Legacy\Animal\NormalizeIndex;
 use App\Http\Middleware\Legacy\Animal\NormalizeStore;
