@@ -49,7 +49,7 @@ class FincaService extends BaseService
             throw new AuthorizationException('No tiene permisos para crear fincas para este propietario.');
         }
 
-        return DB::transaction(function () use ($data) {
+        return DB::transaction(function () use ($data, $user) {
             $finca = Finca::create([
                 'propietario_id' => $data['propietario_id'],
                 'nombre' => $data['nombre'],
@@ -61,6 +61,22 @@ class FincaService extends BaseService
                 $terrenoData = $data['terreno'];
                 $terrenoData['finca_id'] = $finca->id;
                 Terreno::create($terrenoData);
+            }
+
+            // Asignar automáticamente la finca al usuario que la está creando 
+            // (a menos que sea administrador, para no saturar su lista)
+            // Si el creador NO es un Admin y NO es el Propietario de esta finca, 
+            // significa que es un trabajador. Solo en ese caso lo registramos en finca_user.
+            if (!$user->isAdmin()) {
+                $isTheOwner = $user->propietario && $user->propietario->id === (int) $data['propietario_id'];
+                
+                if (!$isTheOwner) {
+                    $finca->users()->attach($user->id, [
+                        'access_level' => 'operator',
+                        'is_default' => false,
+                        'status' => 'active'
+                    ]);
+                }
             }
 
             return $finca->load(['propietario.persona.users', 'terreno']);
