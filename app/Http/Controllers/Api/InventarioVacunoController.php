@@ -36,19 +36,10 @@ class InventarioVacunoController extends Controller
             $filters = $request->all();
             $records = $this->service->listInventarioVacuno($filters, $request->user());
 
-            $formatted = $this->formatCollection(InventarioVacunoResource::class, $records);
-            $items = is_array($formatted) && isset($formatted['data']) ? $formatted['data'] : $formatted;
-
             return response()->json([
                 'success' => true,
                 'message' => 'Inventarios vacunos',
-                'data' => $items,
-                'meta' => [
-                    'current_page' => $records->currentPage(),
-                    'last_page' => $records->lastPage(),
-                    'per_page' => $records->perPage(),
-                    'total' => $records->total(),
-                ]
+                'data' => $this->formatCollection(InventarioVacunoResource::class, $records)
             ]);
         } catch (AuthorizationException $e) {
             return response()->json([

@@ -118,6 +118,41 @@ class TerrenoTest extends TestCase
         $this->assertGreaterThanOrEqual(2, count($data));
     }
 
+    public function test_admin_can_list_all_terrenos_nopaginate_v2()
+    {
+        $admin = $this->createUserWithRole('global_admin');
+
+        $user1 = $this->createUserWithRole('propietario');
+        $prop1 = $this->createPropietarioForUser($user1);
+        $finca1 = $this->createFinca($prop1->id, 'Finca Pedro');
+        $this->createTerreno($finca1->id, ['superficie' => 10.5, 'relieve' => 'plano']);
+
+        $response = $this->actingAs($admin)
+            ->withHeader('X-API-VERSION', '2')
+            ->getJson('/api/terrenos?nopaginate=true');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'data' => [
+                    '*' => [
+                        'id',
+                        'finca_id',
+                        'superficie',
+                        'relieve',
+                        'suelo_textura',
+                        'finca',
+                    ]
+                ]
+            ]);
+
+        $data = $response->json('data');
+        $this->assertFalse(isset($data['current_page']));
+        $this->assertGreaterThanOrEqual(1, count($data));
+    }
+
     /**
      * Test list terrenos with filters for Admin V2
      */

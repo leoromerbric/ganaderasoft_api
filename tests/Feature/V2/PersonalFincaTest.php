@@ -112,8 +112,31 @@ class PersonalFincaTest extends TestCase
 
         $response->assertStatus(200)
                  ->assertJsonStructure([
-                     'success', 'message', 'data', 'meta'
+                     'success', 'message', 'data' => [
+                         'data', 'current_page', 'last_page', 'per_page', 'total'
+                     ]
                  ]);
+    }
+
+    public function test_can_list_personal_finca_nopaginate()
+    {
+        $response = $this->actingAs($this->admin)->getJson('/api/personal-finca?nopaginate=true', [
+            'X-API-VERSION' => '2'
+        ]);
+
+        $response->assertStatus(200)
+                 ->assertJsonStructure([
+                     'success', 'message', 'data' => [
+                         '*' => [
+                             'id',
+                             'finca_id',
+                             'persona',
+                             'tipo_trabajador'
+                         ]
+                     ]
+                 ]);
+        
+        $this->assertFalse(isset($response->json('data')['current_page']));
     }
 
     public function test_can_create_personal_finca()

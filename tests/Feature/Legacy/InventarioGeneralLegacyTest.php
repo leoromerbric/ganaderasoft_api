@@ -60,7 +60,29 @@ class InventarioGeneralLegacyTest extends TestCase
     private function createUserWithFinca()
     {
         $user = User::factory()->create();
-        $finca = $this->createFinca();
+        $roleProp = Role::where('code', 'propietario')->first();
+        if ($roleProp) {
+            $user->roles()->syncWithoutDetaching([$roleProp->id]);
+        }
+
+        $persona = \App\Models\Persona::create([
+            'cedula' => 'V' . rand(1000000, 9999999),
+            'nombre' => 'Test',
+            'apellido' => 'User',
+            'correo' => $user->email,
+            'status' => 'activo'
+        ]);
+
+        $user->personas()->syncWithoutDetaching([$persona->id]);
+        $propietario = Propietario::create(['persona_id' => $persona->id]);
+
+        $finca = Finca::create([
+            'nombre' => 'Finca Test ' . Str::random(5),
+            'propietario_id' => $propietario->id,
+            'explotacion_tipo' => 'ganaderia',
+            'archivado' => false
+        ]);
+
         $user->fincas()->attach($finca, ['access_level' => 'owner', 'status' => 'active']);
         return [$user, $finca];
     }

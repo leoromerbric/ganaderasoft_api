@@ -32,7 +32,7 @@ class InventarioBufaloController extends Controller
     public function index(Request $request)
     {
         try {
-            $filters = $request->only(['finca_id', 'id_finca']);
+            $filters = $request->only(['finca_id', 'id_finca', 'nopaginate']);
             $inventarios = $this->service->listInventarioBufalo($filters, $request->user());
 
             return response()->json([

@@ -20,7 +20,7 @@ class TerrenoService extends BaseService
      * @return LengthAwarePaginator
      * @throws AuthorizationException
      */
-    public function listTerrenos(array $filters, User $user): LengthAwarePaginator
+    public function listTerrenos(array $filters, User $user)
     {
         if ($user->cannot('readAny', Terreno::class)) {
             throw new AuthorizationException('Sin permisos para listar terrenos.');
@@ -31,6 +31,11 @@ class TerrenoService extends BaseService
         $this->applyFincaFilter($query, $user, null);
 
         $this->applyFilters($query, $filters);
+
+        if (!empty($filters['nopaginate'])) {
+            return $query->get();
+        }
+
         return $query->paginate(15);
     }
 

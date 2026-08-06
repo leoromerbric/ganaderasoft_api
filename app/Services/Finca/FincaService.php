@@ -21,7 +21,7 @@ class FincaService extends BaseService
      * @return LengthAwarePaginator
      * @throws AuthorizationException
      */
-    public function listFincas(array $filters, User $user): LengthAwarePaginator
+    public function listFincas(array $filters, User $user)
     {
         if ($user->cannot('readAny', Finca::class)) {
             throw new AuthorizationException('Sin permisos para listar fincas.');
@@ -30,6 +30,11 @@ class FincaService extends BaseService
         $query = Finca::with(['propietario.persona.users', 'terreno'])->active();
 
         $this->applyFincaFilter($query, $user, null, 'id');
+
+        if (!empty($filters['nopaginate'])) {
+            return $query->get();
+        }
+
         return $query->paginate(15);
     }
 

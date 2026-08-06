@@ -37,6 +37,11 @@ class PersonalFincaService extends BaseService
         if (isset($filters['nombre'])) {
             $query->byName($filters['nombre']);
         }
+
+        if (!empty($filters['nopaginate'])) {
+            return $query->get();
+        }
+
         return $query->paginate(15);
     }
 

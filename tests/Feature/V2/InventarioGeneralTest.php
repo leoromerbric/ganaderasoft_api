@@ -60,7 +60,29 @@ class InventarioGeneralTest extends TestCase
     private function createUserWithFinca()
     {
         $user = User::factory()->create();
-        $finca = $this->createFinca();
+        $roleProp = Role::where('code', 'propietario')->first();
+        if ($roleProp) {
+            $user->roles()->syncWithoutDetaching([$roleProp->id]);
+        }
+
+        $persona = \App\Models\Persona::create([
+            'cedula' => 'V' . rand(1000000, 9999999),
+            'nombre' => 'Test',
+            'apellido' => 'User',
+            'correo' => $user->email,
+            'status' => 'activo'
+        ]);
+
+        $user->personas()->syncWithoutDetaching([$persona->id]);
+        $propietario = Propietario::create(['persona_id' => $persona->id]);
+
+        $finca = Finca::create([
+            'nombre' => 'Finca Test ' . Str::random(5),
+            'propietario_id' => $propietario->id,
+            'explotacion_tipo' => 'ganaderia',
+            'archivado' => false
+        ]);
+
         $user->fincas()->attach($finca, ['access_level' => 'owner', 'status' => 'active']);
         return [$user, $finca];
     }
@@ -77,7 +99,19 @@ class InventarioGeneralTest extends TestCase
             ->getJson('/api/inventario-general', ['X-API-VERSION' => '2']);
 
         $response->assertStatus(200)
-                 ->assertJsonStructure(['data' => [['id', 'finca_id', 'num_personal', 'fecha_inventario']]]);
+                 ->assertJsonStructure([
+                     'success',
+                     'message',
+                     'data' => [
+                         'data' => [
+                             '*' => ['id', 'finca_id', 'num_personal', 'fecha_inventario']
+                         ],
+                         'current_page',
+                         'last_page',
+                         'per_page',
+                         'total'
+                     ]
+                 ]);
     }
 
     public function test_user_can_list_own_inventarios_v2()
@@ -93,7 +127,29 @@ class InventarioGeneralTest extends TestCase
             ->getJson('/api/inventario-general', ['X-API-VERSION' => '2']);
 
         $response->assertStatus(200)
-                 ->assertJsonCount(2, 'data');
+                 ->assertJsonCount(2, 'data.data');
+    }
+
+    public function test_user_can_list_own_inventarios_nopaginate_v2()
+    {
+        [$user, $finca] = $this->createUserWithFinca();
+        $this->createInventarioGeneral($finca->id);
+        $this->createInventarioGeneral($finca->id);
+
+        $response = $this->actingAs($user)
+            ->getJson('/api/inventario-general?nopaginate=true', ['X-API-VERSION' => '2']);
+
+        $response->assertStatus(200)
+                 ->assertJsonStructure([
+                     'success',
+                     'message',
+                     'data' => [
+                         '*' => ['id', 'finca_id', 'num_personal', 'fecha_inventario']
+                     ]
+                 ]);
+        
+        $this->assertFalse(isset($response->json('data')['current_page']));
+        $this->assertCount(2, $response->json('data'));
     }
 
     public function test_user_can_create_inventario_v2()

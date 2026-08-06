@@ -107,6 +107,40 @@ class FincaTest extends TestCase
         $this->assertContains('Finca Maria', $nombres);
     }
 
+    public function test_admin_can_list_all_fincas_nopaginate_v2()
+    {
+        $admin = $this->createUserWithRole('global_admin');
+
+        $user1 = $this->createUserWithRole('propietario');
+        $prop1 = $this->createPropietarioForUser($user1);
+        $this->createFinca($prop1->id, 'Finca Pedro Nopag');
+
+        $response = $this->actingAs($admin)
+            ->withHeader('X-API-VERSION', '2')
+            ->getJson('/api/fincas?nopaginate=true');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'data' => [
+                    '*' => [
+                        'id',
+                        'nombre',
+                        'explotacion_tipo',
+                        'archivado',
+                        'propietario',
+                    ]
+                ]
+            ]);
+
+        $data = $response->json('data');
+        $this->assertFalse(isset($data['current_page']));
+        $nombres = collect($data)->pluck('nombre')->toArray();
+        $this->assertContains('Finca Pedro Nopag', $nombres);
+    }
+
     /**
      * Test list fincas for Propietario
      */

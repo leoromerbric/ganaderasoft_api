@@ -27,11 +27,15 @@ class InventarioGeneralController extends Controller
 
     public function index(Request $request)
     {
-        $filters = $request->only(['finca_id', 'id_finca', 'fecha_inicio', 'fecha_fin']);
+        $filters = $request->only(['finca_id', 'id_finca', 'fecha_inicio', 'fecha_fin', 'nopaginate']);
 
         try {
             $records = $this->inventarioGeneralService->listInventarioGeneral($filters, $request->user());
-            return $this->formatCollection(InventarioGeneralResource::class, $records);
+            return response()->json([
+                'success' => true,
+                'message' => 'Lista de inventarios generales obtenida exitosamente',
+                'data' => $this->formatCollection(InventarioGeneralResource::class, $records)
+            ]);
         } catch (AuthorizationException $e) {
             return response()->json([
                 'success' => false,

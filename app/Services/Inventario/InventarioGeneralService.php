@@ -42,6 +42,11 @@ class InventarioGeneralService extends BaseService
         if (!empty($filters['fecha_fin'])) {
             $query->where('fecha_inventario', '<=', $filters['fecha_fin']);
         }
+
+        if (!empty($filters['nopaginate'])) {
+            return $query->get();
+        }
+
         return $query->paginate(15);
     }
 

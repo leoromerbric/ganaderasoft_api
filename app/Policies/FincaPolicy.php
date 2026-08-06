@@ -7,11 +7,11 @@ use App\Models\Finca;
 
 class FincaPolicy extends BasePolicy
 {
-    /**
-     * Determina si el usuario puede ver cualquier finca.
-     */
     public function readAny(User $user): bool
     {
+        if (!$user->isAdmin() && !$user->propietario) {
+            return false;
+        }
         return $user->hasPermissionTo('finca.read');
     }
 
@@ -32,8 +32,19 @@ class FincaPolicy extends BasePolicy
      */
     public function create(User $user, ?int $propietarioId = null): bool
     {
-        // Se gestiona puramente por permisos. Si tiene el permiso, puede crearla.
-        return $user->hasPermissionTo('finca.create');
+        if (!$user->hasPermissionTo('finca.create')) {
+            return false;
+        }
+
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if (!$user->propietario || $user->propietario->id !== $propietarioId) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -45,7 +56,14 @@ class FincaPolicy extends BasePolicy
             return false;
         }
 
-        // Solo validamos que el usuario realmente tenga acceso a gestionar ESTA finca en específico
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if ($nuevoPropietarioId !== null && $nuevoPropietarioId !== $finca->propietario_id) {
+            return false;
+        }
+
         return $this->checkFincaAccess($user, $finca->id);
     }
 

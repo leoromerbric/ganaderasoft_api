@@ -41,6 +41,19 @@ class InventarioVacunoTest extends TestCase
         if (!$user->roles->contains($role->id)) {
             $user->roles()->attach($role->id);
         }
+
+        if ($user->personas()->count() === 0) {
+            $persona = \App\Models\Persona::create([
+                'cedula' => 'V' . rand(1000000, 9999999),
+                'nombre' => 'Propietario',
+                'apellido' => 'User',
+                'correo' => $user->email,
+                'status' => 'activo'
+            ]);
+            $user->personas()->attach($persona->id);
+            \App\Models\Propietario::create(['persona_id' => $persona->id]);
+        }
+
         return $user;
     }
 
@@ -69,9 +82,37 @@ class InventarioVacunoTest extends TestCase
                 'success',
                 'message',
                 'data' => [
+                    'data' => [
+                        '*' => ['id', 'finca_id', 'num_vaca', 'total']
+                    ],
+                    'current_page',
+                    'last_page',
+                    'per_page',
+                    'total'
+                ],
+            ]);
+    }
+
+    public function test_admin_can_list_all_inventarios_nopaginate()
+    {
+        $admin = $this->createAdminUser();
+        $finca = $this->getFinca();
+        InventarioVacuno::create(['finca_id' => $finca->id, 'num_vaca' => 5]);
+
+        $response = $this->actingAs($admin)
+            ->withHeader('X-API-VERSION', '2')
+            ->getJson('/api/inventario-vacuno?nopaginate=true');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'success',
+                'message',
+                'data' => [
                     '*' => ['id', 'finca_id', 'num_vaca', 'total']
                 ],
             ]);
+        
+        $this->assertFalse(isset($response->json('data')['current_page']));
     }
 
     public function test_propietario_can_list_own_inventarios()
@@ -97,11 +138,7 @@ class InventarioVacunoTest extends TestCase
         $response->assertStatus(200);
         
         $data = $response->json('data');
-        if (isset($data['data'])) {
-             $this->assertCount(1, $data['data']); // Pagination format inside 'data'
-        } else {
-             $this->assertCount(1, $data);
-        }
+        $this->assertCount(1, $data['data']);
     }
 
     public function test_propietario_cannot_list_others_inventarios()

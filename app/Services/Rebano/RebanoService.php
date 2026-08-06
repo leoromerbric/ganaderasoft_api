@@ -25,6 +25,11 @@ class RebanoService extends BaseService
         $query = Rebano::with(['finca.propietario', 'animales'])->active();
 
         $this->applyFincaFilter($query, $user, null);
+
+        if (!empty($filters['nopaginate'])) {
+            return $query->get();
+        }
+
         return $query->paginate(15);
     }
 

@@ -98,6 +98,23 @@ class RebanoTest extends TestCase
         $this->assertGreaterThanOrEqual(3, count($response->json('data.data')));
     }
 
+    public function test_admin_can_list_all_rebanos_nopaginate()
+    {
+        $admin = $this->createAdmin();
+        $finca = $this->createFinca();
+        $this->createRebano($finca->id, 'Rebano Nopag');
+
+        $response = $this->actingAs($admin)->getJson('/api/rebanos?nopaginate=true');
+
+        $response->assertStatus(200)
+            ->assertJsonStructure(['data' => [['id', 'nombre', 'archivado']]]);
+        
+        $data = $response->json('data');
+        $this->assertFalse(isset($data['current_page']));
+        $nombres = collect($data)->pluck('nombre')->toArray();
+        $this->assertContains('Rebano Nopag', $nombres);
+    }
+
     public function test_propietario_can_list_own_rebanos()
     {
         [$user, $propietario] = $this->createPropietario();

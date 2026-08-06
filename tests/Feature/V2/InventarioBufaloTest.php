@@ -69,11 +69,25 @@ class InventarioBufaloTest extends TestCase
         $this->createInventario(['finca_id' => $finca->id]);
         $this->createInventario(['finca_id' => $finca->id]);
         $this->createInventario(['finca_id' => $finca->id]);
-
         $response = $this->actingAs($admin, 'sanctum')->getJson('/api/inventarios-bufalo');
 
         $response->assertStatus(200)
                  ->assertJsonStructure(['data' => ['data' => [['id', 'finca_id', 'total_bufalos']]]]);
+    }
+
+    public function test_can_list_inventarios_bufalo_nopaginate_as_admin()
+    {
+        $admin = $this->createAdminUser();
+        $finca = $this->createFinca();
+        $this->createInventario(['finca_id' => $finca->id]);
+
+        $response = $this->actingAs($admin, 'sanctum')->getJson('/api/inventarios-bufalo?nopaginate=true');
+
+        $response->assertStatus(200)
+                 ->assertJsonStructure(['data' => [['id', 'finca_id', 'total_bufalos']]]);
+        
+        $data = $response->json('data');
+        $this->assertFalse(isset($data['current_page']));
     }
 
     public function test_propietario_can_only_see_their_fincas_inventarios()

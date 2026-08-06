@@ -15,6 +15,9 @@ class NormalizeIndex
             $data = $response->getData(true);
             
             if (isset($data['data'])) {
+                $isPaginated = isset($data['data']['data']) && is_array($data['data']['data']);
+                $items = $isPaginated ? $data['data']['data'] : $data['data'];
+                
                 $mappedData = array_map(function ($item) {
                     return [
                         'id_Tecnico' => $item['id'],
@@ -30,19 +33,19 @@ class NormalizeIndex
                         'created_at' => $item['created_at'] ?? null,
                         'updated_at' => $item['updated_at'] ?? null,
                     ];
-                }, $data['data']);
+                }, $items);
 
-                $data['data'] = $mappedData;
-                
-                if (isset($data['meta'])) {
+                if ($isPaginated) {
+                    $paginatedObj = $data['data'];
+                    $data['data'] = $mappedData;
                     $data['pagination'] = [
-                        'current_page' => $data['meta']['current_page'],
-                        'last_page' => $data['meta']['last_page'],
-                        'per_page' => $data['meta']['per_page'],
-                        'total' => $data['meta']['total'],
+                        'current_page' => $paginatedObj['current_page'] ?? 1,
+                        'last_page' => $paginatedObj['last_page'] ?? 1,
+                        'per_page' => $paginatedObj['per_page'] ?? 15,
+                        'total' => $paginatedObj['total'] ?? 0,
                     ];
-                    unset($data['meta']);
-                    unset($data['links']);
+                } else {
+                    $data['data'] = $mappedData;
                 }
 
                 $response->setData($data);

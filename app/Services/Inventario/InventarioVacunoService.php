@@ -16,7 +16,7 @@ class InventarioVacunoService extends BaseService
      * Listar inventario vacuno.
      * @throws AuthorizationException
      */
-    public function listInventarioVacuno(array $filters, User $user): LengthAwarePaginator
+    public function listInventarioVacuno(array $filters, User $user)
     {
         if ($user->cannot('readAny', InventarioVacuno::class)) {
             throw new AuthorizationException('Sin permisos para listar inventarios.');
@@ -28,12 +28,20 @@ class InventarioVacunoService extends BaseService
 
         $fincaIdFilter = $filters['finca_id'] ?? $filters['id_finca'] ?? null;
         if ($fincaIdFilter) {
+            if (!$user->isAdmin() && !in_array($fincaIdFilter, $user->getAllowedFincasIds())) {
+                throw new AuthorizationException('No tiene permisos para ver el inventario de esta finca.');
+            }
             $query->forFinca($fincaIdFilter);
         }
 
         if (isset($filters['fecha_inicio'])) {
             $query->byDateRange($filters['fecha_inicio'], $filters['fecha_fin'] ?? null);
         }
+
+        if (!empty($filters['nopaginate'])) {
+            return $query->get();
+        }
+
         return $query->paginate(15);
     }
 

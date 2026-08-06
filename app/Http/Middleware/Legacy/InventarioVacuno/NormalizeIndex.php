@@ -23,6 +23,9 @@ class NormalizeIndex
         $data = $response->getData(true);
 
         if (isset($data['data'])) {
+            $isPaginated = isset($data['data']['data']) && is_array($data['data']['data']);
+            $items = $isPaginated ? $data['data']['data'] : $data['data'];
+
             $mappedData = array_map(function ($item) {
                 return [
                     'id_InvVacuno' => $item['id'],
@@ -37,23 +40,21 @@ class NormalizeIndex
                     'Num_Toro' => $item['num_toro'],
                     'Fecha_Inventario' => $item['fecha_inventario']
                 ];
-            }, $data['data']['data'] ?? $data['data']);
+            }, $items);
             
-            // Re-assign paginated array properly
-            if (isset($data['data']['data'])) {
-                $data['data']['data'] = $mappedData;
+            if ($isPaginated) {
+                $paginatedObj = $data['data'];
+                $data['data'] = $mappedData;
+                $data['meta'] = [
+                    'current_page' => $paginatedObj['current_page'] ?? 1,
+                    'last_page' => $paginatedObj['last_page'] ?? 1,
+                    'per_page' => $paginatedObj['per_page'] ?? 15,
+                    'total' => $paginatedObj['total'] ?? 0,
+                ];
             } else {
                 $data['data'] = $mappedData;
             }
 
-            if (isset($data['meta'])) {
-                $data['meta'] = [
-                    'current_page' => $data['meta']['current_page'] ?? 1,
-                    'last_page' => $data['meta']['last_page'] ?? 1,
-                    'per_page' => $data['meta']['per_page'] ?? 15,
-                    'total' => $data['meta']['total'] ?? 0,
-                ];
-            }
             $response->setData($data);
         }
 

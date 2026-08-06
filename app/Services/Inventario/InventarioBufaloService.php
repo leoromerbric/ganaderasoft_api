@@ -30,6 +30,11 @@ class InventarioBufaloService extends BaseService
         if ($fincaId) {
             $query->forFinca($fincaId);
         }
+
+        if (!empty($filters['nopaginate'])) {
+            return $query->get();
+        }
+
         return $query->paginate(15);
     }
 

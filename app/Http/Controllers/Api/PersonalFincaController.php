@@ -31,19 +31,13 @@ class PersonalFincaController extends Controller
     public function index(Request $request)
     {
         try {
-            $filters = $request->only(['finca_id', 'tipo_trabajador_id', 'nombre']);
+            $filters = $request->only(['finca_id', 'tipo_trabajador_id', 'nombre', 'nopaginate']);
             $personal = $this->personalFincaService->listPersonal($filters, $request->user());
 
             return response()->json([
                 'success' => true,
                 'message' => 'Lista de personal de finca obtenida exitosamente',
-                'data' => PersonalFincaResource::collection($personal)->response()->getData(true)['data'],
-                'meta' => [
-                    'current_page' => $personal->currentPage(),
-                    'last_page' => $personal->lastPage(),
-                    'per_page' => $personal->perPage(),
-                    'total' => $personal->total(),
-                ]
+                'data' => $this->formatCollection(PersonalFincaResource::class, $personal)
             ], Response::HTTP_OK);
         } catch (AuthorizationException $e) {
             return response()->json([
