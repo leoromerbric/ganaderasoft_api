@@ -32,16 +32,8 @@ class FincaPolicy extends BasePolicy
      */
     public function create(User $user, ?int $propietarioId = null): bool
     {
-        if (!$user->hasPermissionTo('finca.create')) {
-            return false;
-        }
-        
-        if ($propietarioId !== null) {
-            $propietario = $user->propietario;
-            return $propietario && $propietario->id === $propietarioId;
-        }
-        
-        return true;
+        // Se gestiona puramente por permisos. Si tiene el permiso, puede crearla.
+        return $user->hasPermissionTo('finca.create');
     }
 
     /**
@@ -53,16 +45,8 @@ class FincaPolicy extends BasePolicy
             return false;
         }
 
-        if (!$this->checkFincaAccess($user, $finca->id)) {
-            return false;
-        }
-
-        if ($nuevoPropietarioId !== null) {
-            $propietario = $user->propietario;
-            return $propietario && $propietario->id === $nuevoPropietarioId;
-        }
-
-        return true;
+        // Solo validamos que el usuario realmente tenga acceso a gestionar ESTA finca en específico
+        return $this->checkFincaAccess($user, $finca->id);
     }
 
     /**
