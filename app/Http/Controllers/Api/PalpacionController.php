@@ -61,7 +61,7 @@ class PalpacionController extends Controller
         try {
             $palpacion = $this->palpacionService->createPalpacion($request->only([
                 'personal_finca_id', 'tipo', 'fecha', 'animal_etapa_id', 'animal_id', 'etapa_id'
-            ]));
+            ]), $request->user());
 
             return response()->json([
                 'success' => true, 
@@ -116,7 +116,7 @@ class PalpacionController extends Controller
         try {
             $palpacion = $this->palpacionService->updatePalpacion((int)$id, $request->only([
                 'personal_finca_id', 'tipo', 'fecha', 'animal_etapa_id', 'animal_id', 'etapa_id'
-            ]));
+            ]), $request->user());
 
             return response()->json([
                 'success' => true, 

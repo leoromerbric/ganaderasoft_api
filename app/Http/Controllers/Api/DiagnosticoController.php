@@ -61,7 +61,7 @@ class DiagnosticoController extends Controller
         try {
             $diagnostico = $this->diagnosticoService->createDiagnostico($request->only([
                 'descripcion', 'tipo', 'fecha', 'animal_etapa_id', 'animal_id', 'etapa_id'
-            ]));
+            ]), $request->user());
 
             return response()->json([
                 'success' => true, 
@@ -116,7 +116,7 @@ class DiagnosticoController extends Controller
         try {
             $diagnostico = $this->diagnosticoService->updateDiagnostico((int)$id, $request->only([
                 'descripcion', 'tipo', 'fecha', 'animal_etapa_id', 'animal_id', 'etapa_id'
-            ]));
+            ]), $request->user());
 
             return response()->json([
                 'success' => true, 

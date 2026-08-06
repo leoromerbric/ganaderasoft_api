@@ -59,7 +59,7 @@ class TratamientoController extends Controller
         try {
             $tratamiento = $this->tratamientoService->createTratamiento($request->only([
                 'plan', 'fecha_ini', 'fecha_fin', 'diagnostico_id'
-            ]));
+            ]), $request->user());
 
             return response()->json([
                 'success' => true, 
@@ -112,7 +112,7 @@ class TratamientoController extends Controller
         try {
             $tratamiento = $this->tratamientoService->updateTratamiento((int)$id, $request->only([
                 'plan', 'fecha_ini', 'fecha_fin', 'diagnostico_id'
-            ]));
+            ]), $request->user());
 
             return response()->json([
                 'success' => true, 
