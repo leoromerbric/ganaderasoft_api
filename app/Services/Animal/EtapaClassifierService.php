@@ -126,7 +126,7 @@ class EtapaClassifierService
             return null;
         }
 
-        $sexValues = $sex === 'F' ? ['F', 'H'] : ['M'];
+        $sexValues = ($sex === 'F' || $sex === 'H') ? ['F', 'H'] : ['M'];
 
         // Consulta general de etapas basadas en la edad para otros tipos de animales (como Búfala)
         $candidates = Etapa::query()
@@ -183,7 +183,7 @@ class EtapaClassifierService
      */
     private function findVacunoEtapaByNames(array $names, string $sex): ?Etapa
     {
-        $sexValues = $sex === 'F' ? ['F', 'H'] : ['M'];
+        $sexValues = ($sex === 'F' || $sex === 'H') ? ['F', 'H'] : ['M'];
         $normalizedNames = array_map('strtolower', $names);
 
         // Obtenemos las etapas configuradas para vacunos (ID = 1) y el sexo correspondiente

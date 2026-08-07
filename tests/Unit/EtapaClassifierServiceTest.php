@@ -35,11 +35,7 @@ class EtapaClassifierServiceTest extends TestCase
         if (Etapa::count() === 0) {
             $this->seed(TipoAnimalSeeder::class);
             $this->seed(EtapaSeeder::class);
-            $this->seed(UpdateEtapaSeeder::class);
             $this->seed(ComposicionRazaSeeder::class);
-        } else {
-            // Asegurar que el cambio del seeder de corrección de búfalas esté aplicado
-            $this->seed(UpdateEtapaSeeder::class);
         }
 
         // Obtener o crear un Rebaño válido para los animales de prueba
@@ -55,7 +51,7 @@ class EtapaClassifierServiceTest extends TestCase
         $persona = Persona::create([
             'nombre' => 'Juan',
             'apellido' => 'Perez',
-            'cedula' => 'V12345678',
+            'cedula' => 'V99999999',
             'telefono' => '123456',
             'direccion' => 'Finca Test',
             'status' => 'activo',

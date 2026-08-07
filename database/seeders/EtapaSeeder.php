@@ -16,7 +16,7 @@ class EtapaSeeder extends Seeder {
             ['id' => 9, 'nombre' => 'Becerro', 'edad_ini' => 0, 'edad_fin' => 365, 'tipo_animal_id' => 2, 'sexo' => 'M'],
             ['id' => 10, 'nombre' => 'Becerra', 'edad_ini' => 0, 'edad_fin' => 365, 'tipo_animal_id' => 2, 'sexo' => 'H'],
             ['id' => 11, 'nombre' => 'Añojo', 'edad_ini' => 365, 'edad_fin' => 730, 'tipo_animal_id' => 2, 'sexo' => 'M'],
-            ['id' => 12, 'nombre' => 'Añoja', 'edad_ini' => 365, 'edad_fin' => 730, 'tipo_animal_id' => 2, 'sexo' => 'H'],
+            ['id' => 12, 'nombre' => 'Añoja', 'edad_ini' => 365, 'edad_fin' => 913, 'tipo_animal_id' => 2, 'sexo' => 'H'],
             ['id' => 13, 'nombre' => 'Butoro', 'edad_ini' => 730, 'edad_fin' => null, 'tipo_animal_id' => 2, 'sexo' => 'M'],
             ['id' => 14, 'nombre' => 'Bufala', 'edad_ini' => 913, 'edad_fin' => null, 'tipo_animal_id' => 2, 'sexo' => 'H'],
         ])->map(fn($item) => array_merge($item, ['created_at' => now(), 'updated_at' => now()]))->toArray());

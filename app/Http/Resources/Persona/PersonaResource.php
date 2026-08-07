@@ -28,6 +28,7 @@ class PersonaResource extends JsonResource
             'telefono' => $this->telefono,
             'correo' => $this->correo,
             'status' => $this->status,
+            'users' => UserResource::collection($this->whenLoaded('users')),
         ];
     }
 }
