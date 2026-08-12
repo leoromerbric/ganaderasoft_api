@@ -263,7 +263,9 @@ services:
     container_name: ganaderasoft-backend-prod
     restart: always
     ports:
-      - "8001:80"
+      - "127.0.0.1:8001:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     env_file:
       - ./backend/.env
     networks:
@@ -278,7 +280,7 @@ services:
     container_name: ganaderasoft-frontend-prod
     restart: always
     ports:
-      - "8000:80"
+      - "127.0.0.1:8000:80"
     env_file:
       - ./frontend/.env
     depends_on:
