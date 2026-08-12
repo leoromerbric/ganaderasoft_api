@@ -64,14 +64,15 @@ El proyecto del backend sigue la estructura de una API RESTful estándar de Lara
 
 El proyecto maneja dos entornos con comportamientos diferentes:
 
-1. Entorno local (Dockerizado)
-   - Usa docker compose.
+1. Entorno local (Dockerizado para Desarrollo)
+   - Orquestación: Usa `docker-compose.yml` montando volúmenes en tiempo real.
    - Servidor web: Servidor local de Artisan o Nginx interno.
    - Base de datos: Contenedor **MySQL**.
-2. Entorno producción
-   - Servidor web: **Nginx** (Reverse Proxy).
-   - Procesador PHP: **PHP-FPM 8.2** (Nativo en el servidor VPS).
-   - Base de datos: **MySQL** (Nativa en el servidor VPS).
+2. Entorno producción (Dockerizado Optimizado)
+   - Orquestación: Usa `docker-compose.prod.yml` con imágenes compiladas independientemente.
+   - Proxy externo: **Nginx** nativo en el servidor VPS (Reverse Proxy hacia Docker).
+   - Procesador PHP: **PHP-FPM 8.2** ejecutándose internamente en el contenedor.
+   - Base de datos: Servidor **MySQL** externo a la red de los contenedores web.
 
 ## 3. 🔗 Endpoints principales
 
