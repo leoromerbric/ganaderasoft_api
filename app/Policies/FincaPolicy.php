@@ -9,7 +9,7 @@ class FincaPolicy extends BasePolicy
 {
     public function readAny(User $user): bool
     {
-        if (!$user->isAdmin() && !$user->propietario) {
+        if ($user->isPropietario() && !$user->propietario) {
             return false;
         }
         return $user->hasPermissionTo('finca.read');
@@ -36,10 +36,6 @@ class FincaPolicy extends BasePolicy
             return false;
         }
 
-        if ($user->isAdmin()) {
-            return true;
-        }
-
         if (!$user->propietario || $user->propietario->id !== $propietarioId) {
             return false;
         }
@@ -54,10 +50,6 @@ class FincaPolicy extends BasePolicy
     {
         if (!$user->hasPermissionTo('finca.update')) {
             return false;
-        }
-
-        if ($user->isAdmin()) {
-            return true;
         }
 
         if ($nuevoPropietarioId !== null && $nuevoPropietarioId !== $finca->propietario_id) {

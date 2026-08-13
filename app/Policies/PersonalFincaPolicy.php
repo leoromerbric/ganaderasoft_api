@@ -12,7 +12,7 @@ class PersonalFincaPolicy extends BasePolicy
      */
     public function readAny(User $user): bool
     {
-        if (!$user->isAdmin() && !$user->propietario) {
+        if ($user->isPropietario() && !$user->propietario) {
             return false;
         }
         return $user->hasPermissionTo('personal_finca.read');
