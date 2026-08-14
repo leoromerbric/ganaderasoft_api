@@ -12,9 +12,6 @@ class TerrenoPolicy extends BasePolicy
      */
     public function readAny(User $user): bool
     {
-        if ($user->isPropietario() && !$user->propietario) {
-            return false;
-        }
         return $user->hasPermissionTo('terreno.read');
     }
 

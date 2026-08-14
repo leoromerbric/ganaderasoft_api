@@ -24,10 +24,6 @@ class ReportesService extends BaseService
      */
     public function getEstadisticasFincas(array $filters, User $user): array
     {
-        if ($user->isPropietario() && !$user->propietario) {
-            throw new AuthorizationException('El usuario debe tener un perfil de propietario.');
-        }
-
         if (!$user->hasPermissionTo('reportes.read')) {
             throw new AuthorizationException('Sin permisos para ver reportes.');
         }
