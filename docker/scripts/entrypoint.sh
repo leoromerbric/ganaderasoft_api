@@ -45,9 +45,8 @@ if [ "$APP_ENV" = "production" ]; then
     php artisan route:cache || true
     php artisan view:cache || true
 else
-    # Limpiar cachés en desarrollo
-    php artisan config:clear || true
-    php artisan cache:clear || true
+    # Limpiar todas las cachés en desarrollo (rutas, vistas, config, cache)
+    php artisan optimize:clear || true
 fi
 
 # Ejecutar migraciones automáticamente (Opcional, elimina si prefieres migración manual)
