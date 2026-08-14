@@ -22,7 +22,7 @@ class ComposicionRazaService extends BaseService
      */
     public function listComposiciones(array $filters, User $user)
     {
-        if ($user->cannot('viewAny', ComposicionRaza::class)) {
+        if ($user->cannot('readAny', ComposicionRaza::class)) {
             throw new AuthorizationException('No tiene permisos para ver composiciones de raza.');
         }
 
@@ -82,7 +82,7 @@ class ComposicionRazaService extends BaseService
     {
         $composicionRaza = ComposicionRaza::with(['finca', 'tipoAnimal', 'animales'])->findOrFail($id);
 
-        if ($user->cannot('view', $composicionRaza)) {
+        if ($user->cannot('read', $composicionRaza)) {
             throw new AuthorizationException('No tiene permisos para ver esta composición de raza.');
         }
 

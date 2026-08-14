@@ -10,7 +10,7 @@ class UserPolicy extends BasePolicy
     /**
      * Determina si el usuario puede ver cualquier modelo.
      */
-    public function viewAny(User $user): bool
+    public function readAny(User $user): bool
     {
         return $user->hasPermissionTo('usuario.read');
     }
@@ -18,7 +18,7 @@ class UserPolicy extends BasePolicy
     /**
      * Determina si el usuario puede ver el modelo específico.
      */
-    public function view(User $user, User $model): bool
+    public function read(User $user, User $model): bool
     {
         return $user->hasPermissionTo('usuario.read') || $user->id === $model->id;
     }

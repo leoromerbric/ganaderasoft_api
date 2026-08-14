@@ -11,7 +11,7 @@ class RoleService extends BaseService
 {
     public function getPaginatedRoles(array $filters, User $user)
     {
-        if ($user->cannot('viewAny', Role::class)) {
+        if ($user->cannot('readAny', Role::class)) {
             throw new AuthorizationException('No tiene permisos para ver roles.');
         }
 

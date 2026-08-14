@@ -20,7 +20,7 @@ class TipoAnimalService extends BaseService
      */
     public function listTipos(array $filters, User $user)
     {
-        if ($user->cannot('viewAny', TipoAnimal::class)) {
+        if ($user->cannot('readAny', TipoAnimal::class)) {
             throw new AuthorizationException('No tiene permisos para ver tipos de animal.');
         }
 
@@ -67,7 +67,7 @@ class TipoAnimalService extends BaseService
     {
         $tipoAnimal = TipoAnimal::findOrFail($id);
 
-        if ($user->cannot('view', $tipoAnimal)) {
+        if ($user->cannot('read', $tipoAnimal)) {
             throw new AuthorizationException('No tiene permisos para ver tipos de animal.');
         }
 

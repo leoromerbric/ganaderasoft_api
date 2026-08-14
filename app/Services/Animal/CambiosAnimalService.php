@@ -22,7 +22,7 @@ class CambiosAnimalService extends BaseService
      */
     public function listCambios(array $filters, $user)
     {
-        if ($user->cannot('viewAny', CambiosAnimal::class)) {
+        if ($user->cannot('readAny', CambiosAnimal::class)) {
             throw new AuthorizationException('No tiene permisos para listar cambios de animal.');
         }
 
@@ -154,7 +154,7 @@ class CambiosAnimalService extends BaseService
         $cambio = CambiosAnimal::with(['etapaAnimal'])->findOrFail($id);
         $animal = $cambio->animal;
 
-        if ($user->cannot('view', $cambio)) {
+        if ($user->cannot('read', $cambio)) {
             throw new AuthorizationException('No tiene permisos para ver estos cambios de animal.');
         }
 

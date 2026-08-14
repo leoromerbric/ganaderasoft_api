@@ -10,7 +10,7 @@ class PersonaPolicy extends BasePolicy
     /**
      * Determina si el usuario puede ver la lista de modelos.
      */
-    public function viewAny(User $user): bool
+    public function readAny(User $user): bool
     {
         return $user->hasPermissionTo('persona.read');
     }
@@ -18,7 +18,7 @@ class PersonaPolicy extends BasePolicy
     /**
      * Determina si el usuario puede ver el modelo.
      */
-    public function view(User $user, Persona $model): bool
+    public function read(User $user, Persona $model): bool
     {
         return $user->hasPermissionTo('persona.read') || $user->personas->contains('id', $model->id);
     }

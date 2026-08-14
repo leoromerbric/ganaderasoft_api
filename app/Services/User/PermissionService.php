@@ -11,7 +11,7 @@ class PermissionService extends BaseService
 {
     public function getPaginatedPermissions(array $filters, User $user)
     {
-        if ($user->cannot('viewAny', Permission::class)) {
+        if ($user->cannot('readAny', Permission::class)) {
             throw new AuthorizationException('No tiene permisos para ver permisos.');
         }
 

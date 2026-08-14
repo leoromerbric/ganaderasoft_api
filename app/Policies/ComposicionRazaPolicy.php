@@ -10,7 +10,7 @@ class ComposicionRazaPolicy extends BasePolicy
     /**
      * Determina si el usuario puede ver cualquier modelo.
      */
-    public function viewAny(User $user): bool
+    public function readAny(User $user): bool
     {
         return $user->hasPermissionTo('composicion_raza.read');
     }
@@ -18,7 +18,7 @@ class ComposicionRazaPolicy extends BasePolicy
     /**
      * Determina si el usuario puede ver el modelo.
      */
-    public function view(User $user, ComposicionRaza $model): bool
+    public function read(User $user, ComposicionRaza $model): bool
     {
         if (!$user->hasPermissionTo('composicion_raza.read')) return false;
         if (!$model->finca_id) return true; // Es global

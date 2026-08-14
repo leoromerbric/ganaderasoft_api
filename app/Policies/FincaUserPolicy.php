@@ -10,7 +10,7 @@ class FincaUserPolicy extends BasePolicy
     /**
      * Determina si el usuario puede ver cualquier modelo de FincaUser.
      */
-    public function viewAny(User $user): bool
+    public function readAny(User $user): bool
     {
         return $user->hasPermissionTo('finca_user.read');
     }
@@ -18,7 +18,7 @@ class FincaUserPolicy extends BasePolicy
     /**
      * Determina si el usuario puede ver el modelo específico de FincaUser.
      */
-    public function view(User $user, FincaUser $model): bool
+    public function read(User $user, FincaUser $model): bool
     {
         return $user->hasPermissionTo('finca_user.read') || $user->id === $model->user_id;
     }

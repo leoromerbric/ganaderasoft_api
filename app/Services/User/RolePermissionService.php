@@ -12,7 +12,7 @@ class RolePermissionService extends BaseService
 {
     public function getRolePermissions(Role $role, User $adminUser)
     {
-        if ($adminUser->cannot('view', clone $role)) {
+        if ($adminUser->cannot('read', clone $role)) {
             throw new AuthorizationException('No autorizado para ver estos permisos.');
         }
         return $role->permissions;

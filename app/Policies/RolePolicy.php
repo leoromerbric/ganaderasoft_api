@@ -7,12 +7,12 @@ use App\Models\User;
 
 class RolePolicy extends BasePolicy
 {
-    public function viewAny(User $user): bool
+    public function readAny(User $user): bool
     {
         return $user->isAdmin();
     }
 
-    public function view(User $user, Role $model): bool
+    public function read(User $user, Role $model): bool
     {
         return $user->isAdmin();
     }

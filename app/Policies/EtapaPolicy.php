@@ -10,7 +10,7 @@ class EtapaPolicy extends BasePolicy
     /**
      * Determina si el usuario puede ver cualquier modelo.
      */
-    public function viewAny(User $user): bool
+    public function readAny(User $user): bool
     {
         return $user->hasPermissionTo('etapa.read');
     }
@@ -18,7 +18,7 @@ class EtapaPolicy extends BasePolicy
     /**
      * Determina si el usuario puede ver el modelo.
      */
-    public function view(User $user, Etapa $model): bool
+    public function read(User $user, Etapa $model): bool
     {
         return $user->hasPermissionTo('etapa.read');
     }

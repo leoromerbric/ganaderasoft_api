@@ -18,7 +18,7 @@ class UserService
      */
     public function listUsers(array $filters, User $user)
     {
-        if ($user->cannot('viewAny', User::class)) {
+        if ($user->cannot('readAny', User::class)) {
             throw new AuthorizationException('No tienes permisos para ver usuarios.');
         }
 
@@ -109,7 +109,7 @@ class UserService
     {
         $user = User::with(['personas', 'roles', 'fincas'])->findOrFail($id);
 
-        if ($adminUser->cannot('view', $user)) {
+        if ($adminUser->cannot('read', $user)) {
             throw new AuthorizationException('No tienes permisos para ver este usuario.');
         }
 

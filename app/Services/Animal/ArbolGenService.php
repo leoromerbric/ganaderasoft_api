@@ -16,7 +16,7 @@ class ArbolGenService extends BaseService
      */
     public function showTree(Animal $animal, User $user): array
     {
-        if ($user->cannot('viewAny', ArbolGen::class)) {
+        if ($user->cannot('readAny', ArbolGen::class)) {
             throw new AuthorizationException('No tiene permisos para ver árboles genealógicos.');
         }
         $animal->load([
@@ -107,7 +107,7 @@ class ArbolGenService extends BaseService
      */
     public function getAvailableParents(Animal $animal, ?string $tipo, User $user)
     {
-        if ($user->cannot('viewAny', ArbolGen::class)) {
+        if ($user->cannot('readAny', ArbolGen::class)) {
             throw new AuthorizationException('No tiene permisos para buscar candidatos a progenitores.');
         }
         $animal->load([

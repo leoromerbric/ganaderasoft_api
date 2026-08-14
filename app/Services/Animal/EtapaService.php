@@ -21,7 +21,7 @@ class EtapaService extends BaseService
      */
     public function listEtapas(array $filters, User $user)
     {
-        if ($user->cannot('viewAny', Etapa::class)) {
+        if ($user->cannot('readAny', Etapa::class)) {
             throw new AuthorizationException('No tiene permisos para ver etapas.');
         }
 
@@ -80,7 +80,7 @@ class EtapaService extends BaseService
     {
         $etapa = Etapa::with(['tipoAnimal', 'etapaAnimales.animal'])->findOrFail($id);
 
-        if ($user->cannot('view', $etapa)) {
+        if ($user->cannot('read', $etapa)) {
             throw new AuthorizationException('No tiene permisos para ver esta etapa.');
         }
 

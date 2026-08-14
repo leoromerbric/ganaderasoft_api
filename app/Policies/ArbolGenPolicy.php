@@ -10,7 +10,7 @@ class ArbolGenPolicy extends BasePolicy
     /**
      * Determina si el usuario puede ver cualquier modelo.
      */
-    public function viewAny(User $user): bool
+    public function readAny(User $user): bool
     {
         return $user->hasPermissionTo('arbol_gen.read');
     }
@@ -18,7 +18,7 @@ class ArbolGenPolicy extends BasePolicy
     /**
      * Determina si el usuario puede ver el modelo.
      */
-    public function view(User $user, ArbolGen $model): bool
+    public function read(User $user, ArbolGen $model): bool
     {
         if (!$user->hasPermissionTo('arbol_gen.read')) return false;
         return $this->checkFincaAccess($user, optional(optional($model->animal)->rebano)->finca_id);

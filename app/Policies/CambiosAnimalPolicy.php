@@ -11,7 +11,7 @@ class CambiosAnimalPolicy extends BasePolicy
     /**
      * Determina si el usuario puede ver cualquier modelo.
      */
-    public function viewAny(User $user): bool
+    public function readAny(User $user): bool
     {
         return $user->hasPermissionTo('cambios_animal.read');
     }
@@ -19,7 +19,7 @@ class CambiosAnimalPolicy extends BasePolicy
     /**
      * Determina si el usuario puede ver el modelo.
      */
-    public function view(User $user, CambiosAnimal $model): bool
+    public function read(User $user, CambiosAnimal $model): bool
     {
         if (!$user->hasPermissionTo('cambios_animal.read')) return false;
         return $this->checkFincaAccess($user, optional(optional($model->animal)->rebano)->finca_id);

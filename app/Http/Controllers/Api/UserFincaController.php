@@ -30,7 +30,7 @@ class UserFincaController extends Controller
         try {
             $user = User::with('fincas')->findOrFail($userId);
             
-            if ($request->user()->cannot('view', $user)) {
+            if ($request->user()->cannot('read', $user)) {
                 throw new AuthorizationException('No tienes permisos para ver las fincas de este usuario.');
             }
 

@@ -11,7 +11,7 @@ class UserRoleService extends BaseService
 {
     public function getUserRoles(User $targetUser, User $adminUser)
     {
-        if ($adminUser->cannot('view', $targetUser)) {
+        if ($adminUser->cannot('read', $targetUser)) {
             throw new AuthorizationException('No autorizado para ver estos roles.');
         }
         return $targetUser->roles;

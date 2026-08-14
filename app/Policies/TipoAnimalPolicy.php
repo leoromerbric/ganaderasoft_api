@@ -10,7 +10,7 @@ class TipoAnimalPolicy extends BasePolicy
     /**
      * Determina si el usuario puede ver cualquier modelo.
      */
-    public function viewAny(User $user): bool
+    public function readAny(User $user): bool
     {
         return $user->hasPermissionTo('tipo_animal.read');
     }
@@ -18,7 +18,7 @@ class TipoAnimalPolicy extends BasePolicy
     /**
      * Determina si el usuario puede ver el modelo.
      */
-    public function view(User $user, TipoAnimal $model): bool
+    public function read(User $user, TipoAnimal $model): bool
     {
         return $user->hasPermissionTo('tipo_animal.read');
     }

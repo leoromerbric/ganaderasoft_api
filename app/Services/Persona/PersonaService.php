@@ -14,7 +14,7 @@ class PersonaService
      */
     public function getPersonas(array $filters, User $adminUser)
     {
-        if ($adminUser->cannot('viewAny', Persona::class)) {
+        if ($adminUser->cannot('readAny', Persona::class)) {
             throw new AuthorizationException('No tienes permisos para ver personas.');
         }
 
@@ -52,7 +52,7 @@ class PersonaService
     {
         $persona = Persona::with(['users', 'personalFincas', 'administrador', 'propietario'])->findOrFail($id);
 
-        if ($adminUser->cannot('view', $persona)) {
+        if ($adminUser->cannot('read', $persona)) {
             throw new AuthorizationException('No tienes permisos para ver esta persona.');
         }
 
