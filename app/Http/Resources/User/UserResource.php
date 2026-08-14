@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\User;
 
+use App\Http\Resources\Persona\PersonaResource;
 use App\Http\Resources\Persona\PropietarioResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -27,13 +28,20 @@ class UserResource extends JsonResource
             'created_at' => $this->created_at ? $this->created_at->toIso8601String() : null,
             'status' => $this->status,
             'roles' => $this->whenLoaded('roles', fn() => $this->roles->pluck('code')),
+
+            // Datos de la Persona física vinculada (solo si está cargada y existe)
+            'persona' => $this->when(
+                $this->relationLoaded('personas') && $this->personas->isNotEmpty(),
+                fn() => new PersonaResource($this->personas->first())
+            ),
             
-            // Relación de propietario si las personas y su propietario están cargados
-            'propietario' => $this->when($this->relationLoaded('personas'), function() {
-                $persona = $this->personas->first();
-                if (!$persona || !$persona->relationLoaded('propietario')) return null;
-                return $persona->propietario ? new PropietarioResource($persona->propietario) : null;
-            }),
+            // Relación de propietario (solo si está cargada y la persona es propietario)
+            'propietario' => $this->when(
+                $this->relationLoaded('personas') && 
+                $this->personas->first()?->relationLoaded('propietario') && 
+                $this->personas->first()?->propietario !== null,
+                fn() => new PropietarioResource($this->personas->first()->propietario)
+            ),
             
             // El propietario sigue siendo requerido por los middlewares legacy (v1)
         ];
