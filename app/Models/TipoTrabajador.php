@@ -22,4 +22,12 @@ class TipoTrabajador extends Model
     {
         return $this->hasMany(PersonalFinca::class, 'tipo_trabajador_id', 'id');
     }
+
+    /**
+     * Filtro para buscar por nombre.
+     */
+    public function scopeByName($query, $name)
+    {
+        return $query->where('nombre', 'like', '%' . $name . '%');
+    }
 }

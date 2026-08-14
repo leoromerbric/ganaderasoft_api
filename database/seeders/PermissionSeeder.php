@@ -18,7 +18,7 @@ class PermissionSeeder extends Seeder
         $modules = [
             'finca' => ['finca', 'terreno'],
             'personal' => ['personal_finca'],
-            'admin' => ['configuracion', 'propietario', 'usuario', 'finca_user', 'persona'],
+            'admin' => ['configuracion', 'propietario', 'usuario', 'finca_user', 'persona', 'tipo_trabajador'],
             'reportes' => ['reportes'],
             'animal' => ['animal', 'arbol_gen', 'cambios_animal', 'composicion_raza', 'tipo_animal', 'etapa', 'medidas_corporales', 'peso_corporal'],
             'rebano' => ['rebano', 'movimiento_rebano'],

@@ -37,8 +37,8 @@ class RoleSeeder extends Seeder {
             // 1. Admin Global tiene absolutamente todos los permisos (incluyendo módulo admin)
             $rolePermissions[] = ['role_id' => 1, 'permission_id' => $perm->id];
 
-            // 2. Propietario tiene todos los permisos EXCEPTO los del módulo admin (usuarios, dueños globales, config)
-            if ($perm->module !== 'admin') {
+            // 2. Propietario tiene todos los permisos EXCEPTO los del módulo admin (usuarios, dueños globales, config), pero sí lectura de catálogo de tipos de trabajador
+            if ($perm->module !== 'admin' || $perm->code === 'tipo_trabajador.read') {
                 $rolePermissions[] = ['role_id' => 2, 'permission_id' => $perm->id];
             }
 
@@ -58,7 +58,7 @@ class RoleSeeder extends Seeder {
             }
             
             // 6. Gestor de Personal
-            if ($perm->module === 'personal' || $perm->code === 'finca.read' || $perm->code === 'reportes.read') {
+            if ($perm->module === 'personal' || $perm->code === 'finca.read' || $perm->code === 'reportes.read' || $perm->code === 'tipo_trabajador.read') {
                 $rolePermissions[] = ['role_id' => 6, 'permission_id' => $perm->id];
             }
 

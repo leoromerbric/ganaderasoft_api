@@ -38,6 +38,7 @@ use App\Http\Controllers\Api\SemenToroController;
 use App\Http\Controllers\Api\ServicioAnimalController;
 use App\Http\Controllers\Api\TerrenoController;
 use App\Http\Controllers\Api\TipoAnimalController;
+use App\Http\Controllers\Api\TipoTrabajadorController;
 use App\Http\Controllers\Api\TratamientoController;
 use App\Http\Controllers\Api\VacunaController;
 use App\Http\Controllers\Api\VacunacionController;
@@ -107,6 +108,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('estados-animal', EstadoAnimalController::class);
     Route::apiResource('composicion-raza', ComposicionRazaController::class);
     Route::apiResource('etapas', EtapaController::class);
+    Route::apiResource('tipos-trabajador', TipoTrabajadorController::class);
 
     // Nuevas rutas CRUD de entidades
     Route::post('personal-finca/{personal_finca}/create-user', [PersonalFincaController::class, 'convertToUser']);
