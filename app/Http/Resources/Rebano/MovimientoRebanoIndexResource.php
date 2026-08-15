@@ -39,6 +39,7 @@ class MovimientoRebanoIndexResource extends JsonResource
             'rebano_origen'      => $this->whenLoaded('rebanoOrigen', fn() => new RebanoResource($this->rebanoOrigen)),
             'finca_destino'      => $this->whenLoaded('fincaDestino', fn() => new FincaResource($this->fincaDestino)),
             'rebano_destino_rel' => $this->whenLoaded('rebanoDestino', fn() => new RebanoResource($this->rebanoDestino)),
+            'total_animales'     => $this->relationLoaded('animales') ? $this->animales->count() : ($this->animales_count ?? 0),
         ];
     }
 }
