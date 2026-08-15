@@ -42,6 +42,7 @@ use App\Http\Controllers\Api\TipoTrabajadorController;
 use App\Http\Controllers\Api\TratamientoController;
 use App\Http\Controllers\Api\VacunaController;
 use App\Http\Controllers\Api\VacunacionController;
+use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -61,116 +62,123 @@ Route::prefix('auth')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
 });
 
-// Rutas protegidas
+// Rutas protegidas por Sanctum
 Route::middleware('auth:sanctum')->group(function () {
-    // Rutas del perfil de usuario
+    
+    // Rutas permitidas a todos los usuarios autenticados (incluso si su estado es suspendido)
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
-    Route::post('/auth/register', [AuthController::class, 'register']);
 
-    // Gestión de Roles y Permisos
-    Route::apiResource('roles', RoleController::class);
-    Route::apiResource('permissions', PermissionController::class);
-    
-    // Usuarios y Fincas de Usuarios
-    Route::apiResource('users', UserController::class);
-    
-    // Gestión de Personas
-    Route::patch('/personas/{persona}/disable', [PersonaController::class, 'disable']);
-    Route::patch('/personas/{persona}/enable', [PersonaController::class, 'enable']);
-    Route::apiResource('personas', PersonaController::class);
-    Route::patch('users/{user}/disable', [UserController::class, 'disable']);
-    Route::patch('users/{user}/enable', [UserController::class, 'enable']);
-    
-    // Fincas de Usuarios
-    Route::apiResource('users.access-fincas', UserFincaController::class)->only(['index', 'store', 'update', 'destroy']);
-    Route::patch('users/{user}/access-fincas/{access_finca}/disable', [UserFincaController::class, 'disableAccess']);
-    Route::patch('users/{user}/access-fincas/{access_finca}/enable', [UserFincaController::class, 'enableAccess']);
-    
-    // Roles de Usuario y Permisos
-    Route::apiResource('users.roles', UserRoleController::class)->only(['index', 'store', 'destroy']);
-    Route::get('/users/{user}/permissions', [UserRoleController::class, 'getPermissions']);
-    
-    // Permisos del Rol
-    Route::apiResource('roles.permissions', RolePermissionController::class)->only(['index', 'store', 'destroy']);
+    // Rutas operativas del sistema (restringidas únicamente a usuarios con estado activo)
+    Route::middleware(EnsureUserIsActive::class)->group(function () {
+        
+        Route::post('/auth/register', [AuthController::class, 'register']);
 
-    // Rutas CRUD de entidades principales
-    Route::apiResource('fincas', FincaController::class);
-    Route::apiResource('propietarios', PropietarioController::class);
-    Route::apiResource('rebanos', RebanoController::class);
-    Route::apiResource('animales', AnimalController::class);
-    Route::apiResource('inventarios-bufalo', InventarioBufaloController::class);
-    Route::apiResource('tipos-animal', TipoAnimalController::class);
-    Route::apiResource('estados-salud', EstadoSaludController::class);
-    Route::apiResource('estados-animal', EstadoAnimalController::class);
-    Route::apiResource('composicion-raza', ComposicionRazaController::class);
-    Route::apiResource('etapas', EtapaController::class);
-    Route::apiResource('tipos-trabajador', TipoTrabajadorController::class);
+        // Gestión de Roles y Permisos
+        Route::apiResource('roles', RoleController::class);
+        Route::apiResource('permissions', PermissionController::class);
+        
+        // Usuarios y Fincas de Usuarios
+        Route::apiResource('users', UserController::class);
+        
+        // Gestión de Personas
+        Route::patch('/personas/{persona}/disable', [PersonaController::class, 'disable']);
+        Route::patch('/personas/{persona}/enable', [PersonaController::class, 'enable']);
+        Route::apiResource('personas', PersonaController::class);
+        Route::patch('users/{user}/disable', [UserController::class, 'disable']);
+        Route::patch('users/{user}/enable', [UserController::class, 'enable']);
+        
+        // Fincas de Usuarios
+        Route::apiResource('users.access-fincas', UserFincaController::class)->only(['index', 'store', 'update', 'destroy']);
+        Route::patch('users/{user}/access-fincas/{access_finca}/disable', [UserFincaController::class, 'disableAccess']);
+        Route::patch('users/{user}/access-fincas/{access_finca}/enable', [UserFincaController::class, 'enableAccess']);
+        
+        // Roles de Usuario y Permisos
+        Route::apiResource('users.roles', UserRoleController::class)->only(['index', 'store', 'destroy']);
+        Route::get('/users/{user}/permissions', [UserRoleController::class, 'getPermissions']);
+        
+        // Permisos del Rol
+        Route::apiResource('roles.permissions', RolePermissionController::class)->only(['index', 'store', 'destroy']);
 
-    // Nuevas rutas CRUD de entidades
-    Route::post('personal-finca/{personal_finca}/create-user', [PersonalFincaController::class, 'convertToUser']);
-    Route::apiResource('personal-finca', PersonalFincaController::class);
-    Route::apiResource('peso-corporal', PesoCorporalController::class);
-    Route::apiResource('lactancia', LactanciaController::class);
-    Route::apiResource('leche', LecheController::class);
-    Route::apiResource('medidas-corporales', MedidasCorporalesController::class);
-    Route::apiResource('cambios-animal', CambiosAnimalController::class);
+        // Rutas CRUD de entidades principales
+        Route::apiResource('fincas', FincaController::class);
+        Route::apiResource('propietarios', PropietarioController::class);
+        Route::apiResource('rebanos', RebanoController::class);
+        Route::apiResource('animales', AnimalController::class);
+        Route::apiResource('inventarios-bufalo', InventarioBufaloController::class);
+        Route::apiResource('tipos-animal', TipoAnimalController::class);
+        Route::apiResource('estados-salud', EstadoSaludController::class);
+        Route::apiResource('estados-animal', EstadoAnimalController::class);
+        Route::apiResource('composicion-raza', ComposicionRazaController::class);
+        Route::apiResource('etapas', EtapaController::class);
+        Route::apiResource('tipos-trabajador', TipoTrabajadorController::class);
 
-    // Configuration routes (JSON-based)
-    Route::prefix('configuracion')->group(function () {
-        Route::get('tipo-explotacion', [ConfiguracionController::class, 'tipoExplotacion']);
-        Route::get('metodo-riego', [ConfiguracionController::class, 'metodoRiego']);
-        Route::get('ph-suelo', [ConfiguracionController::class, 'phSuelo']);
-        Route::get('textura-suelo', [ConfiguracionController::class, 'texturaSuelo']);
-        Route::get('fuente-agua', [ConfiguracionController::class, 'fuenteAgua']);
-        Route::get('sexo', [ConfiguracionController::class, 'sexo']);
-        Route::get('tipo-relieve', [ConfiguracionController::class, 'tipoRelieve']);
-    });
+        // Nuevas rutas CRUD de entidades
+        Route::post('personal-finca/{personal_finca}/create-user', [PersonalFincaController::class, 'convertToUser']);
+        Route::apiResource('personal-finca', PersonalFincaController::class);
+        Route::apiResource('peso-corporal', PesoCorporalController::class);
+        Route::apiResource('lactancia', LactanciaController::class);
+        Route::apiResource('leche', LecheController::class);
+        Route::apiResource('medidas-corporales', MedidasCorporalesController::class);
+        Route::apiResource('cambios-animal', CambiosAnimalController::class);
 
-    // Reports routes
-    Route::prefix('reportes')->group(function () {
-        Route::get('fincas', [ReportesController::class, 'estadisticasFincas']);
-    });
+        // Configuration routes (JSON-based)
+        Route::prefix('configuracion')->group(function () {
+            Route::get('tipo-explotacion', [ConfiguracionController::class, 'tipoExplotacion']);
+            Route::get('metodo-riego', [ConfiguracionController::class, 'metodoRiego']);
+            Route::get('ph-suelo', [ConfiguracionController::class, 'phSuelo']);
+            Route::get('textura-suelo', [ConfiguracionController::class, 'texturaSuelo']);
+            Route::get('fuente-agua', [ConfiguracionController::class, 'fuenteAgua']);
+            Route::get('sexo', [ConfiguracionController::class, 'sexo']);
+            Route::get('tipo-relieve', [ConfiguracionController::class, 'tipoRelieve']);
+        });
 
-    // Terreno
-    Route::apiResource('terrenos', TerrenoController::class);
+        // Reports routes
+        Route::prefix('reportes')->group(function () {
+            Route::get('fincas', [ReportesController::class, 'estadisticasFincas']);
+        });
 
-    // Reproducción
-    Route::apiResource('registro-celo', RegistroCeloController::class);
-    Route::apiResource('servicio-animal', ServicioAnimalController::class);
-    Route::apiResource('reproduccion-animal', ReproduccionAnimalController::class);
-    Route::apiResource('palpacion', PalpacionController::class);
-    Route::apiResource('semen-toro', SemenToroController::class);
+        // Terreno
+        Route::apiResource('terrenos', TerrenoController::class);
 
-    // Salud animal
-    Route::apiResource('diagnostico', DiagnosticoController::class);
-    Route::apiResource('tratamiento', TratamientoController::class);
-    Route::apiResource('vacunas', VacunaController::class);
-    Route::apiResource('casas-comerciales', CasaComercialController::class);
-    Route::get('vacunaciones/animales-elegibles', [VacunacionController::class, 'animalesElegibles']);
-    Route::apiResource('vacunaciones', VacunacionController::class);
+        // Reproducción
+        Route::apiResource('registro-celo', RegistroCeloController::class);
+        Route::apiResource('servicio-animal', ServicioAnimalController::class);
+        Route::apiResource('reproduccion-animal', ReproduccionAnimalController::class);
+        Route::apiResource('palpacion', PalpacionController::class);
+        Route::apiResource('semen-toro', SemenToroController::class);
 
-    // Inventario
-    Route::apiResource('inventario-general', InventarioGeneralController::class);
-    Route::apiResource('inventario-vacuno', InventarioVacunoController::class);
+        // Salud animal
+        Route::apiResource('diagnostico', DiagnosticoController::class);
+        Route::apiResource('tratamiento', TratamientoController::class);
+        Route::apiResource('vacunas', VacunaController::class);
+        Route::apiResource('casas-comerciales', CasaComercialController::class);
+        Route::get('vacunaciones/animales-elegibles', [VacunacionController::class, 'animalesElegibles']);
+        Route::apiResource('vacunaciones', VacunacionController::class);
 
-    // Movimientos de rebaño
-    Route::apiResource('movimiento-rebano', MovimientoRebanoController::class);
+        // Inventario
+        Route::apiResource('inventario-general', InventarioGeneralController::class);
+        Route::apiResource('inventario-vacuno', InventarioVacunoController::class);
 
-    // Animal relationship management routes
-    Route::prefix('animales/{animal}')->group(function () {
-        Route::post('estado-animal', [AnimalController::class, 'createEstadoAnimal']);
-        Route::put('estado-animal/{estado}', [AnimalController::class, 'updateEstadoAnimal']);
-        Route::post('etapa-animal', [AnimalController::class, 'createEtapaAnimal']);
-        Route::put('etapa-animal/{etapa}', [AnimalController::class, 'updateEtapaAnimal']);
+        // Movimientos de rebaño
+        Route::apiResource('movimiento-rebano', MovimientoRebanoController::class);
 
-        // Árbol genealógico
-        Route::get('arbol', [ArbolGenController::class, 'getTree']);
-        Route::post('progenitor', [ArbolGenController::class, 'setParent']);
-        Route::delete('progenitor/{tipo}', [ArbolGenController::class, 'removeParent']);
-        Route::get('progenitores-disponibles', [ArbolGenController::class, 'getAvailableParents']);
+        // Animal relationship management routes
+        Route::prefix('animales/{animal}')->group(function () {
+            Route::post('estado-animal', [AnimalController::class, 'createEstadoAnimal']);
+            Route::put('estado-animal/{estado}', [AnimalController::class, 'updateEstadoAnimal']);
+            Route::post('etapa-animal', [AnimalController::class, 'createEtapaAnimal']);
+            Route::put('etapa-animal/{etapa}', [AnimalController::class, 'updateEtapaAnimal']);
+
+            // Árbol genealógico
+            Route::get('arbol', [ArbolGenController::class, 'getTree']);
+            Route::post('progenitor', [ArbolGenController::class, 'setParent']);
+            Route::delete('progenitor/{tipo}', [ArbolGenController::class, 'removeParent']);
+            Route::get('progenitores-disponibles', [ArbolGenController::class, 'getAvailableParents']);
+        });
+
     });
 });

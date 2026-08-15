@@ -134,6 +134,9 @@ class UserService
             }
             if (isset($data['status'])) {
                 $user->status = $data['status'];
+                if ($data['status'] === 'suspended') {
+                    $user->tokens()->delete();
+                }
             }
 
             $persona = $user->personas()->first();
