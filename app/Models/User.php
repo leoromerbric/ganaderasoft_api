@@ -90,11 +90,28 @@ class User extends Authenticatable
     }
 
     /**
+     * Verificar si el usuario posee uno o varios roles específicos.
+     *
+     * @param string|array $roles Código del rol o lista de códigos
+     * @return bool
+     */
+    public function hasRole($roles): bool
+    {
+        $roleList = is_array($roles) ? $roles : [$roles];
+
+        if ($this->relationLoaded('roles')) {
+            return $this->roles->pluck('code')->intersect($roleList)->isNotEmpty();
+        }
+
+        return $this->roles()->whereIn('code', $roleList)->exists();
+    }
+
+    /**
      * Verificar si el usuario es administrador.
      */
     public function isAdmin(): bool
     {
-        return $this->roles()->whereIn('code', ['admin', 'global_admin'])->exists();
+        return $this->hasRole(['admin', 'global_admin']);
     }
 
     /**
@@ -102,7 +119,7 @@ class User extends Authenticatable
      */
     public function isPropietario(): bool
     {
-        return $this->roles()->where('code', 'propietario')->exists();
+        return $this->hasRole('propietario');
     }
 
     /**

@@ -134,9 +134,6 @@ class UserService
             }
             if (isset($data['status'])) {
                 $user->status = $data['status'];
-                if ($data['status'] === 'suspended') {
-                    $user->tokens()->delete();
-                }
             }
 
             $persona = $user->personas()->first();
@@ -242,9 +239,7 @@ class UserService
 
         $user->update(['status' => 'suspended']);
         
-        // Revocar todos los tokens de sesión actuales para expulsarlo de la app inmediatamente
-        $user->tokens()->delete();
-        
+        // Mantiene sus tokens de sesión para permitir autenticarse y consultar únicamente su perfil en la app
         return $user;
     }
 
