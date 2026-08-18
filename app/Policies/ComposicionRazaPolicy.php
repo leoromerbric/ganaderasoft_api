@@ -50,7 +50,7 @@ class ComposicionRazaPolicy extends BasePolicy
             return $this->checkFincaAccess($user, $model->finca_id);
         }
         
-        return true;
+        return false;
     }
 
     /**
@@ -64,6 +64,6 @@ class ComposicionRazaPolicy extends BasePolicy
             return $this->checkFincaAccess($user, $model->finca_id);
         }
         
-        return true;
+        return false;
     }
 }

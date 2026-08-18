@@ -26,8 +26,15 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'email_verified_at' => $this->email_verified_at ? $this->email_verified_at->toIso8601String() : null,
             'created_at' => $this->created_at ? $this->created_at->toIso8601String() : null,
+            'updated_at' => $this->updated_at ? $this->updated_at->toIso8601String() : null,
             'status' => $this->status,
-            'roles' => $this->whenLoaded('roles', fn() => $this->roles->pluck('code')),
+            'roles' => $this->whenLoaded('roles', fn() => $this->roles->map(function ($role) {
+                return [
+                    'code' => $role->code,
+                    'name' => $role->name,
+                    'permissions' => $role->relationLoaded('permissions') ? $role->permissions->pluck('code')->values()->all() : [],
+                ];
+            })),
 
             // Datos de la Persona física vinculada (solo si está cargada y existe)
             'persona' => $this->when(

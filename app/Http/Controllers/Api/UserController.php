@@ -28,7 +28,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         try {
-            $filters = $request->only(['name', 'email', 'status', 'nopaginate']);
+            $filters = $request->only(['name', 'email', 'status', 'nopaginate', 'search', 'role']);
             $users = $this->userService->listUsers($filters, $request->user());
 
             return response()->json([
@@ -56,7 +56,7 @@ class UserController extends Controller
             'telefono' => 'nullable|string|max:20',
             'correo' => 'required|string|email|max:255|unique:users,email|unique:personas,correo',
             'password' => 'required|string|min:8|confirmed',
-            'roles' => 'required|array',
+            'roles' => 'required|array|min:1',
             'roles.*' => 'string|exists:roles,code',
             'status' => 'nullable|string|in:active,suspended'
         ]);
@@ -129,7 +129,7 @@ class UserController extends Controller
             // En update permitimos el mismo correo si es el mismo usuario. Asumiremos que el frontend o servicio controla esto, pero idealmente:
             'correo' => 'sometimes|string|email|max:255|unique:users,email,'.$id, 
             'password' => 'sometimes|string|min:8|confirmed',
-            'roles' => 'sometimes|array',
+            'roles' => 'sometimes|array|min:1',
             'roles.*' => 'string|exists:roles,code',
             'status' => 'sometimes|string|in:active,suspended'
         ]);

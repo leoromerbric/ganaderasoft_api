@@ -32,6 +32,28 @@ class ComposicionRazaService extends BaseService
             $query->byName($filters['nombre']);
         }
 
+        if (!empty($filters['finca_id'])) {
+            // Filtro estricto: si envía finca_id, se retorna SOLO esa finca.
+            if (!$user->isAdmin()) {
+                $fincasPermitidas = $user->getAllowedFincasIds();
+                if (!in_array($filters['finca_id'], $fincasPermitidas)) {
+                    throw new AuthorizationException('No tiene permisos para acceder a las razas de esta finca.');
+                }
+            }
+            $query->where('finca_id', $filters['finca_id']);
+        } else {
+            // Sin filtro: Retorna todo a lo que tiene acceso (Globales + Sus Fincas)
+            if (!$user->isAdmin()) {
+                $query->where(function($q) use ($user) {
+                    $q->whereNull('finca_id')
+                      ->orWhere(function($subQ) use ($user) {
+                          $this->applyFincaFilter($subQ, $user, null, 'finca_id');
+                      });
+                });
+            }
+            // Si es Admin, no aplica ningún WHERE, retornando TODA la BD.
+        }
+
         if (!empty($filters['nopaginate'])) {
             return $query->get();
         }

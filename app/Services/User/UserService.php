@@ -24,6 +24,20 @@ class UserService
 
         $query = User::with(['personas', 'roles', 'fincas']);
 
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('email', 'like', '%' . $search . '%');
+            });
+        }
+
+        if (!empty($filters['role'])) {
+            $query->whereHas('roles', function ($q) use ($filters) {
+                $q->where('code', $filters['role']);
+            });
+        }
+
         if (!empty($filters['name'])) {
             $query->where('name', 'like', '%' . $filters['name'] . '%');
         }
@@ -79,7 +93,7 @@ class UserService
 
             // Crear el usuario con el mismo correo que la persona
             $user = User::create([
-                'name' => $data['nombre'] . ' ' . $data['apellido'],
+                'name' => $data['nombre'],
                 'email' => $data['correo'],
                 'password' => Hash::make($data['password']),
                 'status' => $data['status'] ?? 'active',
@@ -107,7 +121,7 @@ class UserService
      */
     public function getUser($id, User $adminUser)
     {
-        $user = User::with(['personas', 'roles', 'fincas'])->findOrFail($id);
+        $user = User::with(['personas', 'roles.permissions', 'fincas'])->findOrFail($id);
 
         if ($adminUser->cannot('read', $user)) {
             throw new AuthorizationException('No tienes permisos para ver este usuario.');
@@ -153,9 +167,9 @@ class UserService
                 
                 $persona->save();
                 
-                // Si cambiaron nombre/apellido, actualizamos el 'name' del user
-                if (isset($data['nombre']) || isset($data['apellido'])) {
-                    $user->name = $persona->nombre . ' ' . $persona->apellido;
+                // Si cambió el nombre, actualizamos el 'name' del user
+                if (isset($data['nombre'])) {
+                    $user->name = $persona->nombre;
                 }
             }
 
@@ -175,8 +189,14 @@ class UserService
                         if (in_array('propietario', $newRoleCodes)) {
                             Propietario::firstOrCreate(['persona_id' => $persona->id]);
                         } else {
-                            // Eliminar si ya no es propietario
-                            Propietario::where('persona_id', $persona->id)->delete();
+                            // Eliminar si ya no es propietario, pero verificar primero
+                            $propietario = Propietario::where('persona_id', $persona->id)->first();
+                            if ($propietario) {
+                                if ($propietario->fincas()->exists()) {
+                                    throw new \Exception("No se puede quitar el rol de propietario porque tiene fincas registradas. Transfiéralas o elimínelas primero.");
+                                }
+                                $propietario->delete();
+                            }
                         }
 
                         if (in_array('global_admin', $newRoleCodes) || in_array('admin', $newRoleCodes)) {
@@ -209,6 +229,15 @@ class UserService
             $q->where('code', 'global_admin');
         })->count() <= 1) {
             throw new \Exception('No puedes eliminar al último administrador global.');
+        }
+
+        // Proteger fincas huérfanas
+        $persona = $user->personas()->first();
+        if ($persona) {
+            $propietario = Propietario::where('persona_id', $persona->id)->first();
+            if ($propietario && $propietario->fincas()->exists()) {
+                throw new \Exception("No puedes eliminar este usuario porque es propietario de fincas. Desactiva la cuenta o transfiere las fincas primero.");
+            }
         }
 
         return DB::transaction(function () use ($user) {

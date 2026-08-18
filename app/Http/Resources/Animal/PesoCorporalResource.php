@@ -25,6 +25,17 @@ class PesoCorporalResource extends JsonResource
             'comentario'      => $this->comentario,
             'created_at'      => $this->created_at ? $this->created_at->toIso8601String() : null,
             'updated_at'      => $this->updated_at ? $this->updated_at->toIso8601String() : null,
+            'animal'          => $this->whenLoaded('etapaAnimal', function () {
+                if ($this->etapaAnimal && $this->etapaAnimal->relationLoaded('animal')) {
+                    $animal = $this->etapaAnimal->animal;
+                    return $animal ? [
+                        'id' => $animal->id,
+                        'nombre' => $animal->nombre,
+                        'codigo_animal' => $animal->codigo_animal,
+                    ] : null;
+                }
+                return null;
+            }),
         ];
     }
 }

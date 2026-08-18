@@ -23,7 +23,7 @@ class PermissionSeeder extends Seeder
             'animal' => ['animal', 'arbol_gen', 'cambios_animal', 'composicion_raza', 'tipo_animal', 'etapa', 'medidas_corporales', 'peso_corporal'],
             'rebano' => ['rebano', 'movimiento_rebano'],
             'sanidad' => ['tratamiento', 'vacuna', 'vacunacion', 'diagnostico', 'estado_salud', 'estado_animal'],
-            'reproduccion' => ['palpacion', 'registro_celo', 'reproduccion_animal', 'semen_toro', 'servicio_animal'],
+            'reproduccion' => ['palpacion', 'registro_celo', 'reproduccion_animal', 'semen_toro', 'servicio_animal', 'dia_palpacion', 'foliculo', 'ovario', 'cuerno'],
             'inventario' => ['casa_comercial', 'inventario_bufalo', 'inventario_general', 'inventario_vacuno'],
             'produccion' => ['leche', 'lactancia']
         ];

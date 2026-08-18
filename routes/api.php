@@ -14,11 +14,14 @@ use App\Http\Controllers\Api\CambiosAnimalController;
 use App\Http\Controllers\Api\CasaComercialController;
 use App\Http\Controllers\Api\ComposicionRazaController;
 use App\Http\Controllers\Api\ConfiguracionController;
+use App\Http\Controllers\Api\CuernoController;
 use App\Http\Controllers\Api\DiagnosticoController;
+use App\Http\Controllers\Api\DiaPalpacionController;
 use App\Http\Controllers\Api\EstadoAnimalController;
 use App\Http\Controllers\Api\EstadoSaludController;
 use App\Http\Controllers\Api\EtapaController;
 use App\Http\Controllers\Api\FincaController;
+use App\Http\Controllers\Api\FoliculoController;
 use App\Http\Controllers\Api\InventarioBufaloController;
 use App\Http\Controllers\Api\InventarioGeneralController;
 use App\Http\Controllers\Api\InventarioVacunoController;
@@ -26,6 +29,7 @@ use App\Http\Controllers\Api\LactanciaController;
 use App\Http\Controllers\Api\LecheController;
 use App\Http\Controllers\Api\MedidasCorporalesController;
 use App\Http\Controllers\Api\MovimientoRebanoController;
+use App\Http\Controllers\Api\OvarioController;
 use App\Http\Controllers\Api\PalpacionController;
 use App\Http\Controllers\Api\PersonalFincaController;
 use App\Http\Controllers\Api\PesoCorporalController;
@@ -149,6 +153,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('servicio-animal', ServicioAnimalController::class);
         Route::apiResource('reproduccion-animal', ReproduccionAnimalController::class);
         Route::apiResource('palpacion', PalpacionController::class);
+        Route::apiResource('dias-palpacion', DiaPalpacionController::class);
+        Route::apiResource('foliculos', FoliculoController::class);
+        Route::apiResource('ovarios', OvarioController::class);
+        Route::apiResource('cuernos', CuernoController::class);
         Route::apiResource('semen-toro', SemenToroController::class);
 
         // Salud animal

@@ -63,7 +63,7 @@ class AuthController extends Controller
         // NOTA: Se permite el login a cuentas suspendidas para que puedan autenticarse 
         // y consultar su perfil y estado de cuenta restringido en la interfaz.
 
-        $user->load('roles');
+        $user->load(['roles.permissions']);
         $token = $user->createToken('GanaderaSoft API Token')->plainTextToken;
 
         return response()->json([
@@ -83,7 +83,7 @@ class AuthController extends Controller
     public function profile(Request $request)
     {
         $user = $request->user();
-        $user->load(['roles', 'personas', 'personas.propietario.persona']);
+        $user->load(['roles.permissions', 'personas', 'personas.propietario.persona']);
         
         return response()->json([
             'success' => true,
