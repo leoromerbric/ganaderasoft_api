@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Services\Animal\AnimalService;
 use App\Services\Sanidad\EstadoAnimalService;
 use App\Services\Animal\AnimalEtapaService;
+use App\Services\Animal\AnimalImportService;
+use App\Http\Requests\Animal\CSVRequest;
 use App\Http\Resources\Animal\AnimalResource;
 use App\Http\Resources\Sanidad\EstadoAnimalResource;
 use App\Http\Resources\Animal\EtapaAnimalResource;
@@ -33,7 +35,8 @@ class AnimalController extends Controller
     public function __construct(
         private AnimalService $animalService,
         private EstadoAnimalService $estadoService,
-        private AnimalEtapaService $etapaService
+        private AnimalEtapaService $etapaService,
+        private AnimalImportService $animalImportService
     ) {
         $this->middleware(NormalizeIndex::class)->only('index');
         $this->middleware(NormalizeStore::class)->only('store');
@@ -426,6 +429,50 @@ class AnimalController extends Controller
                 'success' => false,
                 'message' => $e->getMessage()
             ], Response::HTTP_FORBIDDEN);
+        }
+    }
+
+    /**
+     * Importación masiva de animales a rebaños a partir de archivo delimitado (.csv / .txt).
+     *
+     * @param CSVRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function cargarAnimalesMasivo(CSVRequest $request)
+    {
+        try {
+            $result = $this->animalImportService->importFromCsv(
+                $request->file('archivo'),
+                (int) $request->finca_id,
+                $request->user()
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => "Se importaron {$result['total_procesados']} animales exitosamente.",
+                'data'    => [
+                    'total_procesados' => $result['total_procesados'],
+                    'rebanos_creados'  => $result['rebanos_creados'],
+                    'finca'            => $result['finca'],
+                    'animales'         => $this->formatCollection(AnimalResource::class, $result['animales']),
+                ]
+            ], Response::HTTP_CREATED);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Errores de validación en los datos del archivo.',
+                'errors'  => $e->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error inesperado al procesar el archivo: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

@@ -31,4 +31,24 @@ abstract class BaseService
         
         return $query;
     }
+
+    /**
+     * Valida si el usuario tiene acceso a la finca especificada.
+     * 
+     * @param mixed $user
+     * @param int|null $fincaId
+     * @return bool
+     */
+    protected function checkFincaAccess($user, ?int $fincaId): bool
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if (!$fincaId) {
+            return false;
+        }
+
+        return in_array($fincaId, $user->getAllowedFincasIds());
+    }
 }
