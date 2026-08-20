@@ -12,8 +12,11 @@ use App\Http\Middleware\Legacy\Finca\NormalizeUpdate;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\Finca\CSVFincaRequest;
+use App\Services\Finca\FincaImportService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Validation\ValidationException;
 
 class FincaController extends Controller
 {
@@ -22,7 +25,8 @@ class FincaController extends Controller
      * Inyecta el servicio de Finca y registra los middlewares de compatibilidad legacy.
      */
     public function __construct(
-        private FincaService $fincaService
+        private FincaService $fincaService,
+        private FincaImportService $fincaImportService
     ) {
         $this->middleware(NormalizeIndex::class)->only('index');
         $this->middleware(NormalizeStore::class)->only('store');
@@ -203,5 +207,60 @@ class FincaController extends Controller
                 'message' => $e->getMessage()
             ], Response::HTTP_FORBIDDEN);
         }
+    }
+
+    /**
+     * Importación masiva de fincas a partir de archivo delimitado (.csv / .txt).
+     *
+     * @param CSVFincaRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function importar(CSVFincaRequest $request)
+    {
+        try {
+            $propietarioId = $request->input('propietario_id') ? (int) $request->input('propietario_id') : null;
+            $result = $this->fincaImportService->importFincas(
+                $request->file('archivo'),
+                $propietarioId,
+                $request->user()
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => "Se importaron {$result['total_creadas']} fincas exitosamente.",
+                'data'    => $result,
+            ], Response::HTTP_CREATED);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Errores de validación en los datos del archivo.',
+                'errors'  => $e->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error inesperado al procesar el archivo: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Descarga la plantilla oficial CSV para la importación masiva de fincas.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function plantilla()
+    {
+        $csvContent = $this->fincaImportService->generateTemplate();
+
+        return response($csvContent, 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="plantilla_fincas.csv"',
+        ]);
     }
 }

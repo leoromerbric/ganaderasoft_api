@@ -107,7 +107,9 @@ Route::middleware('auth:sanctum')->group(function () {
         // Permisos del Rol
         Route::apiResource('roles.permissions', RolePermissionController::class)->only(['index', 'store', 'destroy']);
 
-        // Rutas CRUD de entidades principales
+        // Importación masiva de fincas
+        Route::get('fincas/importar/plantilla', [FincaController::class, 'plantilla']);
+        Route::post('fincas/importar', [FincaController::class, 'importar']);
         Route::apiResource('fincas', FincaController::class);
         Route::apiResource('propietarios', PropietarioController::class);
         Route::apiResource('rebanos', RebanoController::class);
