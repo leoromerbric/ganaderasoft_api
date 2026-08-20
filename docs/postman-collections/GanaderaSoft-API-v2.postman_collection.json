@@ -9294,7 +9294,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/api/vacunaciones/animales-elegibles",
+                            "raw": "{{base_url}}/api/vacunaciones/animales-elegibles?rebano_id=1&sexo=H&etapa_id=1",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -9305,8 +9305,20 @@
                             ],
                             "query": [
                                 {
-                                    "key": "nopaginate",
-                                    "value": "true",
+                                    "key": "rebano_id",
+                                    "value": "1",
+                                    "description": "ID del rebaño (Obligatorio)"
+                                },
+                                {
+                                    "key": "sexo",
+                                    "value": "H",
+                                    "description": "Filtrar por sexo: M o H (Opcional)",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "etapa_id",
+                                    "value": "1",
+                                    "description": "Filtrar por etapa productiva (Opcional)",
                                     "disabled": true
                                 }
                             ]
@@ -9340,7 +9352,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/api/vacunaciones?nopaginate=1",
+                            "raw": "{{base_url}}/api/vacunaciones?animal_id=1&vacuna_id=1&rebano_id=1&finca_id=1&fecha_inicio=2026-01-01&fecha_fin=2026-12-31&nopaginate=1",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -9350,8 +9362,45 @@
                             ],
                             "query": [
                                 {
+                                    "key": "animal_id",
+                                    "value": "1",
+                                    "description": "Filtrar por ID del animal",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "vacuna_id",
+                                    "value": "1",
+                                    "description": "Filtrar por ID de la vacuna",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "rebano_id",
+                                    "value": "1",
+                                    "description": "Filtrar por ID del rebaño",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "finca_id",
+                                    "value": "1",
+                                    "description": "Filtrar por ID de la finca",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "fecha_inicio",
+                                    "value": "2026-01-01",
+                                    "description": "Fecha inicial de rango",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "fecha_fin",
+                                    "value": "2026-12-31",
+                                    "description": "Fecha final de rango",
+                                    "disabled": true
+                                },
+                                {
                                     "key": "nopaginate",
                                     "value": "1",
+                                    "description": "Desactivar paginación (1 / true)",
                                     "disabled": true
                                 }
                             ]
@@ -9396,7 +9445,7 @@
                         },
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"vacuna_id\": 1,\n    \"fecha\": \"2024-01-01\",\n    \"proxima_fecha\": \"2024-06-01\",\n    \"responsable_id\": 1,\n    \"dosis\": \"2ml\",\n    \"costo\": 50,\n    \"observaciones\": \"\",\n    \"animales\": [\n        {\n            \"id\": 1,\n            \"dosis_aplicada\": \"2ml\"\n        }\n    ]\n}"
+                            "raw": "{\n    \"vacuna_id\": 1,\n    \"persona_id\": 1,\n    \"animal_ids\": [\n        1,\n        2\n    ],\n    \"fecha\": \"2026-08-20\",\n    \"dosis\": 5.0,\n    \"costo\": 2.50,\n    \"lote\": \"LOT-2026-001\",\n    \"observacion\": \"Jornada de vacunación sanitaria\"\n}"
                         }
                     },
                     "response": []
@@ -9478,7 +9527,7 @@
                         },
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"fecha\": \"2024-01-02\"\n}"
+                            "raw": "{\n    \"fecha\": \"2026-08-20\",\n    \"dosis\": 5.0,\n    \"costo\": 2.50,\n    \"lote\": \"LOT-2026-001-REV\",\n    \"observacion\": \"Actualización de datos de vacunación\"\n}"
                         }
                     },
                     "response": []
