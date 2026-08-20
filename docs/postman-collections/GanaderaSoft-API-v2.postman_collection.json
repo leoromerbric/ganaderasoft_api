@@ -9340,6 +9340,24 @@
                                     "disabled": true
                                 },
                                 {
+                                    "key": "sexo",
+                                    "value": "H",
+                                    "description": "Filtrar por sexo del animal: M o H",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "etapa_id",
+                                    "value": "1",
+                                    "description": "Filtrar por etapa productiva del animal",
+                                    "disabled": true
+                                },
+                                {
+                                    "key": "archivado",
+                                    "value": "todos",
+                                    "description": "Filtro de archivo: false/0 (solo activos por defecto), true/1 (solo archivados), todos (historial completo)",
+                                    "disabled": true
+                                },
+                                {
                                     "key": "nopaginate",
                                     "value": "1",
                                     "description": "Desactivar paginación (1 / true)",

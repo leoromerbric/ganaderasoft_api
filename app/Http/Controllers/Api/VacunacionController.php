@@ -5,29 +5,40 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Sanidad\VacunacionResource;
 use App\Services\Sanidad\VacunacionService;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 
 class VacunacionController extends Controller
 {
     public function __construct(
         protected VacunacionService $vacunacionService
-    ) {
-    }
+    ) {}
 
     /**
-     * Listar registros de vacunación con filtros y paginación.
+     * Listar registros de vacunación aplicando filtros y paginación.
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         try {
             $filters = $request->only([
-                'animal_id', 'vacuna_id', 'rebano_id', 'finca_id', 
-                'fecha_inicio', 'fecha_fin', 'nopaginate'
+                'animal_id',
+                'vacuna_id',
+                'rebano_id',
+                'finca_id',
+                'sexo',
+                'etapa_id',
+                'archivado',
+                'fecha_inicio',
+                'fecha_fin',
+                'nopaginate',
             ]);
             $perPage = (int) $request->input('per_page', 15);
 
@@ -41,15 +52,18 @@ class VacunacionController extends Controller
         } catch (AuthorizationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], Response::HTTP_FORBIDDEN);
         }
     }
 
     /**
-     * Registrar una o múltiples vacunaciones (soporta individual o masivo).
+     * Registrar una o múltiples vacunaciones (individual o masivo por lote).
+     *
+     * @param Request $request
+     * @return JsonResponse
      */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'vacuna_id'     => 'required|integer|exists:vacunas,id',
@@ -63,9 +77,9 @@ class VacunacionController extends Controller
             'animal_ids'    => 'required_without:animal_id|array|min:1',
             'animal_ids.*'  => 'integer|exists:animals,id',
         ], [
-            'vacuna_id.required'  => 'Debe seleccionar una vacuna válida.',
-            'fecha.required'      => 'La fecha de vacunación es obligatoria.',
-            'animal_id.required_without' => 'Debe indicar al menos un animal a vacunar.',
+            'vacuna_id.required'          => 'Debe seleccionar una vacuna válida.',
+            'fecha.required'              => 'La fecha de vacunación es obligatoria.',
+            'animal_id.required_without'  => 'Debe indicar al menos un animal a vacunar.',
             'animal_ids.required_without' => 'Debe indicar al menos un animal a vacunar.',
         ]);
 
@@ -73,15 +87,15 @@ class VacunacionController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Datos de vacunación inválidos',
-                'errors'  => $validator->errors()
+                'errors'  => $validator->errors(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         try {
-            $createdRecords = $this->vacunacionService->createVacunacion($request->only([
-                'vacuna_id', 'persona_id', 'fecha', 'dosis', 'costo', 'lote', 'observacion',
-                'animal_id', 'animal_ids'
-            ]), $request->user());
+            $createdRecords = $this->vacunacionService->createVacunacion(
+                $validator->validated(),
+                $request->user()
+            );
 
             if (count($createdRecords) === 1) {
                 return response()->json([
@@ -92,32 +106,35 @@ class VacunacionController extends Controller
             }
 
             return response()->json([
-                'success' => true,
-                'message' => sprintf('Se registraron exitosamente %d vacunaciones', count($createdRecords)),
+                'success'           => true,
+                'message'           => sprintf('Se registraron exitosamente %d vacunaciones', count($createdRecords)),
                 'total_registrados' => count($createdRecords),
-                'data'    => $this->formatCollection(VacunacionResource::class, collect($createdRecords)),
+                'data'              => $this->formatCollection(VacunacionResource::class, collect($createdRecords)),
             ], Response::HTTP_CREATED);
         } catch (AuthorizationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], Response::HTTP_FORBIDDEN);
         } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error de validación',
-                'errors'  => $e->errors()
+                'errors'  => $e->errors(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
     }
 
     /**
      * Ver detalle de un registro de vacunación.
+     *
+     * @param int|string $id
+     * @return JsonResponse
      */
-    public function show($id)
+    public function show($id): JsonResponse
     {
         try {
-            $vacunacion = $this->vacunacionService->getVacunacionById((int)$id, request()->user());
+            $vacunacion = $this->vacunacionService->getVacunacionById((int) $id, request()->user());
 
             return response()->json([
                 'success' => true,
@@ -127,20 +144,24 @@ class VacunacionController extends Controller
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Registro de vacunación no encontrado'
+                'message' => 'Registro de vacunación no encontrado',
             ], Response::HTTP_NOT_FOUND);
         } catch (AuthorizationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], Response::HTTP_FORBIDDEN);
         }
     }
 
     /**
      * Actualizar los datos de un registro de vacunación individual.
+     *
+     * @param Request $request
+     * @param int|string $id
+     * @return JsonResponse
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'animal_id'   => 'sometimes|required|integer|exists:animals,id',
@@ -157,12 +178,16 @@ class VacunacionController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Datos de validación incorrectos',
-                'errors'  => $validator->errors()
+                'errors'  => $validator->errors(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         try {
-            $vacunacion = $this->vacunacionService->updateVacunacion((int)$id, $validator->validated(), $request->user());
+            $vacunacion = $this->vacunacionService->updateVacunacion(
+                (int) $id,
+                $validator->validated(),
+                $request->user()
+            );
 
             return response()->json([
                 'success' => true,
@@ -172,37 +197,40 @@ class VacunacionController extends Controller
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Registro de vacunación no encontrado'
+                'message' => 'Registro de vacunación no encontrado',
             ], Response::HTTP_NOT_FOUND);
         } catch (AuthorizationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], Response::HTTP_FORBIDDEN);
         }
     }
 
     /**
      * Eliminar un registro de vacunación.
+     *
+     * @param int|string $id
+     * @return JsonResponse
      */
-    public function destroy($id)
+    public function destroy($id): JsonResponse
     {
         try {
-            $this->vacunacionService->deleteVacunacion((int)$id, request()->user());
+            $this->vacunacionService->deleteVacunacion((int) $id, request()->user());
 
             return response()->json([
                 'success' => true,
-                'message' => 'Registro de vacunación eliminado exitosamente'
+                'message' => 'Registro de vacunación eliminado exitosamente',
             ], Response::HTTP_OK);
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Registro de vacunación no encontrado'
+                'message' => 'Registro de vacunación no encontrado',
             ], Response::HTTP_NOT_FOUND);
         } catch (AuthorizationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], Response::HTTP_FORBIDDEN);
         }
     }

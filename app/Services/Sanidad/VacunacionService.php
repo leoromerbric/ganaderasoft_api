@@ -6,15 +6,23 @@ use App\Models\Animal;
 use App\Models\Vacunacion;
 use App\Services\BaseService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class VacunacionService extends BaseService
 {
     /**
-     * Obtiene una lista paginada de vacunaciones con filtros y aislamiento multi-finca.
+     * Obtiene una lista de vacunaciones con filtros completos, paginación y aislamiento multi-finca.
+     *
+     * @param array $filters
+     * @param mixed $user
+     * @param int $perPage
+     * @return LengthAwarePaginator|Collection
+     * @throws AuthorizationException
      */
-    public function getPaginatedVacunaciones(array $filters, $user, int $perPage = 15)
+    public function getPaginatedVacunaciones(array $filters, $user, int $perPage = 15): LengthAwarePaginator|Collection
     {
         if ($user->cannot('readAny', Vacunacion::class)) {
             throw new AuthorizationException('No tienes permisos para listar vacunaciones.');
@@ -22,27 +30,64 @@ class VacunacionService extends BaseService
 
         $query = Vacunacion::with(['animal.rebano.finca', 'vacuna', 'aplicador']);
 
+        // Filtro por animal específico
         if (!empty($filters['animal_id'])) {
             $query->forAnimal((int) $filters['animal_id']);
         }
 
+        // Filtro por vacuna
         if (!empty($filters['vacuna_id'])) {
             $query->forVacuna((int) $filters['vacuna_id']);
         }
 
-        if (!empty($filters['rebano_id'])) {
-            $query->forRebano((int) $filters['rebano_id']);
-        }
-
+        // Filtro por finca
         if (!empty($filters['finca_id'])) {
             $query->forFinca((int) $filters['finca_id']);
         }
 
+        // Filtro por rebaño
+        if (!empty($filters['rebano_id'])) {
+            $query->forRebano((int) $filters['rebano_id']);
+        }
+
+        // Filtro por sexo del animal (M / H)
+        if (!empty($filters['sexo'])) {
+            $query->whereHas('animal', function ($q) use ($filters) {
+                $q->where('sexo', $filters['sexo']);
+            });
+        }
+
+        // Filtro por etapa productiva actual del animal
+        if (!empty($filters['etapa_id'])) {
+            $etapaId = (int) $filters['etapa_id'];
+            $query->whereHas('animal.etapaAnimales', function ($q) use ($etapaId) {
+                $q->where('etapa_id', $etapaId)
+                  ->where(function ($sq) {
+                      $sq->whereNull('fecha_fin')
+                         ->orWhere('fecha_fin', '>', now()->toDateString());
+                  });
+            });
+        }
+
+        // Filtro de archivado:
+        // - 'archivado' => true / 1 / '1' => solo vacunaciones de animales archivados
+        // - 'archivado' => 'todos' / 'all' => activos + archivados (historial completo)
+        // - por defecto => solo vacunaciones de animales activos
+        $archivadoFilter = $filters['archivado'] ?? false;
+        if ($archivadoFilter === true || $archivadoFilter === 'true' || $archivadoFilter === '1' || $archivadoFilter === 1) {
+            $query->whereHas('animal', fn($q) => $q->where('archivado', true));
+        } elseif ($archivadoFilter === 'todos' || $archivadoFilter === 'all') {
+            // Historial completo sin filtro de estado
+        } else {
+            $query->whereHas('animal', fn($q) => $q->where('archivado', false));
+        }
+
+        // Filtro por rango de fechas
         if (!empty($filters['fecha_inicio']) || !empty($filters['fecha_fin'])) {
             $query->betweenDates($filters['fecha_inicio'] ?? null, $filters['fecha_fin'] ?? null);
         }
 
-        // Filtro automático multi-finca
+        // Aislamiento multi-finca según los permisos del usuario
         $this->applyFincaFilter($query, $user, 'animal.rebano');
 
         if (isset($filters['nopaginate']) && filter_var($filters['nopaginate'], FILTER_VALIDATE_BOOLEAN)) {
@@ -53,17 +98,22 @@ class VacunacionService extends BaseService
     }
 
     /**
-     * Registra una o múltiples vacunaciones en una transacción.
+     * Registra una o múltiples vacunaciones dentro de una transacción atómica.
+     *
+     * @param array $data
+     * @param mixed $user
+     * @return array<Vacunacion>
+     * @throws AuthorizationException|ValidationException
      */
-    public function createVacunacion(array $data, $user)
+    public function createVacunacion(array $data, $user): array
     {
         if ($user->cannot('create', Vacunacion::class)) {
             throw new AuthorizationException('No tienes permisos para registrar vacunaciones.');
         }
 
-        // Lista de animales
+        // Normalizar lista de IDs de animales
         $animalIds = !empty($data['animal_ids'])
-            ? collect($data['animal_ids'])->unique()->all()
+            ? collect($data['animal_ids'])->map(fn($id) => (int)$id)->unique()->values()->all()
             : [(int) ($data['animal_id'] ?? 0)];
 
         if (empty($animalIds) || $animalIds[0] === 0) {
@@ -72,7 +122,15 @@ class VacunacionService extends BaseService
             ]);
         }
 
-        // Validar acceso multi-finca a todos los animales
+        // Validar que los animales a vacunar estén activos
+        $inactivosCount = Animal::whereIn('id', $animalIds)->where('archivado', true)->count();
+        if ($inactivosCount > 0) {
+            throw ValidationException::withMessages([
+                'animal_ids' => ['No es posible registrar vacunaciones en animales inactivos, vendidos o fallecidos.']
+            ]);
+        }
+
+        // Validar permisos multi-finca sobre los animales
         if (!$user->isAdmin()) {
             $fincasPermitidas = $user->getAllowedFincasIds();
             $validCount = Animal::whereIn('id', $animalIds)
@@ -84,12 +142,12 @@ class VacunacionService extends BaseService
             }
         }
 
-        $vacunaId   = (int) $data['vacuna_id'];
-        $personaId  = !empty($data['persona_id']) ? (int) $data['persona_id'] : null;
-        $fecha      = $data['fecha'];
-        $dosis      = isset($data['dosis']) ? (float) $data['dosis'] : null;
-        $costo      = (float) ($data['costo'] ?? 0);
-        $lote       = $data['lote'] ?? null;
+        $vacunaId    = (int) $data['vacuna_id'];
+        $personaId   = !empty($data['persona_id']) ? (int) $data['persona_id'] : null;
+        $fecha       = $data['fecha'];
+        $dosis       = isset($data['dosis']) ? (float) $data['dosis'] : null;
+        $costo       = (float) ($data['costo'] ?? 0);
+        $lote        = $data['lote'] ?? null;
         $observacion = $data['observacion'] ?? null;
 
         return DB::transaction(function () use ($animalIds, $vacunaId, $personaId, $fecha, $dosis, $costo, $lote, $observacion) {
@@ -109,7 +167,7 @@ class VacunacionService extends BaseService
                         'observacion' => $observacion,
                     ]
                 );
-                $records[] = $vacunacion;
+                $records[] = $vacunacion->load(['animal.rebano.finca', 'vacuna', 'aplicador']);
             }
             return $records;
         });
@@ -117,8 +175,13 @@ class VacunacionService extends BaseService
 
     /**
      * Obtiene una vacunación por su ID.
+     *
+     * @param int $id
+     * @param mixed $user
+     * @return Vacunacion
+     * @throws AuthorizationException
      */
-    public function getVacunacionById($id, $user): Vacunacion
+    public function getVacunacionById(int $id, $user): Vacunacion
     {
         $vacunacion = Vacunacion::with(['animal.rebano.finca', 'vacuna', 'aplicador'])->findOrFail($id);
 
@@ -131,8 +194,14 @@ class VacunacionService extends BaseService
 
     /**
      * Actualiza un registro de vacunación existente.
+     *
+     * @param int $id
+     * @param array $data
+     * @param mixed $user
+     * @return Vacunacion
+     * @throws AuthorizationException
      */
-    public function updateVacunacion($id, array $data, $user): Vacunacion
+    public function updateVacunacion(int $id, array $data, $user): Vacunacion
     {
         $vacunacion = Vacunacion::findOrFail($id);
 
@@ -146,8 +215,13 @@ class VacunacionService extends BaseService
 
     /**
      * Elimina un registro de vacunación.
+     *
+     * @param int $id
+     * @param mixed $user
+     * @return bool
+     * @throws AuthorizationException
      */
-    public function deleteVacunacion($id, $user): bool
+    public function deleteVacunacion(int $id, $user): bool
     {
         $vacunacion = Vacunacion::findOrFail($id);
 
