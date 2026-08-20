@@ -53,50 +53,6 @@ class VacunacionService extends BaseService
     }
 
     /**
-     * Obtiene animales elegibles para vacunación según finca, rebaño, sexo y etapa.
-     */
-    public function getAnimalesElegibles(array $filters, $user)
-    {
-        if ($user->cannot('readAny', Vacunacion::class)) {
-            throw new AuthorizationException('No tienes permisos para consultar animales elegibles.');
-        }
-
-        $query = Animal::query()->where('archivado', false);
-
-        if (!empty($filters['finca_id'])) {
-            $fincaId = (int) $filters['finca_id'];
-            $query->whereHas('rebano', function ($q) use ($fincaId) {
-                $q->where('finca_id', $fincaId);
-            });
-        }
-
-        if (!empty($filters['rebano_id'])) {
-            $query->where('rebano_id', (int) $filters['rebano_id']);
-        }
-
-        if (!empty($filters['sexo'])) {
-            $query->where('sexo', $filters['sexo']);
-        }
-
-        if (!empty($filters['etapa_id'])) {
-            $etapaId = (int) $filters['etapa_id'];
-            $query->whereHas('etapaAnimales', function ($q) use ($etapaId) {
-                $q->where('etapa_id', $etapaId)
-                  ->where(function ($sq) {
-                      $sq->whereNull('fecha_fin')
-                         ->orWhere('fecha_fin', '>', now()->toDateString());
-                  });
-            });
-        }
-
-        // Filtro multi-finca
-        $this->applyFincaFilter($query, $user, 'rebano');
-
-        return $query->orderBy('nombre')
-            ->get(['id', 'rebano_id', 'nombre', 'codigo_animal', 'sexo']);
-    }
-
-    /**
      * Registra una o múltiples vacunaciones en una transacción.
      */
     public function createVacunacion(array $data, $user)

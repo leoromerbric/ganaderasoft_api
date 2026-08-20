@@ -47,44 +47,6 @@ class VacunacionController extends Controller
     }
 
     /**
-     * Obtener lista de animales activos elegibles para vacunación según finca, rebaño, sexo y etapa.
-     */
-    public function animalesElegibles(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'finca_id'  => 'nullable|integer|exists:fincas,id',
-            'rebano_id' => 'nullable|integer|exists:rebanos,id',
-            'sexo'      => 'nullable|in:M,H',
-            'etapa_id'  => 'nullable|integer|exists:etapas,id',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Parámetros de búsqueda inválidos',
-                'errors'  => $validator->errors()
-            ], Response::HTTP_UNPROCESSABLE_ENTITY);
-        }
-
-        try {
-            $animales = $this->vacunacionService->getAnimalesElegibles($request->only([
-                'finca_id', 'rebano_id', 'sexo', 'etapa_id'
-            ]), $request->user());
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Animales elegibles obtenidos exitosamente',
-                'data'    => $animales,
-            ], Response::HTTP_OK);
-        } catch (AuthorizationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], Response::HTTP_FORBIDDEN);
-        }
-    }
-
-    /**
      * Registrar una o múltiples vacunaciones (soporta individual o masivo).
      */
     public function store(Request $request)
