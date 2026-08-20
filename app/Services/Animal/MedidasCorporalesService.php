@@ -61,17 +61,32 @@ class MedidasCorporalesService extends BaseService
      */
     public function createMedidas(array $data, $user): MedidasCorporales
     {
+        $animalEtapaId = $data['animal_etapa_id'] ?? null;
+
+        if (!$animalEtapaId && !empty($data['animal_id'])) {
+            $activeEtapa = \App\Models\EtapaAnimal::where('animal_id', $data['animal_id'])
+                ->where(function ($q) {
+                    $q->whereNull('fecha_fin')
+                      ->orWhere('fecha_fin', '>=', now()->toDateString());
+                })
+                ->orderByDesc('fecha_ini')
+                ->first();
+
+            if ($activeEtapa) {
+                $animalEtapaId = $activeEtapa->id;
+            }
+        }
 
         // Obtener el animal a través de la etapa seleccionada para verificar permisos
-        $animal = Animal::whereHas('etapaAnimales', function ($q) use ($data) {
-            $q->where('id', $data['animal_etapa_id']);
+        $animal = Animal::whereHas('etapaAnimales', function ($q) use ($animalEtapaId) {
+            $q->where('id', $animalEtapaId);
         })->firstOrFail();
 
         if ($user->cannot('create', [MedidasCorporales::class, $animal->id])) {
             throw new AuthorizationException('No tiene permisos para registrar medidas a este animal.');
         }
 
-        return MedidasCorporales::create([
+        $medida = MedidasCorporales::create([
             'altura_hc'       => $data['altura_hc'] ?? null,
             'altura_hg'       => $data['altura_hg'] ?? null,
             'perimetro_pt'    => $data['perimetro_pt'] ?? null,
@@ -79,8 +94,10 @@ class MedidasCorporalesService extends BaseService
             'longitud_lc'     => $data['longitud_lc'] ?? null,
             'longitud_lg'     => $data['longitud_lg'] ?? null,
             'anchura_ag'      => $data['anchura_ag'] ?? null,
-            'animal_etapa_id' => $data['animal_etapa_id'],
+            'animal_etapa_id' => $animalEtapaId,
         ]);
+
+        return $medida->load(['etapaAnimal.etapa', 'etapaAnimal.animal']);
     }
 
     /**
@@ -132,7 +149,7 @@ class MedidasCorporalesService extends BaseService
 
         $medidasCorporales->update($payload);
 
-        return $medidasCorporales;
+        return $medidasCorporales->load(['etapaAnimal.etapa', 'etapaAnimal.animal']);
     }
 
     /**

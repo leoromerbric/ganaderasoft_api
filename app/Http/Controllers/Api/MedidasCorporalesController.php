@@ -76,7 +76,8 @@ class MedidasCorporalesController extends Controller
             'longitud_lc'     => 'nullable|numeric|min:0',
             'longitud_lg'     => 'nullable|numeric|min:0',
             'anchura_ag'      => 'nullable|numeric|min:0',
-            'animal_etapa_id' => 'required|exists:animal_etapa,id',
+            'animal_etapa_id' => 'required_without:animal_id|nullable|exists:animal_etapa,id',
+            'animal_id'       => 'required_without:animal_etapa_id|nullable|exists:animals,id',
         ]);
 
         if ($validator->fails()) {
