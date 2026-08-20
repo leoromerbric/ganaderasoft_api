@@ -34,7 +34,13 @@ fi
 # Asegurar que las carpetas de framework existan (por si el .dockerignore las omitió)
 mkdir -p /var/www/html/storage/framework/{sessions,views,cache}
 mkdir -p /var/www/html/storage/logs
+mkdir -p /var/www/html/storage/app/public
 mkdir -p /var/www/html/bootstrap/cache
+
+# Enlace simbólico de storage público
+if [ ! -L "/var/www/html/public/storage" ] && [ ! -d "/var/www/html/public/storage" ]; then
+    ln -sfn /var/www/html/storage/app/public /var/www/html/public/storage 2>/dev/null || true
+fi
 
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache 2>/dev/null || true
