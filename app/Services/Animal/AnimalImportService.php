@@ -161,16 +161,12 @@ class AnimalImportService extends BaseService
      */
     public function importFromCsv(UploadedFile $file, int $fincaId, User $user): array
     {
-        // 1. Validar permisos del usuario
-        if (!$user->hasPermissionTo('animal.create')) {
-            throw new AuthorizationException('No tiene permisos para crear animales en el sistema.');
-        }
-
-        if (!$this->checkFincaAccess($user, $fincaId)) {
-            throw new AuthorizationException('No tiene permisos para gestionar animales en esta finca.');
-        }
-
         $finca = Finca::findOrFail($fincaId);
+
+        // 1. Validar permisos del usuario mediante Policy
+        if ($user->cannot('create', [Animal::class, $finca])) {
+            throw new AuthorizationException('No tiene permisos para crear animales en esta finca.');
+        }
 
         // 2. Leer archivo y detectar delimitador
         $filePath = $file->getRealPath();

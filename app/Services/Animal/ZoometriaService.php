@@ -242,7 +242,7 @@ class ZoometriaService extends BaseService
     {
         $animal = Animal::with(['rebano.finca'])->findOrFail($animalId);
 
-        if (!$this->checkFincaAccess($user, optional($animal->rebano)->finca_id) || !$user->hasPermissionTo('medidas_corporales.read')) {
+        if ($user->cannot('read', $animal) || $user->cannot('readAny', MedidasCorporales::class)) {
             throw new AuthorizationException('No tiene permisos para consultar la evolución zoométrica de este animal.');
         }
 

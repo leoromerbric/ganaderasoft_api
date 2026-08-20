@@ -30,16 +30,28 @@ class AnimalPolicy extends BasePolicy
     }
 
     /**
-     * Determina si el usuario puede crear un animal.
+     * Determina si el usuario puede crear un animal en un rebaño o finca determinada.
      */
-    public function create(User $user, int $rebanoId): bool
+    public function create(User $user, mixed $target = null): bool
     {
         if (!$user->hasPermissionTo('animal.create')) {
             return false;
         }
 
-        $rebano = Rebano::find($rebanoId);
-        return $rebano ? $this->checkFincaAccess($user, $rebano->finca_id) : false;
+        if ($target instanceof \App\Models\Finca) {
+            return $this->checkFincaAccess($user, $target->id);
+        }
+
+        if ($target instanceof Rebano) {
+            return $this->checkFincaAccess($user, $target->finca_id);
+        }
+
+        if (is_numeric($target)) {
+            $rebano = Rebano::find((int) $target);
+            return $rebano ? $this->checkFincaAccess($user, $rebano->finca_id) : false;
+        }
+
+        return true;
     }
 
     /**
