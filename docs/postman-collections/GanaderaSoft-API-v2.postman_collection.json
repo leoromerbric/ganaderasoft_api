@@ -9294,7 +9294,7 @@
                             }
                         ],
                         "url": {
-                            "raw": "{{base_url}}/api/vacunaciones/animales-elegibles?rebano_id=1&sexo=H&etapa_id=1",
+                            "raw": "{{base_url}}/api/vacunaciones/animales-elegibles?finca_id=1&rebano_id=1&sexo=H&etapa_id=1",
                             "host": [
                                 "{{base_url}}"
                             ],
@@ -9305,9 +9305,16 @@
                             ],
                             "query": [
                                 {
+                                    "key": "finca_id",
+                                    "value": "1",
+                                    "description": "Filtrar por ID de la finca (Opcional)",
+                                    "disabled": true
+                                },
+                                {
                                     "key": "rebano_id",
                                     "value": "1",
-                                    "description": "ID del rebaño (Obligatorio)"
+                                    "description": "Filtrar por ID del rebaño (Opcional)",
+                                    "disabled": true
                                 },
                                 {
                                     "key": "sexo",

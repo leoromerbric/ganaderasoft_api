@@ -47,12 +47,13 @@ class VacunacionController extends Controller
     }
 
     /**
-     * Obtener lista de animales activos elegibles para vacunación según rebaño, sexo y etapa.
+     * Obtener lista de animales activos elegibles para vacunación según finca, rebaño, sexo y etapa.
      */
     public function animalesElegibles(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'rebano_id' => 'required|integer|exists:rebanos,id',
+            'finca_id'  => 'nullable|integer|exists:fincas,id',
+            'rebano_id' => 'nullable|integer|exists:rebanos,id',
             'sexo'      => 'nullable|in:M,H',
             'etapa_id'  => 'nullable|integer|exists:etapas,id',
         ]);
@@ -67,7 +68,7 @@ class VacunacionController extends Controller
 
         try {
             $animales = $this->vacunacionService->getAnimalesElegibles($request->only([
-                'rebano_id', 'sexo', 'etapa_id'
+                'finca_id', 'rebano_id', 'sexo', 'etapa_id'
             ]), $request->user());
 
             return response()->json([

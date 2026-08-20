@@ -53,7 +53,7 @@ class VacunacionService extends BaseService
     }
 
     /**
-     * Obtiene animales elegibles para vacunación según rebaño, sexo y etapa.
+     * Obtiene animales elegibles para vacunación según finca, rebaño, sexo y etapa.
      */
     public function getAnimalesElegibles(array $filters, $user)
     {
@@ -61,9 +61,18 @@ class VacunacionService extends BaseService
             throw new AuthorizationException('No tienes permisos para consultar animales elegibles.');
         }
 
-        $query = Animal::query()
-            ->where('rebano_id', (int) $filters['rebano_id'])
-            ->where('archivado', false);
+        $query = Animal::query()->where('archivado', false);
+
+        if (!empty($filters['finca_id'])) {
+            $fincaId = (int) $filters['finca_id'];
+            $query->whereHas('rebano', function ($q) use ($fincaId) {
+                $q->where('finca_id', $fincaId);
+            });
+        }
+
+        if (!empty($filters['rebano_id'])) {
+            $query->where('rebano_id', (int) $filters['rebano_id']);
+        }
 
         if (!empty($filters['sexo'])) {
             $query->where('sexo', $filters['sexo']);
