@@ -63,4 +63,12 @@ class Persona extends Model
     {
         return $this->hasMany(PersonalFinca::class, 'persona_id', 'id');
     }
+
+    /**
+     * Obtener los registros de vacunación aplicados por esta persona.
+     */
+    public function vacunacionesAplicadas()
+    {
+        return $this->hasMany(Vacunacion::class, 'persona_id', 'id');
+    }
 }

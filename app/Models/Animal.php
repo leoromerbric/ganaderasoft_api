@@ -84,6 +84,14 @@ class Animal extends Model
     }
 
     /**
+     * Obtener los registros de vacunación para este animal.
+     */
+    public function vacunaciones()
+    {
+        return $this->hasMany(Vacunacion::class, 'animal_id', 'id');
+    }
+
+    /**
      * Obtener los registros de estado para este animal.
      */
     public function estados()

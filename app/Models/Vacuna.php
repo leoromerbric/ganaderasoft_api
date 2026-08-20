@@ -33,6 +33,14 @@ class Vacuna extends Model
     }
 
     /**
+     * Obtener los registros de vacunación donde se aplicó esta vacuna.
+     */
+    public function vacunaciones()
+    {
+        return $this->hasMany(Vacunacion::class, 'vacuna_id', 'id');
+    }
+
+    /**
      * Filtro para buscar por nombre de vacuna.
      */
     public function scopeByNombre($query, $nombre)
