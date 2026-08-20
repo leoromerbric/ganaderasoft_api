@@ -31,6 +31,10 @@ class AnimalResource extends JsonResource
             'procedencia' => $this->procedencia,
             'composicion_raza_id' => $this->when(!$this->relationLoaded('composicionRaza'), $this->composicion_raza_id),
             'archivado' => (bool) $this->archivado,
+            'edad_dias' => $this->edad_dias,
+            'edad_meses' => $this->edad_meses,
+            'edad_anos' => $this->edad_anos,
+            'edad_formateada' => $this->edad_formateada,
             'created_at' => $this->created_at ? $this->created_at->toIso8601String() : null,
             'updated_at' => $this->updated_at ? $this->updated_at->toIso8601String() : null,
             

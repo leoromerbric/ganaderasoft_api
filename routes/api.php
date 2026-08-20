@@ -115,8 +115,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('fincas', FincaController::class);
         Route::apiResource('propietarios', PropietarioController::class);
         Route::apiResource('rebanos', RebanoController::class);
-        // Importación masiva de animales
+        // Importación masiva y restauración de animales
         Route::post('animales/importar', [AnimalController::class, 'cargarAnimalesMasivo']);
+        Route::post('animales/{id}/restaurar', [AnimalController::class, 'restore']);
         Route::apiResource('animales', AnimalController::class);
         Route::apiResource('inventarios-bufalo', InventarioBufaloController::class);
         Route::apiResource('tipos-animal', TipoAnimalController::class);

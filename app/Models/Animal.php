@@ -134,6 +134,86 @@ class Animal extends Model
     }
 
     /**
+     * Filtro para incluir solo animals archivados/as.
+     */
+    public function scopeArchived($query)
+    {
+        return $query->where('archivado', true);
+    }
+
+    // ─── Accessors de Edad Calculada (On-the-fly) ────────────────────────────
+
+    /**
+     * Calcula la edad exacta en días transcurridos desde la fecha de nacimiento.
+     *
+     * @return int|null
+     */
+    public function getEdadDiasAttribute(): ?int
+    {
+        if (!$this->fecha_nacimiento) {
+            return null;
+        }
+
+        return (int) $this->fecha_nacimiento->diffInDays(now());
+    }
+
+    /**
+     * Calcula la edad total en meses transcurridos.
+     *
+     * @return int|null
+     */
+    public function getEdadMesesAttribute(): ?int
+    {
+        if (!$this->fecha_nacimiento) {
+            return null;
+        }
+
+        return (int) $this->fecha_nacimiento->diffInMonths(now());
+    }
+
+    /**
+     * Calcula la edad total en años cumplidos.
+     *
+     * @return int|null
+     */
+    public function getEdadAnosAttribute(): ?int
+    {
+        if (!$this->fecha_nacimiento) {
+            return null;
+        }
+
+        return (int) $this->fecha_nacimiento->diffInYears(now());
+    }
+
+    /**
+     * Devuelve una representación legible en texto de la edad del animal
+     * (ej. "2 años, 3 meses", "8 meses, 12 días", o "5 días").
+     *
+     * @return string
+     */
+    public function getEdadFormateadaAttribute(): string
+    {
+        if (!$this->fecha_nacimiento) {
+            return 'Desconocida';
+        }
+
+        $diff = $this->fecha_nacimiento->diff(now());
+        $partes = [];
+
+        if ($diff->y > 0) {
+            $partes[] = $diff->y . ' ' . ($diff->y === 1 ? 'año' : 'años');
+        }
+        if ($diff->m > 0) {
+            $partes[] = $diff->m . ' ' . ($diff->m === 1 ? 'mes' : 'meses');
+        }
+        if ($diff->y === 0 && $diff->m === 0) {
+            $partes[] = $diff->d . ' ' . ($diff->d === 1 ? 'día' : 'días');
+        }
+
+        return implode(', ', $partes) ?: '0 días';
+    }
+
+    /**
      * Filtro para incluir animals de un/a rebano específico/a.
      */
     public function scopeForRebano($query, $rebanoId)

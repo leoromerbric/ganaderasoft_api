@@ -57,7 +57,10 @@ class AnimalController extends Controller
     public function index(Request $request)
     {
         try {
-            $animals = $this->animalService->listAnimals($request->only(['rebano_id', 'sexo', 'nopaginate']), $request->user());
+            $animals = $this->animalService->listAnimals(
+                $request->only(['rebano_id', 'sexo', 'nopaginate', 'archivado', 'incluir_archivados']),
+                $request->user()
+            );
             
             return response()->json([
                 'success' => true,
@@ -235,6 +238,36 @@ class AnimalController extends Controller
                 'success' => true,
                 'message' => 'Animal eliminado exitosamente'
             ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Animal no encontrado'
+            ], Response::HTTP_NOT_FOUND);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
+        }
+    }
+
+    /**
+     * Restaura un animal previamente archivado.
+     *
+     * @param Request $request
+     * @param mixed $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function restore(Request $request, $id)
+    {
+        try {
+            $animal = $this->animalService->restoreAnimal((int) $id, $request->user());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Animal restaurado exitosamente',
+                'data' => $this->formatResource(AnimalResource::class, $animal)
+            ], Response::HTTP_OK);
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,

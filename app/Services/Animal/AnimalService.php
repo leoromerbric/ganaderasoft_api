@@ -39,8 +39,20 @@ class AnimalService extends BaseService
             throw new AuthorizationException('No tiene permisos para listar animales.');
         }
 
-        $query = Animal::with(['rebano.finca.propietario.persona', 'composicionRaza'])
-            ->active();
+        $query = Animal::with(['rebano.finca.propietario.persona', 'composicionRaza']);
+
+        // Filtro de archivado:
+        // - 'archivado' => true / 'true' / 1 / '1' => solo archivados
+        // - 'archivado' => 'todos' / 'all' o 'incluir_archivados' => activos + archivados
+        // - por defecto => solo activos
+        $archivadoFilter = $filters['archivado'] ?? false;
+        if ($archivadoFilter === true || $archivadoFilter === 'true' || $archivadoFilter === '1' || $archivadoFilter === 1) {
+            $query->where('archivado', true);
+        } elseif ($archivadoFilter === 'todos' || $archivadoFilter === 'all' || !empty($filters['incluir_archivados'])) {
+            // Incluye activos y archivados
+        } else {
+            $query->active();
+        }
 
         // Aplicamos los filtros básicos si existen en la petición
         if (!empty($filters['rebano_id'])) {
@@ -208,5 +220,27 @@ class AnimalService extends BaseService
         }
 
         $animal->update(['archivado' => true]);
+    }
+
+    /**
+     * Restaura un animal archivado (archivado = false).
+     *
+     * @param int $id ID del animal.
+     * @param mixed $user Usuario que realiza la acción.
+     * @return Animal
+     * @throws ModelNotFoundException
+     * @throws AuthorizationException
+     */
+    public function restoreAnimal(int $id, $user): Animal
+    {
+        $animal = Animal::findOrFail($id);
+
+        if ($user->cannot('update', $animal)) {
+            throw new AuthorizationException('No tiene permisos para restaurar este animal.');
+        }
+
+        $animal->update(['archivado' => false]);
+
+        return $animal;
     }
 }
