@@ -128,6 +128,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('peso-corporal', PesoCorporalController::class);
         Route::apiResource('lactancia', LactanciaController::class);
         Route::apiResource('leche', LecheController::class);
+        Route::get('medidas-corporales/{id}/indices', [MedidasCorporalesController::class, 'indices']);
+        Route::get('animales/{id}/indices-corporales', [MedidasCorporalesController::class, 'evolucionIndicesPorAnimal']);
         Route::apiResource('medidas-corporales', MedidasCorporalesController::class);
         Route::apiResource('cambios-animal', CambiosAnimalController::class);
 

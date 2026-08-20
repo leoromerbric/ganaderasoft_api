@@ -9,6 +9,7 @@ use App\Http\Middleware\Legacy\Animal\NormalizeShowMedidasCorporales;
 use App\Http\Middleware\Legacy\Animal\NormalizeStoreMedidasCorporales;
 use App\Http\Middleware\Legacy\Animal\NormalizeUpdateMedidasCorporales;
 use App\Services\Animal\MedidasCorporalesService;
+use App\Services\Animal\ZoometriaService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
@@ -19,12 +20,14 @@ class MedidasCorporalesController extends Controller
 {
     /**
      * Constructor del controlador.
-     * Inyecta el servicio de medidas y registra los middlewares legacy correspondientes.
+     * Inyecta los servicios de medidas y zoometría, y registra los middlewares legacy correspondientes.
      *
      * @param MedidasCorporalesService $medidasService
+     * @param ZoometriaService $zoometriaService
      */
     public function __construct(
-        protected MedidasCorporalesService $medidasService
+        protected MedidasCorporalesService $medidasService,
+        protected ZoometriaService $zoometriaService
     ) {
         $this->middleware(NormalizeIndexMedidasCorporales::class)->only('index');
         $this->middleware(NormalizeShowMedidasCorporales::class)->only('show');
@@ -199,6 +202,66 @@ class MedidasCorporalesController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Medidas corporales no encontradas'
+            ], Response::HTTP_NOT_FOUND);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
+        }
+    }
+
+    /**
+     * Devuelve los 7 índices zoométricos calculados on-the-fly para una medición específica.
+     *
+     * @param Request $request
+     * @param int|string $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function indices(Request $request, $id)
+    {
+        try {
+            $data = $this->zoometriaService->getIndicesByMedidaId((int) $id, $request->user());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Índices corporales calculados exitosamente',
+                'data'    => $data
+            ], Response::HTTP_OK);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Medidas corporales no encontradas'
+            ], Response::HTTP_NOT_FOUND);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
+        }
+    }
+
+    /**
+     * Devuelve la serie cronológica de medidas e índices calculados para un animal.
+     *
+     * @param Request $request
+     * @param int|string $animalId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function evolucionIndicesPorAnimal(Request $request, $animalId)
+    {
+        try {
+            $data = $this->zoometriaService->getEvolucionIndicesByAnimal((int) $animalId, $request->user());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Evolución de índices corporales obtenida exitosamente',
+                'data'    => $data
+            ], Response::HTTP_OK);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Animal no encontrado'
             ], Response::HTTP_NOT_FOUND);
         } catch (AuthorizationException $e) {
             return response()->json([
