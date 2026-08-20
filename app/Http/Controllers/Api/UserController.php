@@ -50,15 +50,18 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'cedula' => 'required|string|max:20',
+            'cedula' => ['required', 'string', 'max:20', 'regex:/^[VGEJ][0-9]+$/'],
             'nombre' => 'required|string|max:255',
             'apellido' => 'required|string|max:255',
-            'telefono' => 'nullable|string|max:20',
+            'telefono' => 'nullable|string|max:50',
             'correo' => 'required|string|email|max:255|unique:users,email|unique:personas,correo',
             'password' => 'required|string|min:8|confirmed',
             'roles' => 'required|array|min:1',
             'roles.*' => 'string|exists:roles,code',
             'status' => 'nullable|string|in:active,suspended'
+        ], [
+            'cedula.required' => 'La cédula es obligatoria.',
+            'cedula.regex' => 'La cédula debe comenzar con V, E, J o G seguido de números (ej: V12345678).',
         ]);
 
         if ($validator->fails()) {
@@ -122,16 +125,18 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'cedula' => 'sometimes|string|max:20',
+            'cedula' => ['sometimes', 'string', 'max:20', 'regex:/^[VGEJ][0-9]+$/'],
             'nombre' => 'sometimes|string|max:255',
             'apellido' => 'sometimes|string|max:255',
-            'telefono' => 'nullable|string|max:20',
+            'telefono' => 'nullable|string|max:50',
             // En update permitimos el mismo correo si es el mismo usuario. Asumiremos que el frontend o servicio controla esto, pero idealmente:
             'correo' => 'sometimes|string|email|max:255|unique:users,email,'.$id, 
             'password' => 'sometimes|string|min:8|confirmed',
             'roles' => 'sometimes|array|min:1',
             'roles.*' => 'string|exists:roles,code',
             'status' => 'sometimes|string|in:active,suspended'
+        ], [
+            'cedula.regex' => 'La cédula debe comenzar con V, E, J o G seguido de números (ej: V12345678).',
         ]);
 
         if ($validator->fails()) {
