@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Services\User\AuthService;
+use App\Services\User\ProfileService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Exception;
 
@@ -22,10 +23,11 @@ class AuthController extends Controller
 {
     /**
      * Constructor del controlador.
-     * Inyecta los middlewares de compatibilidad para el front-end legacy.
+     * Inyecta los middlewares de compatibilidad para el front-end legacy y el servicio de perfil.
      */
-    public function __construct()
-    {
+    public function __construct(
+        private ProfileService $profileService
+    ) {
         $this->middleware(NormalizeLogin::class)->only('login');
         $this->middleware(NormalizeRegister::class)->only('register');
         $this->middleware(NormalizeProfile::class)->only('profile');
@@ -153,6 +155,75 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al registrar usuario: ' . $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Actualiza la foto de perfil del usuario autenticado.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updatePhoto(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'foto' => 'required|image|mimes:jpeg,png,jpg,webp|max:5120',
+        ], [
+            'foto.required' => 'Debe seleccionar una imagen para su foto de perfil.',
+            'foto.image'    => 'El archivo seleccionado debe ser una imagen.',
+            'foto.mimes'    => 'La imagen debe tener formato: jpeg, png, jpg o webp.',
+            'foto.max'      => 'El tamaño máximo permitido para la imagen es de 5MB.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'El archivo proporcionado no es válido o supera el tamaño máximo permitido (5MB).',
+                'errors'  => $validator->errors(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        try {
+            $user = $this->profileService->updatePhoto($request->file('foto'), $request->user());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Foto de perfil actualizada exitosamente.',
+                'data'    => [
+                    'user' => $this->formatResource(UserResource::class, $user),
+                ],
+            ], Response::HTTP_OK);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar la foto de perfil: ' . $e->getMessage(),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Elimina la foto de perfil del usuario autenticado.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function deletePhoto(Request $request)
+    {
+        try {
+            $user = $this->profileService->deletePhoto($request->user());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Foto de perfil eliminada exitosamente.',
+                'data'    => [
+                    'user' => $this->formatResource(UserResource::class, $user),
+                ],
+            ], Response::HTTP_OK);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al eliminar la foto de perfil: ' . $e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }

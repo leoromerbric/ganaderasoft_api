@@ -74,6 +74,8 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
     Route::get('/profile', [AuthController::class, 'profile']);
+    Route::post('/profile/photo', [AuthController::class, 'updatePhoto']);
+    Route::delete('/profile/photo', [AuthController::class, 'deletePhoto']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 
     // Rutas operativas del sistema (restringidas únicamente a usuarios con estado activo)
