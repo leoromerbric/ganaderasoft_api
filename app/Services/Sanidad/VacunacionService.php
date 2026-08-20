@@ -143,7 +143,9 @@ class VacunacionService extends BaseService
         }
 
         $vacunaId    = (int) $data['vacuna_id'];
-        $personaId   = !empty($data['persona_id']) ? (int) $data['persona_id'] : null;
+        $personaId   = !empty($data['persona_id']) 
+            ? (int) $data['persona_id'] 
+            : ($user->personas()->first()?->id ?? null);
         $fecha       = $data['fecha'];
         $dosis       = isset($data['dosis']) ? (float) $data['dosis'] : null;
         $costo       = (float) ($data['costo'] ?? 0);

@@ -27,9 +27,7 @@ class RebanoResource extends JsonResource
             'created_at' => $this->created_at ? $this->created_at->toIso8601String() : null,
             'updated_at' => $this->updated_at ? $this->updated_at->toIso8601String() : null,
             
-            // Omitir finca_id si la relación finca está cargada
-            'finca_id' => $this->when(!$this->relationLoaded('finca'), $this->finca_id),
-            
+            'finca_id' => $this->finca_id,
             'finca' => new FincaResource($this->whenLoaded('finca')),
         ];
     }
