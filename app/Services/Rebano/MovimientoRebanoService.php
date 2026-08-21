@@ -68,10 +68,6 @@ class MovimientoRebanoService extends BaseService
         if ($user->cannot('create', [MovimientoRebano::class, (int) $data['finca_id'], (int) $data['finca_destino_id']])) {
             throw new AuthorizationException('No tiene permisos para crear un movimiento entre estas fincas.');
         }
-        if ((int) $data['finca_id'] === (int) $data['finca_destino_id']) {
-            throw new UnprocessableEntityHttpException('La finca de destino debe ser diferente a la de origen.');
-        }
-
         if ((int) $data['rebano_id'] === (int) $data['rebano_destino_id']) {
             throw new UnprocessableEntityHttpException('El rebaño de destino debe ser diferente al de origen.');
         }
