@@ -39,7 +39,12 @@ class AnimalService extends BaseService
             throw new AuthorizationException('No tiene permisos para listar animales.');
         }
 
-        $query = Animal::with(['rebano.finca.propietario.persona', 'composicionRaza']);
+        $query = Animal::with([
+            'rebano.finca.propietario.persona',
+            'composicionRaza',
+            'etapaActual.etapa',
+            'estadoActual.estadoSalud'
+        ]);
 
         // Filtro de archivado:
         // - 'archivado' => true / 'true' / 1 / '1' => solo archivados
@@ -142,6 +147,8 @@ class AnimalService extends BaseService
     {
         $animal = Animal::with([
             'rebano.finca.propietario.persona',
+            'composicionRaza',
+            'estadoActual.estadoSalud',
             'estados.estadoSalud',
             'etapaAnimales.etapa',
             'etapaActual.etapa'
