@@ -152,6 +152,9 @@ Route::middleware('auth:sanctum')->group(function () {
         // Reports routes
         Route::prefix('reportes')->group(function () {
             Route::get('fincas', [ReportesController::class, 'estadisticasFincas']);
+            Route::get('general', [ReportesController::class, 'reporteGeneral']);
+            Route::get('reproductivo', [ReportesController::class, 'reporteReproductivo']);
+            Route::get('pesaje-leche', [ReportesController::class, 'reportePesajeLeche']);
         });
 
         // Terreno

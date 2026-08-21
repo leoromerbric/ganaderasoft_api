@@ -5,22 +5,24 @@ namespace App\Services\Reportes;
 use App\Models\Animal;
 use App\Models\Finca;
 use App\Models\PersonalFinca;
-use App\Models\Propietario;
 use App\Models\Rebano;
 use App\Models\User;
+use App\Services\BaseService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
-use App\Services\BaseService;
 
-class ReportesService extends BaseService
+class ReporteFincasService extends BaseService
 {
     /**
-     * Get statistical reports for farms (fincas).
+     * Genera el reporte estadístico consolidado de fincas.
      *
-     * @param array $filters
-     * @param User $user
+     * @param array $filters Filtros de consulta (propietario_id, finca_id).
+     * @param User $user Usuario autenticado que solicita el reporte.
      * @return array
+     *
+     * @throws AuthorizationException
+     * @throws ModelNotFoundException
      */
     public function getEstadisticasFincas(array $filters, User $user): array
     {
@@ -30,13 +32,10 @@ class ReportesService extends BaseService
 
         $fincasQuery = Finca::where('archivado', false);
 
-        // Si se pasa un filtro explícito de propietario (útil para administradores)
         if (!empty($filters['propietario_id'])) {
             $fincasQuery->where('propietario_id', $filters['propietario_id']);
         }
 
-        // Aplica el filtro de base de datos para que el usuario solo vea estadísticas
-        // de las fincas a las que tiene acceso (como admin, propietario o trabajador)
         $this->applyFincaFilter($fincasQuery, $user, null, 'id');
 
         if (isset($filters['finca_id'])) {
@@ -110,9 +109,9 @@ class ReportesService extends BaseService
         // Detalles
         $fincasDetalle = $fincas->map(function ($finca) use ($rebanosPorFinca, $animalesPorFinca, $personalPorFinca) {
             return [
-                'finca_id' => $finca->id,
-                'nombre' => $finca->nombre,
-                'cantidad_rebanos' => $rebanosPorFinca[$finca->id] ?? 0,
+                'finca_id'          => $finca->id,
+                'nombre'            => $finca->nombre,
+                'cantidad_rebanos'  => $rebanosPorFinca[$finca->id] ?? 0,
                 'cantidad_animales' => $animalesPorFinca[$finca->id] ?? 0,
                 'cantidad_personal' => $personalPorFinca[$finca->id] ?? 0,
             ];
@@ -120,24 +119,24 @@ class ReportesService extends BaseService
 
         $rebanosDetalle = $rebanos->map(function ($rebano) use ($animalesPorRebano) {
             return [
-                'rebano_id' => $rebano->id,
-                'finca_id' => $rebano->finca_id,
-                'nombre' => $rebano->nombre,
+                'rebano_id'         => $rebano->id,
+                'finca_id'          => $rebano->finca_id,
+                'nombre'            => $rebano->nombre,
                 'cantidad_animales' => $animalesPorRebano[$rebano->id] ?? 0,
             ];
         })->values()->toArray();
 
         return [
             'resumen' => [
-                'total_fincas' => $totalFincas,
-                'total_rebanos' => $totalRebanos,
+                'total_fincas'   => $totalFincas,
+                'total_rebanos'  => $totalRebanos,
                 'total_animales' => $totalAnimales,
                 'total_personal' => $totalPersonal,
             ],
             'animales_por_sexo' => $animalesPorSexo,
             'personal_por_tipo' => $personalPorTipo,
-            'fincas' => $fincasDetalle,
-            'rebanos' => $rebanosDetalle,
+            'fincas'            => $fincasDetalle,
+            'rebanos'           => $rebanosDetalle,
         ];
     }
 }
