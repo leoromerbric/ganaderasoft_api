@@ -21,7 +21,7 @@ class AdminUserSeeder extends Seeder
         ]);
 
         $userAdminId = DB::table('users')->insertGetId([
-            'name'       => 'Administrador del Sistema',
+            'name'       => 'Administrador',
             'email'      => 'admin1@ucv.com',
             'password'   => Hash::make('123456789'),
             'created_at' => now(),
