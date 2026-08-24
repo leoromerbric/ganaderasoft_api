@@ -23,17 +23,38 @@ class ServicioAnimalService extends BaseService
             throw new AuthorizationException('Sin permisos para listar servicios.');
         }
 
-        $query = ServicioAnimal::with(['animal', 'semen', 'tecnico', 'registroCelo']);
+        $query = ServicioAnimal::with([
+            'animal.rebano.finca',
+            'semen.toro',
+            'tecnico.persona',
+            'tecnico.tipoTrabajador',
+            'registroCelo.etapaAnimal.etapa',
+        ]);
 
-        if (isset($filters['animal_id'])) {
+        if (!empty($filters['animal_id'])) {
             $query->forAnimal($filters['animal_id']);
         }
-        if (isset($filters['tipo'])) {
-            $query->byTipo($filters['tipo']);
+        if (!empty($filters['finca_id'])) {
+            $query->whereHas('animal.rebano', function($q) use ($filters) {
+                $q->where('finca_id', $filters['finca_id']);
+            });
         }
-        if (isset($filters['fecha_inicio'])) {
-            $fechaFin = $filters['fecha_fin'] ?? date('Y-m-d');
-            $query->byDateRange($filters['fecha_inicio'], $fechaFin);
+        if (!empty($filters['rebano_id'])) {
+            $query->whereHas('animal', function($q) use ($filters) {
+                $q->where('rebano_id', $filters['rebano_id']);
+            });
+        }
+        if (!empty($filters['tipo'])) {
+            $tipoFilter = strtolower($filters['tipo']);
+            $query->where(function($q) use ($tipoFilter) {
+                $q->whereRaw('LOWER(tipo) LIKE ?', ["%{$tipoFilter}%"]);
+            });
+        }
+        if (!empty($filters['fecha_inicio'])) {
+            $query->where('fecha', '>=', $filters['fecha_inicio']);
+        }
+        if (!empty($filters['fecha_fin'])) {
+            $query->where('fecha', '<=', $filters['fecha_fin']);
         }
 
         $this->applyFincaFilter($query, $user, 'animal.rebano');
@@ -73,7 +94,13 @@ class ServicioAnimalService extends BaseService
             'observacion'       => $data['observacion'] ?? null,
         ]);
 
-        return $servicio->load(['animal', 'semen', 'tecnico', 'registroCelo']);
+        return $servicio->load([
+            'animal.rebano.finca',
+            'semen.toro',
+            'tecnico.persona',
+            'tecnico.tipoTrabajador',
+            'registroCelo.etapaAnimal.etapa',
+        ]);
     }
 
     /**
@@ -81,7 +108,13 @@ class ServicioAnimalService extends BaseService
      */
     public function getServicioById($id, $user)
     {
-        $servicio = ServicioAnimal::with(['animal', 'semen', 'tecnico', 'registroCelo'])->findOrFail($id);
+        $servicio = ServicioAnimal::with([
+            'animal.rebano.finca',
+            'semen.toro',
+            'tecnico.persona',
+            'tecnico.tipoTrabajador',
+            'registroCelo.etapaAnimal.etapa',
+        ])->findOrFail($id);
 
         if ($user->cannot('read', $servicio)) {
             throw new AuthorizationException('No tiene permisos para ver este servicio.');
@@ -129,7 +162,13 @@ class ServicioAnimalService extends BaseService
 
         $servicio->update($updatePayload);
 
-        return $servicio->load(['animal', 'semen', 'tecnico', 'registroCelo']);
+        return $servicio->load([
+            'animal.rebano.finca',
+            'semen.toro',
+            'tecnico.persona',
+            'tecnico.tipoTrabajador',
+            'registroCelo.etapaAnimal.etapa',
+        ]);
     }
 
     /**

@@ -28,7 +28,7 @@ class ServicioAnimalController extends Controller
 
     public function index(Request $request)
     {
-        $filters = $request->only(['animal_id', 'tipo', 'fecha_inicio', 'fecha_fin', 'nopaginate']);
+        $filters = $request->only(['animal_id', 'tipo', 'fecha_inicio', 'fecha_fin', 'nopaginate', 'finca_id', 'rebano_id']);
         
         $records = $this->servicioService->getPaginatedServicios($filters, $request->user());
 
