@@ -27,7 +27,7 @@ class TratamientoResource extends JsonResource
             'fecha_fin'      => $this->fecha_fin ? $this->fecha_fin->format('Y-m-d') : null,
             'created_at'     => $this->created_at,
             'updated_at'     => $this->updated_at,
-            'diagnostico'    => $this->whenLoaded('diagnostico'),
+            'diagnostico'    => $this->whenLoaded('diagnostico', fn() => new DiagnosticoResource($this->diagnostico)),
         ];
     }
 }

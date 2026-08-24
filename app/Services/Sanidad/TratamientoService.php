@@ -19,15 +19,24 @@ class TratamientoService extends BaseService
             throw new AuthorizationException('Sin permisos para listar tratamientos.');
         }
 
-        $query = Tratamiento::with(['diagnostico.etapaAnimal.animal']);
+        $query = Tratamiento::with(['diagnostico.etapaAnimal.animal.rebano.finca']);
 
-        if (isset($filters['diagnostico_id'])) {
+        if (isset($filters['diagnostico_id']) && $filters['diagnostico_id'] !== '') {
             $query->where('diagnostico_id', $filters['diagnostico_id']);
         }
         
-        if (isset($filters['fecha_inicio'])) {
-            $fechaFin = $filters['fecha_fin'] ?? date('Y-m-d');
-            $query->whereBetween('fecha_ini', [$filters['fecha_inicio'], $fechaFin]);
+        if (!empty($filters['fecha_inicio'])) {
+            $query->where('fecha_ini', '>=', $filters['fecha_inicio']);
+        }
+
+        if (!empty($filters['fecha_fin'])) {
+            $query->where(function($q) use ($filters) {
+                $q->where('fecha_fin', '<=', $filters['fecha_fin'])
+                  ->orWhere(function($sub) use ($filters) {
+                      $sub->whereNull('fecha_fin')
+                          ->where('fecha_ini', '<=', $filters['fecha_fin']);
+                  });
+            });
         }
 
         $this->applyFincaFilter($query, $user, 'diagnostico.animal.rebano');
@@ -54,7 +63,7 @@ class TratamientoService extends BaseService
      */
     public function getTratamientoById($id, $user)
     {
-        $tratamiento = Tratamiento::with(['diagnostico.etapaAnimal.animal'])->findOrFail($id);
+        $tratamiento = Tratamiento::with(['diagnostico.etapaAnimal.animal.rebano.finca'])->findOrFail($id);
 
         if ($user->cannot('read', $tratamiento)) {
             throw new AuthorizationException('No tiene permisos para ver este tratamiento.');
@@ -75,7 +84,7 @@ class TratamientoService extends BaseService
         }
 
         $tratamiento->update($data);
-        return $tratamiento->load(['diagnostico.etapaAnimal.animal']);
+        return $tratamiento->load(['diagnostico.etapaAnimal.animal.rebano.finca']);
     }
 
     /**

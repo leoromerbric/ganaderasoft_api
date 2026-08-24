@@ -21,7 +21,7 @@ class DiagnosticoService extends BaseService
             throw new AuthorizationException('Sin permisos para listar diagnósticos.');
         }
 
-        $query = Diagnostico::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tratamientos']);
+        $query = Diagnostico::with(['etapaAnimal.animal.rebano.finca', 'etapaAnimal.etapa', 'tratamientos']);
 
         if (isset($filters['animal_id'])) {
             $query->whereHas('etapaAnimal', function($q) use ($filters) {
@@ -72,7 +72,7 @@ class DiagnosticoService extends BaseService
         }
 
         $diagnostico = Diagnostico::create($data);
-        return $diagnostico->load(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tratamientos']);
+        return $diagnostico->load(['etapaAnimal.animal.rebano.finca', 'etapaAnimal.etapa', 'tratamientos']);
     }
 
     /**
@@ -80,7 +80,7 @@ class DiagnosticoService extends BaseService
      */
     public function getDiagnosticoById($id, $user)
     {
-        $diagnostico = Diagnostico::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tratamientos'])->findOrFail($id);
+        $diagnostico = Diagnostico::with(['etapaAnimal.animal.rebano.finca', 'etapaAnimal.etapa', 'tratamientos'])->findOrFail($id);
 
         if ($user->cannot('read', $diagnostico)) {
             throw new AuthorizationException('No tiene permisos para ver este diagnóstico.');
@@ -115,7 +115,7 @@ class DiagnosticoService extends BaseService
         }
 
         $diagnostico->update($data);
-        return $diagnostico->load(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tratamientos']);
+        return $diagnostico->load(['etapaAnimal.animal.rebano.finca', 'etapaAnimal.etapa', 'tratamientos']);
     }
 
     /**
