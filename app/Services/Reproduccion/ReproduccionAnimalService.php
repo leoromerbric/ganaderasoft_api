@@ -23,17 +23,37 @@ class ReproduccionAnimalService extends BaseService
             throw new AuthorizationException('Sin permisos para listar registros de reproducción.');
         }
 
-        $query = ReproduccionAnimal::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'animal', 'etapa']);
+        $query = ReproduccionAnimal::with([
+            'etapaAnimal.animal.rebano.finca',
+            'etapaAnimal.etapa',
+            'animal.rebano.finca',
+            'etapa',
+        ]);
 
-        if (isset($filters['animal_id'])) {
+        if (!empty($filters['animal_id'])) {
             $query->forAnimal($filters['animal_id']);
         }
-        if (isset($filters['tipo'])) {
-            $query->byTipo($filters['tipo']);
+        if (!empty($filters['finca_id'])) {
+            $query->whereHas('etapaAnimal.animal.rebano', function($q) use ($filters) {
+                $q->where('finca_id', $filters['finca_id']);
+            });
         }
-        if (isset($filters['fecha_inicio'])) {
-            $fechaFin = $filters['fecha_fin'] ?? date('Y-m-d');
-            $query->byDateRange($filters['fecha_inicio'], $fechaFin);
+        if (!empty($filters['rebano_id'])) {
+            $query->whereHas('etapaAnimal.animal', function($q) use ($filters) {
+                $q->where('rebano_id', $filters['rebano_id']);
+            });
+        }
+        if (!empty($filters['tipo'])) {
+            $tipoFilter = strtolower($filters['tipo']);
+            $query->where(function($q) use ($tipoFilter) {
+                $q->whereRaw('LOWER(tipo_reproduccion) LIKE ?', ["%{$tipoFilter}%"]);
+            });
+        }
+        if (!empty($filters['fecha_inicio'])) {
+            $query->where('fecha_reproduccion', '>=', $filters['fecha_inicio']);
+        }
+        if (!empty($filters['fecha_fin'])) {
+            $query->where('fecha_reproduccion', '<=', $filters['fecha_fin']);
         }
 
         $this->applyFincaFilter($query, $user, 'etapaAnimal.animal.rebano');
@@ -82,7 +102,12 @@ class ReproduccionAnimalService extends BaseService
             'observacion'        => $data['observacion'] ?? null,
         ]);
 
-        return $repro->load(['etapaAnimal.animal', 'etapaAnimal.etapa', 'animal', 'etapa']);
+        return $repro->load([
+            'etapaAnimal.animal.rebano.finca',
+            'etapaAnimal.etapa',
+            'animal.rebano.finca',
+            'etapa',
+        ]);
     }
 
     /**
@@ -90,7 +115,12 @@ class ReproduccionAnimalService extends BaseService
      */
     public function getReproduccionById($id, $user)
     {
-        $repro = ReproduccionAnimal::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'animal', 'etapa'])->findOrFail($id);
+        $repro = ReproduccionAnimal::with([
+            'etapaAnimal.animal.rebano.finca',
+            'etapaAnimal.etapa',
+            'animal.rebano.finca',
+            'etapa',
+        ])->findOrFail($id);
 
         if ($user->cannot('read', $repro)) {
             throw new AuthorizationException('No tiene permisos para ver este registro de reproducción.');
@@ -146,7 +176,12 @@ class ReproduccionAnimalService extends BaseService
 
         $repro->update($updatePayload);
 
-        return $repro->load(['etapaAnimal.animal', 'etapaAnimal.etapa', 'animal', 'etapa']);
+        return $repro->load([
+            'etapaAnimal.animal.rebano.finca',
+            'etapaAnimal.etapa',
+            'animal.rebano.finca',
+            'etapa',
+        ]);
     }
 
     /**
