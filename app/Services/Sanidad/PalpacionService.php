@@ -21,19 +21,41 @@ class PalpacionService extends BaseService
             throw new AuthorizationException('Sin permisos para listar palpaciones.');
         }
 
-        $query = Palpacion::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tecnico']);
+        $query = Palpacion::with([
+            'etapaAnimal.animal.rebano.finca',
+            'etapaAnimal.etapa',
+            'animal.rebano.finca',
+            'etapa',
+            'tecnico.persona',
+            'tecnico.tipoTrabajador'
+        ]);
 
-        if (isset($filters['animal_id'])) {
+        if (!empty($filters['animal_id'])) {
             $query->whereHas('etapaAnimal', function($q) use ($filters) {
                 $q->where('animal_id', $filters['animal_id']);
             });
         }
         
-        if (isset($filters['tipo'])) {
-            $query->where('tipo', $filters['tipo']);
+        if (!empty($filters['finca_id'])) {
+            $query->whereHas('etapaAnimal.animal.rebano', function($q) use ($filters) {
+                $q->where('finca_id', $filters['finca_id']);
+            });
+        }
+
+        if (!empty($filters['rebano_id'])) {
+            $query->whereHas('etapaAnimal.animal', function($q) use ($filters) {
+                $q->where('rebano_id', $filters['rebano_id']);
+            });
+        }
+
+        if (!empty($filters['tipo'])) {
+            $tipoFilter = strtolower($filters['tipo']);
+            $query->where(function($q) use ($tipoFilter) {
+                $q->whereRaw('LOWER(tipo) LIKE ?', ["%{$tipoFilter}%"]);
+            });
         }
         
-        if (isset($filters['fecha_inicio'])) {
+        if (!empty($filters['fecha_inicio'])) {
             $fechaFin = $filters['fecha_fin'] ?? date('Y-m-d');
             $query->whereBetween('fecha', [$filters['fecha_inicio'], $fechaFin]);
         }
@@ -72,7 +94,14 @@ class PalpacionService extends BaseService
         }
 
         $palpacion = Palpacion::create($data);
-        return $palpacion->load(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tecnico']);
+        return $palpacion->load([
+            'etapaAnimal.animal.rebano.finca',
+            'etapaAnimal.etapa',
+            'animal.rebano.finca',
+            'etapa',
+            'tecnico.persona',
+            'tecnico.tipoTrabajador'
+        ]);
     }
 
     /**
@@ -80,7 +109,14 @@ class PalpacionService extends BaseService
      */
     public function getPalpacionById($id, $user)
     {
-        $palpacion = Palpacion::with(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tecnico'])->findOrFail($id);
+        $palpacion = Palpacion::with([
+            'etapaAnimal.animal.rebano.finca',
+            'etapaAnimal.etapa',
+            'animal.rebano.finca',
+            'etapa',
+            'tecnico.persona',
+            'tecnico.tipoTrabajador'
+        ])->findOrFail($id);
 
         if ($user->cannot('read', $palpacion)) {
             throw new AuthorizationException('No tiene permisos para ver esta palpación.');
@@ -115,7 +151,14 @@ class PalpacionService extends BaseService
         }
 
         $palpacion->update($data);
-        return $palpacion->load(['etapaAnimal.animal', 'etapaAnimal.etapa', 'tecnico']);
+        return $palpacion->load([
+            'etapaAnimal.animal.rebano.finca',
+            'etapaAnimal.etapa',
+            'animal.rebano.finca',
+            'etapa',
+            'tecnico.persona',
+            'tecnico.tipoTrabajador'
+        ]);
     }
 
     /**
