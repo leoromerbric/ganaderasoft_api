@@ -28,7 +28,7 @@ class SemenToroController extends Controller
 
     public function index(Request $request)
     {
-        $filters = $request->only(['toro_id', 'animal_id', 'activo', 'nopaginate']);
+        $filters = $request->only(['toro_id', 'animal_id', 'activo', 'nopaginate', 'finca_id', 'rebano_id', 'fecha_inicio', 'fecha_fin']);
         
         $records = $this->semenService->getPaginatedSemen($filters, $request->user());
 

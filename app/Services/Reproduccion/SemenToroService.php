@@ -22,18 +22,43 @@ class SemenToroService extends BaseService
             throw new AuthorizationException('Sin permisos para listar semen de toros.');
         }
 
-        $query = SemenToro::with('toro');
+        $query = SemenToro::with([
+            'toro.rebano.finca',
+            'toro.composicionRaza',
+            'servicios.animal'
+        ]);
 
-        if (isset($filters['toro_id'])) {
+        if (!empty($filters['toro_id'])) {
             $query->forToro($filters['toro_id']);
-        } elseif (isset($filters['animal_id'])) {
+        } elseif (!empty($filters['animal_id'])) {
             $query->forToro($filters['animal_id']);
         }
 
-        if (isset($filters['activo'])) {
+        if (!empty($filters['finca_id'])) {
+            $query->whereHas('toro.rebano', function($q) use ($filters) {
+                $q->where('finca_id', $filters['finca_id']);
+            });
+        }
+
+        if (!empty($filters['rebano_id'])) {
+            $query->whereHas('toro', function($q) use ($filters) {
+                $q->where('rebano_id', $filters['rebano_id']);
+            });
+        }
+
+        if (isset($filters['activo']) && $filters['activo'] !== '' && $filters['activo'] !== null) {
             if ($filters['activo'] == '1' || $filters['activo'] === true || $filters['activo'] === 'true') {
                 $query->activo();
+            } else {
+                $query->where('estado', false);
             }
+        }
+
+        if (!empty($filters['fecha_inicio'])) {
+            $query->where('fecha', '>=', $filters['fecha_inicio']);
+        }
+        if (!empty($filters['fecha_fin'])) {
+            $query->where('fecha', '<=', $filters['fecha_fin']);
         }
 
         $this->applyFincaFilter($query, $user, 'toro.rebano');
@@ -66,7 +91,11 @@ class SemenToroService extends BaseService
             'fecha'     => $data['fecha'] ?? null,
         ]);
 
-        return $semen->load('toro');
+        return $semen->load([
+            'toro.rebano.finca',
+            'toro.composicionRaza',
+            'servicios.animal'
+        ]);
     }
 
     /**
@@ -74,7 +103,11 @@ class SemenToroService extends BaseService
      */
     public function getSemenById($id, $user)
     {
-        $semen = SemenToro::with(['toro', 'servicios'])->findOrFail($id);
+        $semen = SemenToro::with([
+            'toro.rebano.finca',
+            'toro.composicionRaza',
+            'servicios.animal'
+        ])->findOrFail($id);
 
         if ($user->cannot('read', $semen)) {
             throw new AuthorizationException('No tiene permisos para ver este registro de semen.');
@@ -114,7 +147,11 @@ class SemenToroService extends BaseService
 
         $semen->update($updatePayload);
 
-        return $semen->load('toro');
+        return $semen->load([
+            'toro.rebano.finca',
+            'toro.composicionRaza',
+            'servicios.animal'
+        ]);
     }
 
     /**
@@ -132,38 +169,23 @@ class SemenToroService extends BaseService
     }
 
     /**
-     * Valida que el animal sea un toro (macho y en etapa adulta reproductora como Toro o Butoro).
+     * Valida que el animal sea macho/toro antes de crear o actualizar.
      */
-    private function validateToro($animalId): void
+    private function validateToro($animalId)
     {
-        $animal = Animal::with(['etapaActual.etapa', 'etapaAnimales.etapa'])->findOrFail($animalId);
-        $sexo = strtoupper((string) $animal->sexo);
+        $animal = Animal::find($animalId);
 
-        if (!in_array($sexo, ['M', 'MACHO', 'MASCULINO'], true)) {
-            throw ValidationException::withMessages([
-                'animal_id' => ['El registro de semen solo puede ser asociado a animales machos (M).']
-            ]);
+        if (!$animal) {
+            throw new ModelNotFoundException("El toro especificado no existe.");
         }
 
-        $etapaAnimal = $animal->etapaActual ?? $animal->etapaAnimales->sortByDesc('fecha_ini')->first();
+        $sexo = strtoupper(trim((string)($animal->sexo ?? $animal->Sexo ?? '')));
+        $isMale = in_array($sexo, ['M', 'MACHO', 'MASCULINO', '1'], true);
 
-        if ($etapaAnimal && $etapaAnimal->etapa) {
-            $nombreEtapa = strtoupper(trim((string) $etapaAnimal->etapa->nombre));
-            $etapasPermitidas = ['TORO', 'BUTORO', 'TORETE', 'SEMENTAL', 'REPRODUCTOR'];
-
-            $esToro = false;
-            foreach ($etapasPermitidas as $permitida) {
-                if (str_contains($nombreEtapa, $permitida)) {
-                    $esToro = true;
-                    break;
-                }
-            }
-
-            if (!$esToro) {
-                throw ValidationException::withMessages([
-                    'animal_id' => ["El animal seleccionado se encuentra en la etapa '{$etapaAnimal->etapa->nombre}'. El registro de semen solo puede ser asociado a un animal en etapa de Toro, Butoro o Semental reproductor."]
-                ]);
-            }
+        if (!$isMale) {
+            throw ValidationException::withMessages([
+                'animal_id' => ['El animal especificado debe ser un macho para registrar semen.']
+            ]);
         }
     }
 }
