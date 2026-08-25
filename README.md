@@ -241,6 +241,9 @@ services:
       - "host.docker.internal:host-gateway"
     env_file:
       - ./backend/.env
+    volumes:
+      # Persistencia de imágenes y archivos subidos (fotos, avatares, documentos)
+      - ./backend/storage/app/public:/var/www/html/storage/app/public
     networks:
       - ganaderasoft-network
 
