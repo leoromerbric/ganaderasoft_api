@@ -29,6 +29,10 @@ class ComposicionRazaResource extends JsonResource
             'proporcion_raza'         => $this->proporcion_raza,
             'finca_id'                => $this->finca_id,
             'tipo_animal_id'          => $this->tipo_animal_id,
+            'created_at'              => $this->created_at ? $this->created_at->toIso8601String() : null,
+            'updated_at'              => $this->updated_at ? $this->updated_at->toIso8601String() : null,
+            'finca'                   => $this->whenLoaded('finca'),
+            'tipo_animal'             => $this->whenLoaded('tipoAnimal'),
         ];
     }
 }
