@@ -58,7 +58,7 @@ class AnimalController extends Controller
     {
         try {
             $animals = $this->animalService->listAnimals(
-                $request->only(['rebano_id', 'sexo', 'nopaginate', 'archivado', 'incluir_archivados']),
+                $request->only(['finca_id', 'rebano_id', 'sexo', 'nopaginate', 'archivado', 'incluir_archivados']),
                 $request->user()
             );
             

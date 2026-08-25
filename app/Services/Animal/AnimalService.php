@@ -60,6 +60,10 @@ class AnimalService extends BaseService
         }
 
         // Aplicamos los filtros básicos si existen en la petición
+        if (!empty($filters['finca_id'])) {
+            $query->forFinca($filters['finca_id']);
+        }
+
         if (!empty($filters['rebano_id'])) {
             $query->forRebano($filters['rebano_id']);
         }
