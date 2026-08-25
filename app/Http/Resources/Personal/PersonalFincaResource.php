@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Personal;
 
+use App\Http\Resources\Finca\FincaResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class PersonalFincaResource extends JsonResource
@@ -11,6 +12,7 @@ class PersonalFincaResource extends JsonResource
         return [
             'id' => $this->id,
             'finca_id' => $this->finca_id,
+            'finca' => new FincaResource($this->whenLoaded('finca')),
             'status' => (bool) $this->status,
             'fecha_ingreso' => $this->fecha_ingreso,
             'persona' => [
@@ -26,8 +28,8 @@ class PersonalFincaResource extends JsonResource
                 'id' => $this->tipoTrabajador->id ?? null,
                 'nombre' => $this->tipoTrabajador->nombre ?? null,
             ],
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'created_at' => $this->created_at ? $this->created_at->toIso8601String() : null,
+            'updated_at' => $this->updated_at ? $this->updated_at->toIso8601String() : null,
         ];
     }
 }

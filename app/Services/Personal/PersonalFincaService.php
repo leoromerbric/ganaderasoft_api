@@ -59,17 +59,22 @@ class PersonalFincaService extends BaseService
         return DB::transaction(function () use ($data) {
             $persona = Persona::where('cedula', $data['cedula'])->first();
 
+            $correo = $data['correo'] ?? $data['email'] ?? null;
+
             $personaData = [
                 'nombre' => $data['nombre'],
-                'apellido' => $data['apellido'],
-                'telefono' => $data['telefono'],
-                'correo' => $data['correo'],
+                'apellido' => $data['apellido'] ?? null,
+                'telefono' => $data['telefono'] ?? null,
+                'correo' => $correo,
+                'fecha_nacimiento' => $data['fecha_nacimiento'] ?? null,
             ];
 
             if (!$persona) {
                 $personaData['cedula'] = $data['cedula'];
                 $personaData['status'] = 'activo';
                 $persona = Persona::create($personaData);
+            } else {
+                $persona->update(array_filter($personaData, fn($val) => !is_null($val)));
             }
 
             $personalFinca = PersonalFinca::create([
@@ -123,7 +128,7 @@ class PersonalFincaService extends BaseService
             
             $personal->save();
 
-            if (isset($data['nombre']) || isset($data['apellido']) || isset($data['telefono']) || isset($data['correo'])) {
+            if (isset($data['nombre']) || isset($data['apellido']) || isset($data['telefono']) || isset($data['correo']) || isset($data['email']) || isset($data['cedula']) || isset($data['fecha_nacimiento'])) {
                 $persona = $personal->persona;
                 if ($persona) {
                     $personaData = [];
@@ -131,19 +136,20 @@ class PersonalFincaService extends BaseService
                     if (isset($data['apellido'])) $personaData['apellido'] = $data['apellido'];
                     if (isset($data['telefono'])) $personaData['telefono'] = $data['telefono'];
                     if (isset($data['correo'])) $personaData['correo'] = $data['correo'];
-                    // Updating cedula is allowed if passed
+                    if (isset($data['email'])) $personaData['correo'] = $data['email'];
                     if (isset($data['cedula'])) $personaData['cedula'] = $data['cedula'];
+                    if (isset($data['fecha_nacimiento'])) $personaData['fecha_nacimiento'] = $data['fecha_nacimiento'];
                     
                     $persona->update($personaData);
                 }
             }
 
-            return $personal->fresh(['finca', 'persona', 'tipoTrabajador']);
+            return $personal->load(['finca', 'persona', 'tipoTrabajador']);
         });
     }
 
     /**
-     * Eliminar registro de personal.
+     * Eliminar un registro de personal.
      */
     public function deletePersonal(int $id, User $user)
     {
