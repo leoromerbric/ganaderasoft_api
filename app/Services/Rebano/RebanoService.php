@@ -22,7 +22,11 @@ class RebanoService extends BaseService
             throw new AuthorizationException('Sin permisos para listar rebaños.');
         }
 
-        $query = Rebano::with(['finca.propietario', 'animales'])->active();
+        $query = Rebano::with(['finca.propietario', 'animales'])->withCount('animales')->active();
+
+        if (!empty($filters['finca_id'])) {
+            $query->where('finca_id', $filters['finca_id']);
+        }
 
         $this->applyFincaFilter($query, $user, null);
 
@@ -50,7 +54,7 @@ class RebanoService extends BaseService
             'archivado' => false,
         ]);
 
-        $rebano->load(['finca.propietario', 'animales']);
+        $rebano->load(['finca.propietario', 'animales'])->loadCount('animales');
 
         return $rebano;
     }
@@ -60,7 +64,7 @@ class RebanoService extends BaseService
      */
     public function getRebano(int $id, User $user)
     {
-        $rebano = Rebano::with(['finca.propietario', 'animales'])->find($id);
+        $rebano = Rebano::with(['finca.propietario', 'animales'])->withCount('animales')->find($id);
 
         if (!$rebano) {
             throw new NotFoundHttpException('Rebaño no encontrado');
