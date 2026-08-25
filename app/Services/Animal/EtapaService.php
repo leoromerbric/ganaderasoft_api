@@ -65,7 +65,7 @@ class EtapaService extends BaseService
             'edad_ini'       => $data['edad_ini'],
             'edad_fin'       => $data['edad_fin'] ?? null,
             'tipo_animal_id' => $data['tipo_animal_id'],
-            'sexo'           => $data['sexo'],
+            'sexo'           => $data['sexo'] ?? null,
         ]);
     }
 

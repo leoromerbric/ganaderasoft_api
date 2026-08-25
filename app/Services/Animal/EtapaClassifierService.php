@@ -126,12 +126,15 @@ class EtapaClassifierService
             return null;
         }
 
-        $sexValues = ($sex === 'F' || $sex === 'H') ? ['F', 'H'] : ['M'];
+        $sexValues = ($sex === 'H') ? ['H'] : ['M'];
 
         // Consulta general de etapas basadas en la edad para otros tipos de animales (como Búfala)
         $candidates = Etapa::query()
             ->forTipoAnimal($tipoAnimalId)
-            ->whereIn('sexo', $sexValues)
+            ->where(function ($q) use ($sexValues) {
+                $q->whereIn('sexo', $sexValues)
+                  ->orWhereNull('sexo');
+            })
             ->orderBy('edad_ini')
             ->get();
 
@@ -144,7 +147,7 @@ class EtapaClassifierService
      * Resuelve de manera específica las etapas para los animales del tipo Vacuno.
      * Sigue criterios tradicionales basados en edad y peso.
      *
-     * @param string $sex Sexo ('M' o 'F').
+     * @param string $sex Sexo ('M' o 'H').
      * @param int $ageDays Edad en días.
      * @param float|null $latestWeight Último peso registrado.
      * @return Etapa|null Etapa encontrada por nombre.
@@ -178,18 +181,21 @@ class EtapaClassifierService
      * Busca una etapa de vacuno en la base de datos coincidiendo con una lista de posibles nombres.
      *
      * @param array $names Lista de nombres posibles (en minúsculas).
-     * @param string $sex Sexo del animal ('M' o 'F').
+     * @param string $sex Sexo del animal ('M' o 'H').
      * @return Etapa|null Modelo de Etapa encontrado.
      */
     private function findVacunoEtapaByNames(array $names, string $sex): ?Etapa
     {
-        $sexValues = ($sex === 'F' || $sex === 'H') ? ['F', 'H'] : ['M'];
+        $sexValues = ($sex === 'H') ? ['H'] : ['M'];
         $normalizedNames = array_map('strtolower', $names);
 
-        // Obtenemos las etapas configuradas para vacunos (ID = 1) y el sexo correspondiente
+        // Obtenemos las etapas configuradas para vacunos (ID = 1) y el sexo correspondiente o cualquiera
         $candidates = Etapa::query()
             ->forTipoAnimal(1)
-            ->whereIn('sexo', $sexValues)
+            ->where(function ($q) use ($sexValues) {
+                $q->whereIn('sexo', $sexValues)
+                  ->orWhereNull('sexo');
+            })
             ->get();
 
         return $candidates->first(function (Etapa $etapa) use ($normalizedNames) {

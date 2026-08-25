@@ -65,7 +65,7 @@ class EtapaController extends Controller
             'edad_ini'       => 'required|integer|min:0',
             'edad_fin'       => 'nullable|integer|min:0|gt:edad_ini',
             'tipo_animal_id' => 'required|exists:tipo_animals,id',
-            'sexo'           => 'required|in:M,F,H',
+            'sexo'           => 'nullable|in:M,H',
         ]);
 
         if ($validator->fails()) {
@@ -155,7 +155,7 @@ class EtapaController extends Controller
                 }
             ],
             'tipo_animal_id' => 'sometimes|exists:tipo_animals,id',
-            'sexo'           => 'sometimes|in:M,H',
+            'sexo'           => 'nullable|in:M,H',
         ]);
 
         if ($validator->fails()) {
