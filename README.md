@@ -115,10 +115,10 @@ El proyecto maneja dos entornos con comportamientos diferentes:
 > En caso de usar Windows, para garantizar la compatibilidad de los volúmenes y el rendimiento de los contenedores, es obligatorio ejecutar este proyecto utilizando **WSL2** (Windows Subsystem for Linux) integrado con **Docker Desktop**. Evite ejecutar los comandos directamente sobre PowerShell o CMD si no es a través de una terminal de WSL.
 
 ### 1. Estructura de archivos
-Para comenzar, debe configurar la siguiente estructura de directorios en su entorno local dentro de una carpeta raíz (por ejemplo, `GanaderasoftPro/`):
+Para comenzar, debe configurar la siguiente estructura de directorios en su entorno local dentro de una carpeta raíz (por ejemplo, `ganaderasoft/`):
 
 ```text
-GanaderasoftPro/
+ganaderasoft/
 ├── backend/                  # Repositorio del API (Laravel)
 ├── frontend/                 # Repositorio de la interfaz (Laravel + Vue/Blade)
 ├── docker-compose.yml        # Orquestador de servicios (Desarrollo)
@@ -130,14 +130,14 @@ GanaderasoftPro/
 ### 2. Configuración de variables de entorno
 
 Debe solicitar al equipo de desarrollo los archivos `.env` correspondientes al entorno de desarrollo.
-- El archivo `.env` del backend debe colocarse en `GanaderasoftPro/backend/.env`.
-- El archivo `.env` del frontend debe colocarse en `GanaderasoftPro/frontend/.env`.
+- El archivo `.env` del backend debe colocarse en `ganaderasoft/backend/.env`.
+- El archivo `.env` del frontend debe colocarse en `ganaderasoft/frontend/.env`.
 
 Alternativamente, puede copiar los archivos de ejemplo si están disponibles (`cp .env.dev .env`).
 
 ### 3. Orquestación con docker
 
-En la raíz de la carpeta `GanaderasoftPro/`, asegúrese de tener (o crear) un archivo llamado `docker-compose.yml` preconfigurado que orquestará los servicios de desarrollo:
+En la raíz de la carpeta `ganaderasoft/`, asegúrese de tener (o crear) un archivo llamado `docker-compose.yml` preconfigurado que orquestará los servicios de desarrollo:
 
 <details>
 <summary><b>Ver contenido de <code>docker-compose.yml</code> (Desarrollo)</b></summary>
@@ -293,7 +293,7 @@ Para el entorno de desarrollo, el contenedor `ganaderasoft-db` de MySQL se encar
 
 ### 5. Ejecución del entorno con docker compose
 
-Una vez configurada la estructura de archivos y las variables de entorno, inicie la orquestación de los contenedores ejecutando el siguiente comando en la raíz del proyecto (`/GanaderasoftPro`):
+Una vez configurada la estructura de archivos y las variables de entorno, inicie la orquestación de los contenedores ejecutando el siguiente comando en la raíz del proyecto (`/ganaderasoft`):
 
 ```bash
 docker compose up --build
