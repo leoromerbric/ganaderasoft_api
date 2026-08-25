@@ -107,10 +107,6 @@ class VacunacionService extends BaseService
      */
     public function createVacunacion(array $data, $user): array
     {
-        if ($user->cannot('create', Vacunacion::class)) {
-            throw new AuthorizationException('No tienes permisos para registrar vacunaciones.');
-        }
-
         // Normalizar lista de IDs de animales
         $animalIds = !empty($data['animal_ids'])
             ? collect($data['animal_ids'])->map(fn($id) => (int)$id)->unique()->values()->all()
@@ -122,24 +118,17 @@ class VacunacionService extends BaseService
             ]);
         }
 
+        // Delegar autorización completa a la Policy (permisos + fincas + bypass de admin)
+        if ($user->cannot('create', [Vacunacion::class, $animalIds])) {
+            throw new AuthorizationException('No tienes permisos para registrar vacunaciones en los animales o fincas seleccionadas.');
+        }
+
         // Validar que los animales a vacunar estén activos
         $inactivosCount = Animal::whereIn('id', $animalIds)->where('archivado', true)->count();
         if ($inactivosCount > 0) {
             throw ValidationException::withMessages([
                 'animal_ids' => ['No es posible registrar vacunaciones en animales inactivos, vendidos o fallecidos.']
             ]);
-        }
-
-        // Validar permisos multi-finca sobre los animales
-        if (!$user->isAdmin()) {
-            $fincasPermitidas = $user->getAllowedFincasIds();
-            $validCount = Animal::whereIn('id', $animalIds)
-                ->whereHas('rebano', fn($q) => $q->whereIn('finca_id', $fincasPermitidas))
-                ->count();
-
-            if ($validCount !== count($animalIds)) {
-                throw new AuthorizationException('No tienes permiso para vacunar animales de fincas no autorizadas.');
-            }
         }
 
         $vacunaId    = (int) $data['vacuna_id'];

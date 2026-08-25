@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Models\Animal;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
@@ -39,5 +40,30 @@ abstract class BasePolicy
         }
 
         return in_array($fincaId, $user->getAllowedFincasIds());
+    }
+
+    /**
+     * Valida si el usuario tiene acceso a uno o varios animales especificados (según sus fincas).
+     * 
+     * @param User $user
+     * @param int|array|null $animalIds
+     * @return bool
+     */
+    protected function checkAnimalsAccess(User $user, int|array|null $animalIds): bool
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        if (empty($animalIds)) {
+            return true;
+        }
+
+        $ids = is_array($animalIds) ? $animalIds : [$animalIds];
+        $fincasPermitidas = $user->getAllowedFincasIds();
+
+        return Animal::whereIn('id', $ids)
+            ->whereHas('rebano', fn($q) => $q->whereIn('finca_id', $fincasPermitidas))
+            ->count() === count($ids);
     }
 }

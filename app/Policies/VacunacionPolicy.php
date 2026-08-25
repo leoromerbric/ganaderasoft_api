@@ -30,21 +30,19 @@ class VacunacionPolicy extends BasePolicy
     }
 
     /**
-     * Determina si el usuario puede crear registros de vacunación.
+     * Determina si el usuario puede crear registros de vacunación para uno o varios animales.
+     *
+     * @param User $user
+     * @param int|array|null $animalIds
+     * @return bool
      */
-    public function create(User $user, ?int $animalId = null): bool
+    public function create(User $user, int|array|null $animalIds = null): bool
     {
         if (!$user->hasPermissionTo('vacunacion.create')) {
             return false;
         }
 
-        if ($animalId) {
-            $animal = Animal::with('rebano')->find($animalId);
-            $fincaId = optional(optional($animal)->rebano)->finca_id;
-            return $this->checkFincaAccess($user, $fincaId);
-        }
-
-        return true;
+        return $this->checkAnimalsAccess($user, $animalIds);
     }
 
     /**
