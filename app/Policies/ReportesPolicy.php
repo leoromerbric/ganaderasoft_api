@@ -12,32 +12,14 @@ class ReportesPolicy extends BasePolicy
      */
     public function readAny(User $user): bool
     {
-        if (!$user->hasPermissionTo('reportes.read')) {
-            return false;
-        }
-
-        if (!$user->isAdmin() && empty($user->getAllowedFincasIds())) {
-            return false;
-        }
-
-        return true;
+        return $user->hasPermissionTo('reportes.read');
     }
 
     /**
-     * Determina si el usuario puede ver los reportes de una finca específica.
+     * Determina si el usuario puede ver los reportes.
      */
-    public function read(User $user, mixed $finca = null): bool
+    public function read(User $user, mixed $target = null): bool
     {
-        if (!$user->hasPermissionTo('reportes.read')) {
-            return false;
-        }
-
-        if ($finca === null) {
-            return true;
-        }
-
-        $fincaId = $finca instanceof Finca ? $finca->id : (int) $finca;
-
-        return $this->checkFincaAccess($user, $fincaId);
+        return $user->hasPermissionTo('reportes.read');
     }
 }

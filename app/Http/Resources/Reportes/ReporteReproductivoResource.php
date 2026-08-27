@@ -15,7 +15,10 @@ class ReporteReproductivoResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'kpis'              => $this->resource['kpis'] ?? [],
+            'finca'             => $this->resource['finca'] ?? null,
+            'resumen'           => $this->resource['resumen'] ?? [],
+            'animales'          => $this->resource['animales'] ?? [],
+            'kpis'              => $this->resource['kpis'] ?? ($this->resource['resumen'] ?? []),
             'items'             => $this->resource['items'] ?? [],
             'filtros_aplicados' => $this->resource['filtros_aplicados'] ?? [],
         ];

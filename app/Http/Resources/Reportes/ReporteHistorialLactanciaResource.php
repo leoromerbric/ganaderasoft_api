@@ -4,7 +4,7 @@ namespace App\Http\Resources\Reportes;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ReportePesajeLecheResource extends JsonResource
+class ReporteHistorialLactanciaResource extends JsonResource
 {
     /**
      * Transforma el recurso a un arreglo para la respuesta JSON.
@@ -16,11 +16,11 @@ class ReportePesajeLecheResource extends JsonResource
     {
         return [
             'finca'                  => $this->resource['finca'] ?? null,
-            'resumen'                => $this->resource['resumen'] ?? [],
-            'pesajes'                => $this->resource['pesajes'] ?? [],
-            'kpis'                   => $this->resource['kpis'] ?? ($this->resource['resumen'] ?? []),
+            'total_animales'         => $this->resource['total_animales'] ?? 0,
+            'produccion_total_finca' => $this->resource['produccion_total_finca'] ?? 0.0,
+            'animales'               => $this->resource['animales'] ?? [],
+            'kpis'                   => $this->resource['kpis'] ?? [],
             'items'                  => $this->resource['items'] ?? [],
-            'rendimiento_individual' => $this->resource['rendimiento_individual'] ?? [],
             'filtros_aplicados'      => $this->resource['filtros_aplicados'] ?? [],
         ];
     }

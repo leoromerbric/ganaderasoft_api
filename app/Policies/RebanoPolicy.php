@@ -16,10 +16,6 @@ class RebanoPolicy extends BasePolicy
             return false;
         }
 
-        if (!$user->isAdmin() && empty($user->getAllowedFincasIds())) {
-            return false;
-        }
-
         return true;
     }
 
