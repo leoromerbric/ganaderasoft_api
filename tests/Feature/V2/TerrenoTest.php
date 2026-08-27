@@ -172,7 +172,7 @@ class TerrenoTest extends TestCase
 
         $response = $this->actingAs($admin)
             ->withHeader('X-API-VERSION', '2')
-            ->getJson('/api/terrenos?relieve=ondulado');
+            ->getJson("/api/terrenos?finca_id={$finca2->id}&relieve=ondulado");
 
         $response->assertStatus(200)
             ->assertJsonPath('success', true);

@@ -28,4 +28,10 @@ class ArbolGen extends Model
     {
         return $this->belongsTo(Animal::class, 'padre_id', 'id');
     }
+
+    /** Alias de progenitor */
+    public function padre()
+    {
+        return $this->progenitor();
+    }
 }
