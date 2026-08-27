@@ -3,8 +3,8 @@
 namespace App\Services\Reportes;
 
 use App\Models\Animal;
-use App\Models\Diagnostico;
 use App\Models\Finca;
+use App\Models\Palpacion;
 use App\Models\ReproduccionAnimal;
 use App\Models\ServicioAnimal;
 use App\Models\User;
@@ -83,6 +83,7 @@ class ReporteReproductivoService extends BaseService
         ->when($fechaInicio, fn($q) => $q->where('fecha_reproduccion', '>=', $fechaInicio))
         ->when($fechaFin, fn($q) => $q->where('fecha_reproduccion', '<=', $fechaFin))
         ->orderBy('fecha_reproduccion', 'desc')
+        ->orderBy('id', 'desc')
         ->get();
 
         $partosPorAnimal = [];
@@ -98,6 +99,7 @@ class ReporteReproductivoService extends BaseService
             ->when($fechaInicio, fn($q) => $q->where('fecha', '>=', $fechaInicio))
             ->when($fechaFin, fn($q) => $q->where('fecha', '<=', $fechaFin))
             ->orderBy('fecha', 'desc')
+            ->orderBy('id', 'desc')
             ->get();
 
         $serviciosPorAnimal = [];
@@ -105,21 +107,22 @@ class ReporteReproductivoService extends BaseService
             $serviciosPorAnimal[$s->animal_id][] = $s;
         }
 
-        // 4. Diagnósticos / Palpaciones
-        $diagnosticos = Diagnostico::whereHas('etapaAnimal', function ($q) use ($animalIds) {
+        // 4. Palpaciones / Evaluaciones Ginecológicas
+        $palpaciones = Palpacion::whereHas('etapaAnimal', function ($q) use ($animalIds) {
             $q->whereIn('animal_id', $animalIds);
         })
-        ->with('etapaAnimal')
+        ->with(['etapaAnimal', 'prenezDias'])
         ->when($fechaInicio, fn($q) => $q->where('fecha', '>=', $fechaInicio))
         ->when($fechaFin, fn($q) => $q->where('fecha', '<=', $fechaFin))
         ->orderBy('fecha', 'desc')
+        ->orderBy('id', 'desc')
         ->get();
 
-        $diagnosticosPorAnimal = [];
-        foreach ($diagnosticos as $d) {
-            $aId = $d->etapaAnimal?->animal_id;
+        $palpacionesPorAnimal = [];
+        foreach ($palpaciones as $p) {
+            $aId = $p->etapaAnimal?->animal_id;
             if ($aId) {
-                $diagnosticosPorAnimal[$aId][] = $d;
+                $palpacionesPorAnimal[$aId][] = $p;
             }
         }
 
@@ -133,7 +136,7 @@ class ReporteReproductivoService extends BaseService
         foreach ($animales as $animal) {
             $misPartos = $partosPorAnimal[$animal->id] ?? [];
             $misServicios = $serviciosPorAnimal[$animal->id] ?? [];
-            $misDiagnosticos = $diagnosticosPorAnimal[$animal->id] ?? [];
+            $misPalpaciones = $palpacionesPorAnimal[$animal->id] ?? [];
 
             $eventos = [];
 
@@ -159,14 +162,14 @@ class ReporteReproductivoService extends BaseService
                 ];
             }
 
-            foreach ($misDiagnosticos as $d) {
-                $fStr = $d->fecha ? (is_string($d->fecha) ? substr($d->fecha, 0, 10) : $d->fecha->format('Y-m-d')) : null;
+            foreach ($misPalpaciones as $p) {
+                $fStr = $p->fecha ? (is_string($p->fecha) ? substr($p->fecha, 0, 10) : $p->fecha->format('Y-m-d')) : null;
                 $eventos[] = [
-                    'id'          => $d->id,
+                    'id'          => $p->id,
                     'origen'      => 'Palpacion',
-                    'tipo'        => $d->tipo ?? 'Diagnóstico',
+                    'tipo'        => $p->tipo ?? 'Palpación',
                     'fecha'       => $fStr,
-                    'observacion' => $d->descripcion ?? 'Palpación / Diagnóstico',
+                    'observacion' => 'Evaluación ginecológica: ' . ($p->tipo ?? 'Palpación') . ($p->prenezDias->isNotEmpty() ? ' (Preñez confirmada)' : ''),
                 ];
             }
 
@@ -177,25 +180,55 @@ class ReporteReproductivoService extends BaseService
             $totalEventosGlobal += $totalEventos;
 
             $ultimoServicio = !empty($misServicios) ? $misServicios[0] : null;
-            $ultimoDiagnostico = !empty($misDiagnosticos) ? $misDiagnosticos[0] : null;
+            $ultimaPalpacion = !empty($misPalpaciones) ? $misPalpaciones[0] : null;
+
+            // Determinar diagnóstico ginecológico y estado de gestación
+            $esGestante = false;
+            $diagnosticoPalpacion = 'Pendiente palpación';
+
+            if (!empty($misPalpaciones)) {
+                foreach ($misPalpaciones as $p) {
+                    $tipoNorm = mb_strtolower(trim($p->tipo ?? ''));
+                    $tienePrenezDias = $p->prenezDias && $p->prenezDias->isNotEmpty();
+
+                    $esPositivo = $tienePrenezDias 
+                        || str_contains($tipoNorm, 'preñ') 
+                        || str_contains($tipoNorm, 'pren') 
+                        || str_contains($tipoNorm, 'gest') 
+                        || str_contains($tipoNorm, 'positi');
+
+                    $esVacia = str_contains($tipoNorm, 'vac') 
+                        || str_contains($tipoNorm, 'abiert') 
+                        || str_contains($tipoNorm, 'negativ');
+
+                    if ($esPositivo) {
+                        $esGestante = true;
+                        $diagnosticoPalpacion = 'Gestante';
+                        break;
+                    } elseif ($esVacia) {
+                        $diagnosticoPalpacion = 'Vacía';
+                        break;
+                    }
+                }
+
+                if ($esGestante) {
+                    $gestacionesConfirmadas++;
+                } elseif ($diagnosticoPalpacion === 'Pendiente palpación' && !empty($ultimaPalpacion)) {
+                    $diagnosticoPalpacion = $ultimaPalpacion->tipo ?: 'Evaluada';
+                }
+            }
 
             // Calcular fecha probable de parto y gestación
             $fechaProbableParto = null;
             $diasGestacion = 0;
-            $esGestante = false;
-
-            if ($ultimoDiagnostico && stripos((string) $ultimoDiagnostico->tipo, 'gest') !== false) {
-                $esGestante = true;
-                $gestacionesConfirmadas++;
-            }
 
             if ($ultimoServicio && $ultimoServicio->fecha) {
                 $fServ = is_string($ultimoServicio->fecha) ? Carbon::parse($ultimoServicio->fecha) : $ultimoServicio->fecha;
+                $diasGestacion = (int) $fServ->diffInDays(now());
                 $fPartoProb = (clone $fServ)->addDays(283);
                 $fechaProbableParto = $fPartoProb->format('Y-m-d');
-                $diasGestacion = (int) $fServ->diffInDays(now());
 
-                if ($fPartoProb->isBetween(now(), now()->addDays(30))) {
+                if ($esGestante && $fPartoProb->isBetween(now(), now()->addDays(30))) {
                     $proximosPartos++;
                 }
             }
@@ -208,7 +241,7 @@ class ReporteReproductivoService extends BaseService
                 'eventos'       => $eventos,
             ];
 
-            if ($totalEventos > 0 || $ultimoServicio) {
+            if ($totalEventos > 0 || $ultimoServicio || $ultimaPalpacion) {
                 $prioridad = 'Normal';
                 if ($diasGestacion >= 260) {
                     $prioridad = 'Inminente';
@@ -220,7 +253,7 @@ class ReporteReproductivoService extends BaseService
                     'animal_identificador'  => ($animal->codigo_animal ?? 'ID:' . $animal->id) . ' (' . ($animal->nombre ?? 'Sin nombre') . ')',
                     'ultimo_servicio_fecha' => $ultimoServicio && $ultimoServicio->fecha ? (is_string($ultimoServicio->fecha) ? substr($ultimoServicio->fecha, 0, 10) : $ultimoServicio->fecha->format('Y-m-d')) : 'Sin servicios',
                     'tipo_servicio'         => $ultimoServicio ? ($ultimoServicio->tipo ?? 'Servicio') : '-',
-                    'diagnostico_palpacion' => $esGestante ? 'Gestante' : ($ultimoDiagnostico ? $ultimoDiagnostico->tipo : 'Pendiente palpación'),
+                    'diagnostico_palpacion' => $diagnosticoPalpacion,
                     'fecha_probable_parto'  => $fechaProbableParto ?? 'Por confirmar',
                     'dias_gestacion'        => $diasGestacion,
                     'fecha_secado'          => $fechaProbableParto ? Carbon::parse($fechaProbableParto)->subDays(60)->format('Y-m-d') : null,

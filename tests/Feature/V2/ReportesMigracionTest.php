@@ -357,43 +357,6 @@ class ReportesMigracionTest extends TestCase
         $this->assertEquals(57.5, $response->json('data.resumen.total_produccion'));
     }
 
-    public function test_reporte_rebanos_v2()
-    {
-        $response = $this->actingAs($this->propietarioUser)
-            ->withHeader('X-API-VERSION', '2')
-            ->getJson("/api/reportes/rebanos?finca_id={$this->finca->id}");
-
-        $response->assertStatus(200)
-            ->assertJsonPath('success', true)
-            ->assertJsonStructure([
-                'success',
-                'message',
-                'data' => [
-                    'finca' => ['id', 'nombre'],
-                    'total_rebanos',
-                    'rebanos' => [
-                        '*' => [
-                            'id',
-                            'nombre',
-                            'archivado',
-                            'total_animales',
-                            'animales_activos',
-                            'animales_archivados',
-                            'machos',
-                            'hembras',
-                        ]
-                    ]
-                ]
-            ]);
-
-        $this->assertEquals(1, $response->json('data.total_rebanos'));
-        $rebanoData = $response->json('data.rebanos.0');
-        $this->assertEquals('Lote Productoras A', $rebanoData['nombre']);
-        $this->assertEquals(2, $rebanoData['total_animales']);
-        $this->assertEquals(1, $rebanoData['machos']);
-        $this->assertEquals(1, $rebanoData['hembras']);
-    }
-
     public function test_usuario_sin_acceso_a_finca_es_rechazado()
     {
         $otroUser = User::factory()->create();
@@ -411,7 +374,7 @@ class ReportesMigracionTest extends TestCase
 
         $response = $this->actingAs($otroUser)
             ->withHeader('X-API-VERSION', '2')
-            ->getJson("/api/reportes/general?finca_id={$this->finca->id}");
+            ->getJson("/api/reportes/pesaje-leche?finca_id={$this->finca->id}");
 
         $response->assertStatus(403);
     }

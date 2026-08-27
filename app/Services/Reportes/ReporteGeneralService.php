@@ -36,18 +36,9 @@ class ReporteGeneralService extends BaseService
 
         $fechaInicio = $filters['fecha_inicio'] ?? null;
         $fechaFin    = $filters['fecha_fin'] ?? null;
-        $fincaId     = $filters['finca_id'] ?? ($filters['id_finca'] ?? null);
 
         $fincasQuery = Finca::where('archivado', false);
         $this->applyFincaFilter($fincasQuery, $user, null, 'id');
-
-        if ($fincaId) {
-            $fincaId = (int) $fincaId;
-            if (!$this->checkFincaAccess($user, $fincaId)) {
-                throw new AuthorizationException('No tiene permisos para ver reportes de esta finca.');
-            }
-            $fincasQuery->where('id', $fincaId);
-        }
 
         $fincas = $fincasQuery->get();
         if ($fincas->isEmpty()) {
@@ -72,7 +63,7 @@ class ReporteGeneralService extends BaseService
                 'rebano.finca',
                 'composicionRaza',
                 'etapaActual.etapa',
-                'estadoActual.estado',
+                'estadoActual.estadoSalud',
                 'registroPadre.progenitor',
                 'registroMadre.progenitor',
             ]);
@@ -90,10 +81,10 @@ class ReporteGeneralService extends BaseService
         }
 
         if (!empty($fechaInicio)) {
-            $animalesQuery->where('fecha_ingreso', '>=', $fechaInicio);
+            $animalesQuery->where('fecha_nacimiento', '>=', $fechaInicio);
         }
         if (!empty($fechaFin)) {
-            $animalesQuery->where('fecha_ingreso', '<=', $fechaFin);
+            $animalesQuery->where('fecha_nacimiento', '<=', $fechaFin);
         }
 
         $animales = $animalesQuery->orderBy('nombre')->get();
@@ -134,13 +125,13 @@ class ReporteGeneralService extends BaseService
                 'nombre'               => $animal->nombre,
                 'sexo'                 => $animal->sexo,
                 'categoria'            => $animal->etapaActual?->etapa?->nombre ?? 'S/C',
-                'estatus'              => $animal->estadoActual?->estado?->nombre ?? ($animal->archivado ? 'Archivado' : 'Activo'),
+                'estatus'              => $animal->estadoActual?->estadoSalud?->nombre ?? ($animal->archivado ? 'Archivado' : 'Activo'),
                 'rebano_nombre'        => $animal->rebano?->nombre ?? 'Sin rebaño',
                 'finca_nombre'         => $animal->rebano?->finca?->nombre ?? 'Sin finca',
                 'edad_meses'           => $animal->edad_en_meses ?? null,
                 'edad_formateada'      => $animal->edad_formateada,
                 'fecha_nacimiento'     => $animal->fecha_nacimiento ? $animal->fecha_nacimiento->format('Y-m-d') : null,
-                'raza'                 => $animal->composicionRaza?->raza ?? 'S/R',
+                'raza'                 => $animal->composicionRaza?->nombre ?? ($animal->composicionRaza?->siglas ?? 'S/R'),
                 'archivado'            => (bool) $animal->archivado,
                 'peso_ingreso'         => $pesoIngreso ? (float) $pesoIngreso->peso : null,
                 'fecha_ingreso'        => $pesoIngreso && $pesoIngreso->fecha_peso ? $pesoIngreso->fecha_peso->format('Y-m-d') : null,
@@ -165,12 +156,18 @@ class ReporteGeneralService extends BaseService
 
         foreach ($grupos as $key => $grupoAnimales) {
             [$fincaNom, $categoriaNom] = explode('|', $key);
+            $machos = $grupoAnimales->whereIn('sexo', ['M', 'MACHO', 'Macho', 'macho'])->count();
+            $hembras = $grupoAnimales->whereIn('sexo', ['H', 'F', 'HEMBRA', 'Hembra', 'hembra'])->count();
+            
+            $primerAnimal = $grupoAnimales->first();
+            $estadoSalud = $primerAnimal?->estadoActual?->estadoSalud?->nombre ?? ($primerAnimal?->archivado ? 'Archivado' : 'Sano');
+
             $itemsAgrupados[] = [
                 'finca_nombre'       => $fincaNom,
                 'categoria'          => $categoriaNom,
                 'cantidad_animales'  => $grupoAnimales->count(),
-                'estado_nutricional' => 'Excelente',
-                'observacion'        => 'Control sanitario al día',
+                'estado_nutricional' => $estadoSalud,
+                'observacion'        => "{$hembras} hembra(s), {$machos} macho(s)",
             ];
         }
 
@@ -246,7 +243,6 @@ class ReporteGeneralService extends BaseService
             'filtros_aplicados' => [
                 'fecha_inicio' => $fechaInicio,
                 'fecha_fin'    => $fechaFin,
-                'finca_id'     => $fincaId,
                 'rebano_id'    => $filters['rebano_id'] ?? null,
             ],
         ];

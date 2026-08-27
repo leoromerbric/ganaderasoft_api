@@ -64,7 +64,7 @@ class ReportePesajeLecheService extends BaseService
         ->with([
             'lactancia.etapaAnimal.animal.rebano',
             'lactancia.etapaAnimal.etapa',
-            'lactancia.etapaAnimal.animal.estadoActual.estado',
+            'lactancia.etapaAnimal.animal.estadoActual.estadoSalud',
         ]);
 
         if (!empty($filters['animal_id'])) {
@@ -108,7 +108,7 @@ class ReportePesajeLecheService extends BaseService
                 'codigo'       => $animal?->codigo_animal ?? (string) $animal?->id,
                 'nombre'       => $animal?->nombre ?? 'Sin nombre',
                 'categoria'    => $etapa?->nombre ?? 'Vacas en ordeño',
-                'estatus'      => $animal?->estadoActual?->estado?->nombre ?? ($animal?->archivado ? 'Archivado' : 'Activo'),
+                'estatus'      => $animal?->estadoActual?->estadoSalud?->nombre ?? ($animal?->archivado ? 'Archivado' : 'Activo'),
                 'lote'         => $rebano?->nombre ?? 'Sin rebaño',
                 'fecha_evento' => $fechaStr,
                 'peso_total'   => $pesajeTotal,
@@ -132,14 +132,15 @@ class ReportePesajeLecheService extends BaseService
         foreach ($gruposFechaLote as $key => $recordsGrupo) {
             [$fechaStr, $loteNom] = explode('|', $key);
             $totalDia = (float) $recordsGrupo->sum('pesaje_total');
-            $ordenoManana = round($totalDia * 0.55, 1);
-            $ordenoTarde = round($totalDia - $ordenoManana, 1);
+            $cantVacas = $recordsGrupo->pluck('lactancia.etapaAnimal.animal_id')->filter()->unique()->count();
+            $cantVacas = max(1, $cantVacas);
+            $promedioVaca = round($totalDia / $cantVacas, 1);
 
             $itemsConsolidados[] = [
                 'fecha_pesaje'         => $fechaStr,
                 'rebano_nombre'        => $loteNom,
-                'ordeno_manana_litros' => $ordenoManana,
-                'ordeno_tarde_litros'  => $ordenoTarde,
+                'vacas_pesadas'        => $cantVacas,
+                'promedio_vaca_litros' => $promedioVaca,
                 'total_dia_litros'     => round($totalDia, 1),
             ];
         }
@@ -163,12 +164,25 @@ class ReportePesajeLecheService extends BaseService
             $cantPesajes = $recsAnimal->count();
             $litrosDia = $cantPesajes > 0 ? round($totalLitrosAnimal / $cantPesajes, 1) : 0.0;
 
+            // Calcular variación real
+            $variacion = '+0.0 lts';
+            if ($cantPesajes >= 2) {
+                $ordenados = $recsAnimal->sortByDesc('fecha_pesaje')->values();
+                $ultimoPesaje = (float) ($ordenados[0]->pesaje_total ?? 0);
+                $penultimoPesaje = (float) ($ordenados[1]->pesaje_total ?? 0);
+                $diff = round($ultimoPesaje - $penultimoPesaje, 1);
+                $variacion = ($diff >= 0 ? '+' : '') . number_format($diff, 1) . ' lts';
+            } elseif ($promedioDiarioVaca > 0) {
+                $diff = round($litrosDia - $promedioDiarioVaca, 1);
+                $variacion = ($diff >= 0 ? '+' : '') . number_format($diff, 1) . ' lts';
+            }
+
             $rendimientoIndividual[] = [
                 'animal_identificador' => ($animal->codigo_animal ?? 'ID:' . $animal->id) . ' (' . ($animal->nombre ?? 'Sin nombre') . ')',
                 'lactancia'            => 'Lactancia en curso',
                 'dias_en_ordeno'       => (int) $diasOrdeno,
                 'litros_dia'           => $litrosDia,
-                'variacion'            => '+0.5 lts',
+                'variacion'            => $variacion,
             ];
         }
 
