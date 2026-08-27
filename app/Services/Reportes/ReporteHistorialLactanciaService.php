@@ -29,7 +29,7 @@ class ReporteHistorialLactanciaService extends BaseService
      */
     public function generar(array $filters, User $user): array
     {
-        if ($user->cannot('read', self::class)) {
+        if ($user->cannot('readAny', self::class)) {
             throw new AuthorizationException('Sin permisos para ver reportes.');
         }
 

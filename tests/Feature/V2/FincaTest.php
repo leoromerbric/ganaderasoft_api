@@ -167,17 +167,35 @@ class FincaTest extends TestCase
     }
 
     /**
-     * Test non-admin without propietario profile cannot list fincas
+     * Test user without permission cannot list fincas
      */
-    public function test_user_without_propietario_profile_cannot_list_fincas_v2()
+    public function test_user_without_permission_cannot_list_fincas_v2()
     {
-        $user = $this->createUserWithRole('propietario'); // No profile
+        $user = User::factory()->create(); // No role or permissions
 
         $response = $this->actingAs($user)
             ->withHeader('X-API-VERSION', '2')
             ->getJson('/api/fincas');
 
         $response->assertStatus(403);
+    }
+
+    /**
+     * Test propietario without fincas gets empty list (200 OK)
+     */
+    public function test_propietario_without_fincas_gets_empty_list_v2()
+    {
+        $user = $this->createUserWithRole('propietario'); // Has permission, but 0 fincas
+
+        $response = $this->actingAs($user)
+            ->withHeader('X-API-VERSION', '2')
+            ->getJson('/api/fincas');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true);
+
+        $data = $response->json('data.data');
+        $this->assertCount(0, $data);
     }
 
     /**
