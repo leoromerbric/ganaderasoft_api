@@ -12,7 +12,15 @@ class RebanoPolicy extends BasePolicy
      */
     public function readAny(User $user): bool
     {
-        return $user->hasPermissionTo('rebano.read');
+        if (!$user->hasPermissionTo('rebano.read')) {
+            return false;
+        }
+
+        if (!$user->isAdmin() && empty($user->getAllowedFincasIds())) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

@@ -4,13 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Reportes\EstadisticasFincasResource;
-use App\Http\Resources\Reportes\ReporteGeneralResource;
-use App\Http\Resources\Reportes\ReportePesajeLecheResource;
-use App\Http\Resources\Reportes\ReporteReproductivoResource;
-use App\Services\Reportes\ReporteFincasService;
-use App\Services\Reportes\ReporteGeneralService;
-use App\Services\Reportes\ReportePesajeLecheService;
-use App\Services\Reportes\ReporteReproductivoService;
+use App\Services\Reportes\ReportesService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
@@ -22,8 +16,9 @@ use Illuminate\Http\Response;
  */
 class ReportesController extends Controller
 {
-    public function __construct()
-    {
+    public function __construct(
+        protected ReportesService $reportesService
+    ) {
         $this->middleware(\App\Http\Middleware\Legacy\Reportes\NormalizeEstadisticasFincas::class)->only('estadisticasFincas');
     }
 
@@ -31,14 +26,13 @@ class ReportesController extends Controller
      * Obtiene el reporte estadístico consolidado de fincas.
      *
      * @param Request $request
-     * @param ReporteFincasService $service
      * @return JsonResponse
      */
-    public function estadisticasFincas(Request $request, ReporteFincasService $service): JsonResponse
+    public function estadisticasFincas(Request $request): JsonResponse
     {
         try {
             $filters = $request->only(['propietario_id', 'finca_id']);
-            $estadisticas = $service->getEstadisticasFincas($filters, $request->user());
+            $estadisticas = $this->reportesService->getEstadisticasFincas($filters, $request->user());
 
             return response()->json([
                 'success' => true,
@@ -59,95 +53,156 @@ class ReportesController extends Controller
     }
 
     /**
-     * Endpoint para generar el Reporte General de Finca / Inventario Ganadero.
-     *
-     * @param Request $request
-     * @param ReporteGeneralService $service
-     * @return JsonResponse
+     * Reporte General de Finca (Animales, pesos, genealogía).
      */
-    public function reporteGeneral(Request $request, ReporteGeneralService $service): JsonResponse
+    public function general(Request $request): JsonResponse
     {
         try {
-            $filters = $request->all();
-            $data = $service->generar($filters, $request->user());
+            $data = $this->reportesService->getReporteGeneral($request->all(), $request->user());
 
             return response()->json([
                 'success' => true,
-                'message' => 'Reporte general generado exitosamente',
-                'data'    => $this->formatResource(ReporteGeneralResource::class, $data),
+                'message' => 'Reporte general obtenido exitosamente.',
+                'data'    => $data,
             ]);
         } catch (AuthorizationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
             ], Response::HTTP_FORBIDDEN);
-        } catch (\Exception $e) {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            ], Response::HTTP_NOT_FOUND);
         }
     }
 
     /**
-     * Endpoint para generar el Reporte Reproductivo.
-     *
-     * @param Request $request
-     * @param ReporteReproductivoService $service
-     * @return JsonResponse
+     * Alias para compatibilidad: reporteGeneral
      */
-    public function reporteReproductivo(Request $request, ReporteReproductivoService $service): JsonResponse
+    public function reporteGeneral(Request $request): JsonResponse
+    {
+        return $this->general($request);
+    }
+
+    /**
+     * Reporte de Historia de Lactancias con cálculo TIM (P244, P270, P305).
+     */
+    public function lactancias(Request $request): JsonResponse
     {
         try {
-            $filters = $request->all();
-            $data = $service->generar($filters, $request->user());
+            $data = $this->reportesService->getReporteLactancias($request->all(), $request->user());
 
             return response()->json([
                 'success' => true,
-                'message' => 'Reporte reproductivo generado exitosamente',
-                'data'    => $this->formatResource(ReporteReproductivoResource::class, $data),
+                'message' => 'Reporte de lactancias obtenido exitosamente.',
+                'data'    => $data,
             ]);
         } catch (AuthorizationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
             ], Response::HTTP_FORBIDDEN);
-        } catch (\Exception $e) {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            ], Response::HTTP_NOT_FOUND);
         }
     }
 
     /**
-     * Endpoint para generar el Reporte de Pesaje de Leche.
-     *
-     * @param Request $request
-     * @param ReportePesajeLecheService $service
-     * @return JsonResponse
+     * Reporte de Historial Reproductivo Consolidado (Partos + Servicios).
      */
-    public function reportePesajeLeche(Request $request, ReportePesajeLecheService $service): JsonResponse
+    public function reproductivo(Request $request): JsonResponse
     {
         try {
-            $filters = $request->all();
-            $data = $service->generar($filters, $request->user());
+            $data = $this->reportesService->getReporteReproductivo($request->all(), $request->user());
 
             return response()->json([
                 'success' => true,
-                'message' => 'Reporte de pesaje de leche generado exitosamente',
-                'data'    => $this->formatResource(ReportePesajeLecheResource::class, $data),
+                'message' => 'Reporte reproductivo obtenido exitosamente.',
+                'data'    => $data,
             ]);
         } catch (AuthorizationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
             ], Response::HTTP_FORBIDDEN);
-        } catch (\Exception $e) {
+        } catch (ModelNotFoundException $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            ], Response::HTTP_NOT_FOUND);
+        }
+    }
+
+    /**
+     * Alias para compatibilidad: reporteReproductivo
+     */
+    public function reporteReproductivo(Request $request): JsonResponse
+    {
+        return $this->reproductivo($request);
+    }
+
+    /**
+     * Reporte de Histórico de Pesajes de Leche.
+     */
+    public function pesajeLeche(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->reportesService->getReportePesajeLeche($request->all(), $request->user());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Reporte de pesaje de leche obtenido exitosamente.',
+                'data'    => $data,
+            ]);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], Response::HTTP_FORBIDDEN);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], Response::HTTP_NOT_FOUND);
+        }
+    }
+
+    /**
+     * Alias para compatibilidad: reportePesajeLeche
+     */
+    public function reportePesajeLeche(Request $request): JsonResponse
+    {
+        return $this->pesajeLeche($request);
+    }
+
+    /**
+     * Reporte / Resumen de Rebaños de la Finca.
+     */
+    public function rebanos(Request $request): JsonResponse
+    {
+        try {
+            $data = $this->reportesService->getReporteRebanos($request->all(), $request->user());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Reporte de rebaños obtenido exitosamente.',
+                'data'    => $data,
+            ]);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], Response::HTTP_FORBIDDEN);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], Response::HTTP_NOT_FOUND);
         }
     }
 }

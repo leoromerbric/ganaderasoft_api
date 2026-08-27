@@ -35,6 +35,12 @@ class Rebano extends Model
         return $this->hasMany(Animal::class, 'rebano_id', 'id');
     }
 
+    /** Alias en inglés para compatibilidad Eloquent */
+    public function animals()
+    {
+        return $this->animales();
+    }
+
     /**
      * Filtro para incluir solo rebanos activos/as.
      */

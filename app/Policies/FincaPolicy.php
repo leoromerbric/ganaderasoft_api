@@ -9,7 +9,15 @@ class FincaPolicy extends BasePolicy
 {
     public function readAny(User $user): bool
     {
-        return $user->hasPermissionTo('finca.read');
+        if (!$user->hasPermissionTo('finca.read')) {
+            return false;
+        }
+
+        if (!$user->isAdmin() && empty($user->getAllowedFincasIds())) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

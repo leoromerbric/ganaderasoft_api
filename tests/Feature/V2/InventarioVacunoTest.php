@@ -25,9 +25,8 @@ class InventarioVacunoTest extends TestCase
             ['email' => 'admin@example.com'],
             ['name' => 'Admin User', 'password' => bcrypt('password')]
         );
-        if (!$user->roles->contains($role->id)) {
-            $user->roles()->attach($role->id);
-        }
+        $user->roles()->syncWithoutDetaching([$role->id]);
+        $user->load('roles');
         return $user;
     }
 
@@ -38,9 +37,8 @@ class InventarioVacunoTest extends TestCase
             ['email' => 'propietario@example.com'],
             ['name' => 'Propietario User', 'password' => bcrypt('password')]
         );
-        if (!$user->roles->contains($role->id)) {
-            $user->roles()->attach($role->id);
-        }
+        $user->roles()->syncWithoutDetaching([$role->id]);
+        $user->load('roles');
 
         if ($user->personas()->count() === 0) {
             $persona = \App\Models\Persona::create([
@@ -111,7 +109,7 @@ class InventarioVacunoTest extends TestCase
                     '*' => ['id', 'finca_id', 'num_vaca', 'total']
                 ],
             ]);
-        
+
         $this->assertFalse(isset($response->json('data')['current_page']));
     }
 
@@ -122,9 +120,9 @@ class InventarioVacunoTest extends TestCase
         if (!$propietario->fincas->contains($finca->id)) {
             $propietario->fincas()->attach($finca->id);
         }
-        
+
         InventarioVacuno::create(['finca_id' => $finca->id, 'num_vaca' => 10]);
-        
+
         $otherFinca = Finca::firstOrCreate(
             ['nombre' => 'Other Finca'],
             ['propietario_id' => $finca->propietario_id]
@@ -136,7 +134,7 @@ class InventarioVacunoTest extends TestCase
             ->getJson('/api/inventario-vacuno');
 
         $response->assertStatus(200);
-        
+
         $data = $response->json('data');
         $this->assertCount(1, $data['data']);
     }
@@ -148,7 +146,7 @@ class InventarioVacunoTest extends TestCase
             ['nombre' => 'Other Finca 2'],
             ['propietario_id' => 1]
         );
-        
+
         $response = $this->actingAs($propietario)
             ->withHeader('X-API-VERSION', '2')
             ->getJson('/api/inventario-vacuno?finca_id=' . $otherFinca->id);
@@ -159,7 +157,7 @@ class InventarioVacunoTest extends TestCase
     public function test_store_inventario_validation()
     {
         $admin = $this->createAdminUser();
-        
+
         $response = $this->actingAs($admin)
             ->withHeader('X-API-VERSION', '2')
             ->postJson('/api/inventario-vacuno', [
@@ -192,7 +190,7 @@ class InventarioVacunoTest extends TestCase
             ->assertJsonPath('data.num_vaca', 10)
             ->assertJsonPath('data.total', 12);
     }
-    
+
     public function test_propietario_can_show_inventario()
     {
         $propietario = $this->createPropietarioUser();
@@ -213,7 +211,7 @@ class InventarioVacunoTest extends TestCase
     public function test_propietario_cannot_show_not_found_inventario()
     {
         $propietario = $this->createPropietarioUser();
-        
+
         $response = $this->actingAs($propietario)
             ->withHeader('X-API-VERSION', '2')
             ->getJson('/api/inventario-vacuno/99999');
