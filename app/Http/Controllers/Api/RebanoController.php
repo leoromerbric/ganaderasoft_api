@@ -151,12 +151,12 @@ class RebanoController extends Controller
     }
 
     /**
-     * Remove the specified rebano (soft delete).
+     * Remove the specified rebano (hard delete).
      */
     public function destroy(Request $request, $id)
     {
         try {
-            $this->rebanoService->archiveRebano($id, $request->user());
+            $this->rebanoService->deleteRebano((int) $id, $request->user());
             
             return response()->json([
                 'success' => true,
@@ -177,6 +177,58 @@ class RebanoController extends Controller
                 'success' => false,
                 'message' => $e->getMessage()
             ], Response::HTTP_CONFLICT);
+        }
+    }
+
+    /**
+     * Archivar un rebaño específico.
+     */
+    public function archive(Request $request, $id)
+    {
+        try {
+            $rebano = $this->rebanoService->archiveRebano((int) $id, $request->user());
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Rebaño archivado exitosamente',
+                'data' => $this->formatResource(RebanoResource::class, $rebano)
+            ]);
+        } catch (NotFoundHttpException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_NOT_FOUND);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
+        }
+    }
+
+    /**
+     * Desarchivar un rebaño específico.
+     */
+    public function unarchive(Request $request, $id)
+    {
+        try {
+            $rebano = $this->rebanoService->unarchiveRebano((int) $id, $request->user());
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Rebaño desarchivado exitosamente',
+                'data' => $this->formatResource(RebanoResource::class, $rebano)
+            ]);
+        } catch (NotFoundHttpException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_NOT_FOUND);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
         }
     }
 }

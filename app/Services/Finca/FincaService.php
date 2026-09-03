@@ -2,23 +2,26 @@
 
 namespace App\Services\Finca;
 
+use App\Models\Animal;
 use App\Models\Finca;
+use App\Models\Rebano;
 use App\Models\Terreno;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use App\Services\BaseService;
 
 class FincaService extends BaseService
 {
     /**
-     * Obtener lista de fincas paginada según permisos.
+     * Obtener lista de fincas paginada según permisos y filtro de archivado.
      *
      * @param array $filters
      * @param User $user
-     * @return LengthAwarePaginator
+     * @return LengthAwarePaginator|\Illuminate\Database\Eloquent\Collection
      * @throws AuthorizationException
      */
     public function listFincas(array $filters, User $user)
@@ -27,7 +30,16 @@ class FincaService extends BaseService
             throw new AuthorizationException('Sin permisos para listar fincas.');
         }
 
-        $query = Finca::with(['propietario.persona.users', 'terreno'])->active();
+        $query = Finca::with(['propietario.persona.users', 'terreno']);
+
+        // Filtro de archivado:
+        // - 'true' / 1: Solo archivadas (archivado = true)
+        // - 'todos' / 'all': Activas y archivadas (sin filtro de archivado)
+        // - 'false' / 0 / omitido: Solo activas por defecto (archivado = false)
+        $archivado = $filters['archivado'] ?? false;
+        if (!in_array($archivado, ['todos', 'all'], true)) {
+            $query->where('archivado', filter_var($archivado, FILTER_VALIDATE_BOOLEAN));
+        }
 
         $this->applyFincaFilter($query, $user, null, 'id');
 
@@ -154,15 +166,86 @@ class FincaService extends BaseService
     }
 
     /**
-     * Archivar una finca (estado archivado = true).
+     * Archivar una finca (estado archivado = true) y en cascada todos sus rebaños y animales.
      *
      * @param int $id
      * @param User $user
-     * @return void
+     * @return Finca
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function archiveFinca(int $id, User $user): void
+    public function archiveFinca(int $id, User $user): Finca
+    {
+        $finca = Finca::findOrFail($id);
+
+        if ($user->cannot('update', $finca)) {
+            throw new AuthorizationException('No tiene permisos para archivar esta finca.');
+        }
+
+        return DB::transaction(function () use ($finca) {
+            $finca->update(['archivado' => true]);
+
+            $rebanoIds = $finca->rebanos()->pluck('id')->all();
+            if (!empty($rebanoIds)) {
+                Rebano::whereIn('id', $rebanoIds)->update(['archivado' => true]);
+                Animal::whereIn('rebano_id', $rebanoIds)->update(['archivado' => true]);
+            }
+
+            return $finca->fresh(['propietario.persona.users', 'terreno']);
+        });
+    }
+
+    /**
+     * Desarchivar una finca (estado archivado = false).
+     * Reactiva la finca sin alterar el estado individual de sus rebaños y animales previamente archivados.
+     *
+     * @param int $id
+     * @param User $user
+     * @return Finca
+     * @throws ModelNotFoundException
+     * @throws AuthorizationException
+     */
+    public function unarchiveFinca(int $id, User $user): Finca
+    {
+        $finca = Finca::findOrFail($id);
+
+        if ($user->cannot('update', $finca)) {
+            throw new AuthorizationException('No tiene permisos para desarchivar esta finca.');
+        }
+
+        $finca->update(['archivado' => false]);
+
+        return $finca->fresh(['propietario.persona.users', 'terreno']);
+    }
+
+    /**
+     * Eliminar físicamente una finca de la base de datos y todas sus dependencias en cascada.
+     *
+     * Relaciones eliminadas en esta operación:
+     * - Terreno asociado (1 a 1 en 'terrenos')
+     * - Asignaciones de usuarios (pivote 'finca_users')
+     * - Afiliaciones gremiales ('afiliacions')
+     * - Hierros y marcas ('hierros')
+     * - Personal asignado a la finca ('personal_fincas')
+     * - Inventarios de búfalos ('inventario_bufalos')
+     * - Rebaños ('rebanos') y, en cascada a través de estos:
+     *     - Animales ('animals')
+     *     - Historial de vacunaciones ('animal_vacuna')
+     *     - Historial de estados de salud ('animal_estado_salud')
+     *     - Historial de etapas ('animal_etapa')
+     *     - Pesajes corporales ('pesos_corporales')
+     *     - Registros de lactancia y pesaje de leche ('lactancias', 'pesaje_leches')
+     *     - Servicios reproductivos ('servicio_animals')
+     *     - Genealogía y parentesco ('arbol_gens')
+     *     - Movimientos de rebaño ('movimiento_rebanos')
+     *
+     * @param int $id
+     * @param User $user
+     * @return bool
+     * @throws ModelNotFoundException
+     * @throws AuthorizationException
+     */
+    public function deleteFinca(int $id, User $user): bool
     {
         $finca = Finca::findOrFail($id);
 
@@ -170,6 +253,28 @@ class FincaService extends BaseService
             throw new AuthorizationException('No tiene permisos para eliminar esta finca.');
         }
 
-        $finca->update(['archivado' => true]);
+        return DB::transaction(function () use ($finca) {
+            // 1. Eliminar terreno asociado
+            if ($finca->terreno) {
+                $finca->terreno->delete();
+            }
+
+            // 2. Desvincular usuarios asignados (tabla pivote finca_users)
+            $finca->users()->detach();
+
+            // 3. Eliminar registros directamente vinculados a la finca
+            $finca->afiliaciones()->delete();
+            $finca->hierros()->delete();
+            $finca->personalFinca()->delete();
+            $finca->inventariosBufalo()->delete();
+
+            // 4. Eliminar rebaños asociados (elimina en cascada animales y sus historiales médicos, pesajes, etc.)
+            $finca->rebanos()->delete();
+
+            // 5. Eliminar la finca definitivamente
+            $finca->delete();
+
+            return true;
+        });
     }
 }

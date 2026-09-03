@@ -57,7 +57,7 @@ class FincaPolicy extends BasePolicy
     }
 
     /**
-     * Determina si el usuario puede eliminar/archivar la finca.
+     * Determina si el usuario puede eliminar definitivamente la finca.
      */
     public function delete(User $user, Finca $finca): bool
     {

@@ -67,7 +67,7 @@ class AnimalPolicy extends BasePolicy
     }
 
     /**
-     * Determina si el usuario puede eliminar/archivar el animal.
+     * Determina si el usuario puede eliminar definitivamente el animal.
      */
     public function delete(User $user, Animal $animal): bool
     {

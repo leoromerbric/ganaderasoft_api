@@ -57,7 +57,7 @@ class RebanoPolicy extends BasePolicy
     }
 
     /**
-     * Determina si el usuario puede eliminar/archivar el rebaño.
+     * Determina si el usuario puede eliminar definitivamente el rebaño.
      */
     public function delete(User $user, Rebano $rebano): bool
     {

@@ -16,6 +16,7 @@ use App\Http\Requests\Finca\CSVFincaRequest;
 use App\Services\Finca\FincaImportService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Illuminate\Validation\ValidationException;
 
 class FincaController extends Controller
@@ -185,16 +186,73 @@ class FincaController extends Controller
     }
 
     /**
-     * Remove the specified finca (soft delete).
+     * Remove the specified finca (hard delete).
      */
     public function destroy(Request $request, $id)
     {
         try {
-            $this->fincaService->archiveFinca((int) $id, $request->user());
+            $this->fincaService->deleteFinca((int) $id, $request->user());
 
             return response()->json([
                 'success' => true,
                 'message' => 'Finca eliminada exitosamente'
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Finca no encontrada'
+            ], Response::HTTP_NOT_FOUND);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
+        } catch (ConflictHttpException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_CONFLICT);
+        }
+    }
+
+    /**
+     * Archivar una finca específica.
+     */
+    public function archive(Request $request, $id)
+    {
+        try {
+            $finca = $this->fincaService->archiveFinca((int) $id, $request->user());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Finca archivada exitosamente',
+                'data' => $this->formatResource(FincaResource::class, $finca)
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Finca no encontrada'
+            ], Response::HTTP_NOT_FOUND);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
+        }
+    }
+
+    /**
+     * Desarchivar una finca específica.
+     */
+    public function unarchive(Request $request, $id)
+    {
+        try {
+            $finca = $this->fincaService->unarchiveFinca((int) $id, $request->user());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Finca desarchivada exitosamente',
+                'data' => $this->formatResource(FincaResource::class, $finca)
             ]);
         } catch (ModelNotFoundException $e) {
             return response()->json([

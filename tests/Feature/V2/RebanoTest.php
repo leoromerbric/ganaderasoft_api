@@ -131,15 +131,53 @@ class RebanoTest extends TestCase
         $this->assertCount(2, $response->json('data.data'));
     }
 
-    public function test_propietario_without_profile_cannot_list()
+    public function test_user_without_permission_cannot_list()
     {
         $user = User::factory()->create();
-        $role = Role::firstOrCreate(['code' => 'propietario'], ['name' => 'Propietario']);
-        $user->roles()->attach($role);
 
         $response = $this->actingAs($user)->getJson('/api/rebanos');
 
         $response->assertStatus(403);
+    }
+
+    public function test_propietario_without_fincas_gets_empty_list()
+    {
+        [$user, $propietario] = $this->createPropietario();
+
+        $response = $this->actingAs($user)->getJson('/api/rebanos');
+
+        $response->assertStatus(200);
+        $this->assertCount(0, $response->json('data.data'));
+    }
+
+    public function test_admin_can_filter_rebanos_by_archivado()
+    {
+        $admin = $this->createAdmin();
+        $finca = $this->createFinca();
+        $rebanoActivo = $this->createRebano($finca->id, 'Rebano Activo');
+        $rebanoArchivado = Rebano::create([
+            'finca_id' => $finca->id,
+            'nombre' => 'Rebano Archivado',
+            'archivado' => true,
+        ]);
+
+        // 1. Por defecto solo activos
+        $respDefault = $this->actingAs($admin)->getJson('/api/rebanos');
+        $idsDefault = collect($respDefault->json('data.data'))->pluck('id')->toArray();
+        $this->assertContains($rebanoActivo->id, $idsDefault);
+        $this->assertNotContains($rebanoArchivado->id, $idsDefault);
+
+        // 2. Solo archivados
+        $respArch = $this->actingAs($admin)->getJson('/api/rebanos?archivado=true');
+        $idsArch = collect($respArch->json('data.data'))->pluck('id')->toArray();
+        $this->assertNotContains($rebanoActivo->id, $idsArch);
+        $this->assertContains($rebanoArchivado->id, $idsArch);
+
+        // 3. Todos (todos)
+        $respTodos = $this->actingAs($admin)->getJson('/api/rebanos?archivado=todos');
+        $idsTodos = collect($respTodos->json('data.data'))->pluck('id')->toArray();
+        $this->assertContains($rebanoActivo->id, $idsTodos);
+        $this->assertContains($rebanoArchivado->id, $idsTodos);
     }
 
     public function test_admin_can_create_rebano()
@@ -229,6 +267,80 @@ class RebanoTest extends TestCase
         $this->assertDatabaseHas('rebanos', ['id' => $rebano->id, 'nombre' => 'New Name']);
     }
 
+    public function test_propietario_can_archive_own_rebano_even_with_animals()
+    {
+        [$user, $propietario] = $this->createPropietario();
+        $finca = $this->createFinca($propietario->id);
+        $rebano = $this->createRebano($finca->id, 'Rebano Archivar');
+
+        $razaId = \DB::table('composicion_razas')->value('id') ?? \DB::table('composicion_razas')->insertGetId([
+            'nombre' => 'Mestizo',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $animal = Animal::create([
+            'rebano_id' => $rebano->id,
+            'nombre' => 'Animal En Rebano',
+            'codigo_animal' => 'REB-123',
+            'sexo' => 'M',
+            'fecha_nacimiento' => '2022-01-01',
+            'composicion_raza_id' => $razaId,
+            'archivado' => false
+        ]);
+
+        $response = $this->actingAs($user)->postJson("/api/rebanos/{$rebano->id}/archivar");
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.archivado', true);
+
+        $this->assertDatabaseHas('rebanos', ['id' => $rebano->id, 'archivado' => true]);
+        $this->assertDatabaseHas('animals', ['id' => $animal->id, 'archivado' => true]);
+    }
+
+    public function test_propietario_can_unarchive_own_rebano()
+    {
+        [$user, $propietario] = $this->createPropietario();
+        $finca = Finca::create([
+            'propietario_id' => $propietario->id,
+            'nombre' => 'Finca Archivada',
+            'explotacion_tipo' => 'ganado',
+            'archivado' => true,
+        ]);
+        $rebano = Rebano::create([
+            'finca_id' => $finca->id,
+            'nombre' => 'Rebano Desarchivar',
+            'archivado' => true,
+        ]);
+
+        $razaId = \DB::table('composicion_razas')->value('id') ?? \DB::table('composicion_razas')->insertGetId([
+            'nombre' => 'Mestizo',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $animal = Animal::create([
+            'rebano_id' => $rebano->id,
+            'nombre' => 'Animal En Rebano',
+            'codigo_animal' => 'REB-UNARC-123',
+            'sexo' => 'M',
+            'fecha_nacimiento' => '2022-01-01',
+            'composicion_raza_id' => $razaId,
+            'archivado' => true
+        ]);
+
+        $response = $this->actingAs($user)->postJson("/api/rebanos/{$rebano->id}/desarchivar");
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.archivado', false);
+
+        $this->assertDatabaseHas('rebanos', ['id' => $rebano->id, 'archivado' => false]);
+        $this->assertDatabaseHas('animals', ['id' => $animal->id, 'archivado' => true]);
+        $this->assertDatabaseHas('fincas', ['id' => $finca->id, 'archivado' => false]);
+    }
+
     public function test_delete_rebano_without_animals()
     {
         $admin = $this->createAdmin();
@@ -237,11 +349,13 @@ class RebanoTest extends TestCase
 
         $response = $this->actingAs($admin)->deleteJson("/api/rebanos/{$rebano->id}");
 
-        $response->assertStatus(200);
-        $this->assertDatabaseHas('rebanos', ['id' => $rebano->id, 'archivado' => 1]);
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true);
+            
+        $this->assertDatabaseMissing('rebanos', ['id' => $rebano->id]);
     }
 
-    public function test_cannot_delete_rebano_with_animals()
+    public function test_can_delete_rebano_with_animals_cascade()
     {
         $admin = $this->createAdmin();
         $finca = $this->createFinca();
@@ -253,7 +367,7 @@ class RebanoTest extends TestCase
             'updated_at' => now(),
         ]);
 
-        Animal::create([
+        $animal = Animal::create([
             'rebano_id' => $rebano->id,
             'nombre' => 'Animal',
             'codigo_animal' => '123',
@@ -265,8 +379,11 @@ class RebanoTest extends TestCase
 
         $response = $this->actingAs($admin)->deleteJson("/api/rebanos/{$rebano->id}");
 
-        $response->assertStatus(409)
-            ->assertJsonPath('message', 'No se puede eliminar el rebaño, tiene animales asociados');
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseMissing('rebanos', ['id' => $rebano->id]);
+        $this->assertDatabaseMissing('animals', ['id' => $animal->id]);
     }
 
     public function test_rebano_not_found()

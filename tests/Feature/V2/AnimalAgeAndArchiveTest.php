@@ -226,12 +226,43 @@ class AnimalAgeAndArchiveTest extends TestCase
         $this->assertContains($archivedAnimal->id, $animalIds);
     }
 
-    public function test_restore_animal_endpoint_reactivates_archived_animal()
+    public function test_archive_animal_endpoint_archives_animal()
     {
+        $animal = Animal::create([
+            'rebano_id'           => $this->rebano->id,
+            'nombre'              => 'Animal Para Archivar',
+            'codigo_animal'       => 'ARCH-' . rand(1000, 9999),
+            'sexo'                => 'H',
+            'fecha_nacimiento'    => '2022-05-10',
+            'composicion_raza_id' => $this->raza->id,
+            'archivado'           => false,
+        ]);
+
+        $response = $this->actingAs($this->admin, 'sanctum')
+            ->postJson("/api/animales/{$animal->id}/archivar");
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'message' => 'Animal archivado exitosamente',
+            ])
+            ->assertJsonPath('data.archivado', true);
+
+        $this->assertDatabaseHas('animals', [
+            'id'        => $animal->id,
+            'archivado' => true,
+        ]);
+    }
+
+    public function test_unarchive_animal_endpoint_reactivates_archived_animal()
+    {
+        $this->finca->update(['archivado' => true]);
+        $this->rebano->update(['archivado' => true]);
+
         $archivedAnimal = Animal::create([
             'rebano_id'           => $this->rebano->id,
-            'nombre'              => 'Animal Para Restaurar',
-            'codigo_animal'       => 'REST-' . rand(1000, 9999),
+            'nombre'              => 'Animal Para Desarchivar',
+            'codigo_animal'       => 'DES-' . rand(1000, 9999),
             'sexo'                => 'H',
             'fecha_nacimiento'    => '2022-05-10',
             'composicion_raza_id' => $this->raza->id,
@@ -239,12 +270,12 @@ class AnimalAgeAndArchiveTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->admin, 'sanctum')
-            ->postJson("/api/animales/{$archivedAnimal->id}/restaurar");
+            ->postJson("/api/animales/{$archivedAnimal->id}/desarchivar");
 
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'message' => 'Animal restaurado exitosamente',
+                'message' => 'Animal desarchivado exitosamente',
             ])
             ->assertJsonPath('data.archivado', false);
 
@@ -252,9 +283,43 @@ class AnimalAgeAndArchiveTest extends TestCase
             'id'        => $archivedAnimal->id,
             'archivado' => false,
         ]);
+        $this->assertDatabaseHas('rebanos', [
+            'id'        => $this->rebano->id,
+            'archivado' => false,
+        ]);
+        $this->assertDatabaseHas('fincas', [
+            'id'        => $this->finca->id,
+            'archivado' => false,
+        ]);
     }
 
-    public function test_unauthenticated_user_cannot_restore_animal()
+    public function test_delete_animal_permanently_deletes_record()
+    {
+        $animal = Animal::create([
+            'rebano_id'           => $this->rebano->id,
+            'nombre'              => 'Animal Para Eliminar',
+            'codigo_animal'       => 'DEL-' . rand(1000, 9999),
+            'sexo'                => 'M',
+            'fecha_nacimiento'    => '2022-01-01',
+            'composicion_raza_id' => $this->raza->id,
+            'archivado'           => false,
+        ]);
+
+        $response = $this->actingAs($this->admin, 'sanctum')
+            ->deleteJson("/api/animales/{$animal->id}");
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'message' => 'Animal eliminado exitosamente',
+            ]);
+
+        $this->assertDatabaseMissing('animals', [
+            'id' => $animal->id,
+        ]);
+    }
+
+    public function test_unauthenticated_user_cannot_unarchive_animal()
     {
         $archivedAnimal = Animal::create([
             'rebano_id'           => $this->rebano->id,
@@ -266,7 +331,7 @@ class AnimalAgeAndArchiveTest extends TestCase
             'archivado'           => true,
         ]);
 
-        $response = $this->postJson("/api/animales/{$archivedAnimal->id}/restaurar");
+        $response = $this->postJson("/api/animales/{$archivedAnimal->id}/desarchivar");
         $response->assertStatus(401);
     }
 }

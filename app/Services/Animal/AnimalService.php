@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Services\BaseService;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class AnimalService extends BaseService
 {
@@ -47,16 +48,12 @@ class AnimalService extends BaseService
         ]);
 
         // Filtro de archivado:
-        // - 'archivado' => true / 'true' / 1 / '1' => solo archivados
-        // - 'archivado' => 'todos' / 'all' o 'incluir_archivados' => activos + archivados
-        // - por defecto => solo activos
-        $archivadoFilter = $filters['archivado'] ?? false;
-        if ($archivadoFilter === true || $archivadoFilter === 'true' || $archivadoFilter === '1' || $archivadoFilter === 1) {
-            $query->where('archivado', true);
-        } elseif ($archivadoFilter === 'todos' || $archivadoFilter === 'all' || !empty($filters['incluir_archivados'])) {
-            // Incluye activos y archivados
-        } else {
-            $query->active();
+        // - 'true' / 1: Solo archivados (archivado = true)
+        // - 'todos' / 'all': Activos y archivados (sin filtro de archivado)
+        // - 'false' / 0 / omitido: Solo activos por defecto (archivado = false)
+        $archivado = $filters['archivado'] ?? (!empty($filters['incluir_archivados']) ? 'todos' : false);
+        if (!in_array($archivado, ['todos', 'all'], true)) {
+            $query->where('archivado', filter_var($archivado, FILTER_VALIDATE_BOOLEAN));
         }
 
         // Aplicamos los filtros básicos si existen en la petición
@@ -214,27 +211,35 @@ class AnimalService extends BaseService
     }
 
     /**
-     * Realiza un borrado lógico (archivado = true) del animal.
+     * Realiza un archivado (archivado = true) del animal.
      *
      * @param int $id ID del animal.
      * @param mixed $user Usuario.
-     * @return void
+     * @return Animal
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function archiveAnimal(int $id, $user): void
+    public function archiveAnimal(int $id, $user): Animal
     {
         $animal = Animal::findOrFail($id);
 
-        if ($user->cannot('delete', $animal)) {
+        if ($user->cannot('update', $animal)) {
             throw new AuthorizationException('No tiene permisos para archivar este animal.');
         }
 
         $animal->update(['archivado' => true]);
+
+        return $animal->fresh([
+            'rebano.finca.propietario.persona',
+            'composicionRaza',
+            'etapaActual.etapa',
+            'estadoActual.estadoSalud'
+        ]);
     }
 
     /**
-     * Restaura un animal archivado (archivado = false).
+     * Desarchiva un animal archivado (archivado = false).
+     * Si su rebaño o finca padre estaban archivados, los reactiva automáticamente.
      *
      * @param int $id ID del animal.
      * @param mixed $user Usuario que realiza la acción.
@@ -242,16 +247,56 @@ class AnimalService extends BaseService
      * @throws ModelNotFoundException
      * @throws AuthorizationException
      */
-    public function restoreAnimal(int $id, $user): Animal
+    public function unarchiveAnimal(int $id, $user): Animal
+    {
+        $animal = Animal::with('rebano.finca')->findOrFail($id);
+
+        if ($user->cannot('update', $animal)) {
+            throw new AuthorizationException('No tiene permisos para desarchivar este animal.');
+        }
+
+        return DB::transaction(function () use ($animal) {
+            $animal->update(['archivado' => false]);
+
+            // Reactivar rebaño si estaba archivado
+            if ($animal->rebano && $animal->rebano->archivado) {
+                $animal->rebano->update(['archivado' => false]);
+            }
+
+            // Reactivar finca si estaba archivada
+            if ($animal->rebano && $animal->rebano->finca && $animal->rebano->finca->archivado) {
+                $animal->rebano->finca->update(['archivado' => false]);
+            }
+
+            return $animal->fresh([
+                'rebano.finca.propietario.persona',
+                'composicionRaza',
+                'etapaActual.etapa',
+                'estadoActual.estadoSalud'
+            ]);
+        });
+    }
+
+    /**
+     * Elimina físicamente un animal y sus registros dependientes en cascada.
+     *
+     * @param int $id ID del animal.
+     * @param mixed $user Usuario.
+     * @return bool
+     * @throws ModelNotFoundException
+     * @throws AuthorizationException
+     */
+    public function deleteAnimal(int $id, $user): bool
     {
         $animal = Animal::findOrFail($id);
 
-        if ($user->cannot('update', $animal)) {
-            throw new AuthorizationException('No tiene permisos para restaurar este animal.');
+        if ($user->cannot('delete', $animal)) {
+            throw new AuthorizationException('No tiene permisos para eliminar este animal.');
         }
 
-        $animal->update(['archivado' => false]);
-
-        return $animal;
+        return DB::transaction(function () use ($animal) {
+            $animal->delete();
+            return true;
+        });
     }
 }

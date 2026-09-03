@@ -9,6 +9,8 @@ use App\Models\Role;
 use App\Models\Persona;
 use App\Models\Propietario;
 use App\Models\Finca;
+use App\Models\Rebano;
+use App\Models\Animal;
 use App\Models\Terreno;
 use Database\Seeders\RoleSeeder;
 
@@ -455,13 +457,149 @@ class FincaTest extends TestCase
     }
 
     /**
-     * Test destroy finca (soft delete/archive)
+     * Test list fincas filtering by archivado
+     */
+    public function test_admin_can_filter_fincas_by_archivado_v2()
+    {
+        $admin = $this->createUserWithRole('global_admin');
+        $user = $this->createUserWithRole('propietario');
+        $prop = $this->createPropietarioForUser($user);
+
+        $fincaActiva = $this->createFinca($prop->id, 'Finca Activa');
+        $fincaArchivada = Finca::create([
+            'propietario_id' => $prop->id,
+            'nombre' => 'Finca Archivada',
+            'explotacion_tipo' => 'ganado',
+            'archivado' => true,
+        ]);
+
+        // 1. Por defecto solo activas
+        $respDefault = $this->actingAs($admin)->withHeader('X-API-VERSION', '2')->getJson('/api/fincas');
+        $idsDefault = collect($respDefault->json('data.data'))->pluck('id')->toArray();
+        $this->assertContains($fincaActiva->id, $idsDefault);
+        $this->assertNotContains($fincaArchivada->id, $idsDefault);
+
+        // 2. Solo archivadas
+        $respArch = $this->actingAs($admin)->withHeader('X-API-VERSION', '2')->getJson('/api/fincas?archivado=true');
+        $idsArch = collect($respArch->json('data.data'))->pluck('id')->toArray();
+        $this->assertNotContains($fincaActiva->id, $idsArch);
+        $this->assertContains($fincaArchivada->id, $idsArch);
+
+        // 3. Todas (todos)
+        $respTodos = $this->actingAs($admin)->withHeader('X-API-VERSION', '2')->getJson('/api/fincas?archivado=todos');
+        $idsTodos = collect($respTodos->json('data.data'))->pluck('id')->toArray();
+        $this->assertContains($fincaActiva->id, $idsTodos);
+        $this->assertContains($fincaArchivada->id, $idsTodos);
+    }
+
+    /**
+     * Test archivar finca con cascada a rebaños y animales
      */
     public function test_propietario_can_archive_own_finca_v2()
     {
         $user = $this->createUserWithRole('propietario');
         $prop = $this->createPropietarioForUser($user);
-        $finca = $this->createFinca($prop->id, 'Finca Borrar');
+        $finca = $this->createFinca($prop->id, 'Finca Archivar');
+        $rebano = Rebano::create(['finca_id' => $finca->id, 'nombre' => 'Rebano Test', 'archivado' => false]);
+        $razaId = \DB::table('composicion_razas')->value('id') ?? \DB::table('composicion_razas')->insertGetId([
+            'nombre' => 'Mestizo',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $animal = Animal::create([
+            'rebano_id' => $rebano->id,
+            'nombre' => 'Vaca Test',
+            'codigo_animal' => 'VAC-ARC-01',
+            'sexo' => 'H',
+            'fecha_nacimiento' => '2023-01-01',
+            'composicion_raza_id' => $razaId,
+            'procedencia' => 'Nacida en finca',
+            'archivado' => false,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->withHeader('X-API-VERSION', '2')
+            ->postJson("/api/fincas/{$finca->id}/archivar");
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.archivado', true);
+
+        $this->assertDatabaseHas('fincas', [
+            'id' => $finca->id,
+            'archivado' => true,
+        ]);
+        $this->assertDatabaseHas('rebanos', [
+            'id' => $rebano->id,
+            'archivado' => true,
+        ]);
+        $this->assertDatabaseHas('animals', [
+            'id' => $animal->id,
+            'archivado' => true,
+        ]);
+    }
+
+    /**
+     * Test desarchivar finca reactiva la finca sin alterar rebaños/animales previamente archivados
+     */
+    public function test_propietario_can_unarchive_own_finca_v2()
+    {
+        $user = $this->createUserWithRole('propietario');
+        $prop = $this->createPropietarioForUser($user);
+        $finca = Finca::create([
+            'propietario_id' => $prop->id,
+            'nombre' => 'Finca Archivada Prev',
+            'explotacion_tipo' => 'ganado',
+            'archivado' => true,
+        ]);
+        $rebano = Rebano::create(['finca_id' => $finca->id, 'nombre' => 'Rebano Test', 'archivado' => true]);
+        $razaId = \DB::table('composicion_razas')->value('id') ?? \DB::table('composicion_razas')->insertGetId([
+            'nombre' => 'Mestizo',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $animal = Animal::create([
+            'rebano_id' => $rebano->id,
+            'nombre' => 'Vaca Test',
+            'codigo_animal' => 'VAC-UNARC-01',
+            'sexo' => 'H',
+            'fecha_nacimiento' => '2023-01-01',
+            'composicion_raza_id' => $razaId,
+            'procedencia' => 'Nacida en finca',
+            'archivado' => true,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->withHeader('X-API-VERSION', '2')
+            ->postJson("/api/fincas/{$finca->id}/desarchivar");
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.archivado', false);
+
+        $this->assertDatabaseHas('fincas', [
+            'id' => $finca->id,
+            'archivado' => false,
+        ]);
+        // Rebaño y animal permanecen archivados para no resucitar descartes previos
+        $this->assertDatabaseHas('rebanos', [
+            'id' => $rebano->id,
+            'archivado' => true,
+        ]);
+        $this->assertDatabaseHas('animals', [
+            'id' => $animal->id,
+            'archivado' => true,
+        ]);
+    }
+
+    /**
+     * Test destroy finca (hard delete)
+     */
+    public function test_propietario_can_delete_own_empty_finca_v2()
+    {
+        $user = $this->createUserWithRole('propietario');
+        $prop = $this->createPropietarioForUser($user);
+        $finca = $this->createFinca($prop->id, 'Finca Borrar Definitivo');
 
         $response = $this->actingAs($user)
             ->withHeader('X-API-VERSION', '2')
@@ -470,10 +608,44 @@ class FincaTest extends TestCase
         $response->assertStatus(200)
             ->assertJsonPath('success', true);
 
-        $this->assertDatabaseHas('fincas', [
+        $this->assertDatabaseMissing('fincas', [
             'id' => $finca->id,
-            'archivado' => true,
         ]);
+    }
+
+    public function test_propietario_can_delete_finca_with_animals_cascade_v2()
+    {
+        $user = $this->createUserWithRole('propietario');
+        $prop = $this->createPropietarioForUser($user);
+        $finca = $this->createFinca($prop->id, 'Finca Con Animales');
+        $rebano = \App\Models\Rebano::create(['finca_id' => $finca->id, 'nombre' => 'Rebano Finca']);
+        
+        $razaId = \DB::table('composicion_razas')->value('id') ?? \DB::table('composicion_razas')->insertGetId([
+            'nombre' => 'Mestizo',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $animal = \App\Models\Animal::create([
+            'rebano_id' => $rebano->id,
+            'nombre' => 'Animal Finca',
+            'codigo_animal' => 'FNC-123',
+            'sexo' => 'M',
+            'fecha_nacimiento' => '2022-01-01',
+            'composicion_raza_id' => $razaId,
+            'archivado' => false
+        ]);
+
+        $response = $this->actingAs($user)
+            ->withHeader('X-API-VERSION', '2')
+            ->deleteJson("/api/fincas/{$finca->id}");
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseMissing('fincas', ['id' => $finca->id]);
+        $this->assertDatabaseMissing('rebanos', ['id' => $rebano->id]);
+        $this->assertDatabaseMissing('animals', ['id' => $animal->id]);
     }
 
     public function test_propietario_cannot_archive_others_finca_v2()
@@ -487,7 +659,7 @@ class FincaTest extends TestCase
 
         $response = $this->actingAs($user1)
             ->withHeader('X-API-VERSION', '2')
-            ->deleteJson("/api/fincas/{$finca->id}");
+            ->postJson("/api/fincas/{$finca->id}/archivar");
 
         $response->assertStatus(403);
     }

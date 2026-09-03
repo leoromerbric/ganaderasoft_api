@@ -109,15 +109,23 @@ Route::middleware('auth:sanctum')->group(function () {
         // Permisos del Rol
         Route::apiResource('roles.permissions', RolePermissionController::class)->only(['index', 'store', 'destroy']);
 
-        // Importación masiva de fincas
+        // Fincas
         Route::get('fincas/importar/plantilla', [FincaController::class, 'plantilla']);
         Route::post('fincas/importar', [FincaController::class, 'importar']);
+        Route::match(['post', 'patch'], 'fincas/{id}/archivar', [FincaController::class, 'archive']);
+        Route::match(['post', 'patch'], 'fincas/{id}/desarchivar', [FincaController::class, 'unarchive']);
         Route::apiResource('fincas', FincaController::class);
         Route::apiResource('propietarios', PropietarioController::class);
+        
+        // Rebaños
+        Route::match(['post', 'patch'], 'rebanos/{id}/archivar', [RebanoController::class, 'archive']);
+        Route::match(['post', 'patch'], 'rebanos/{id}/desarchivar', [RebanoController::class, 'unarchive']);
         Route::apiResource('rebanos', RebanoController::class);
-        // Importación masiva y restauración de animales
+        
+        // Animales
         Route::post('animales/importar', [AnimalController::class, 'cargarAnimalesMasivo']);
-        Route::post('animales/{id}/restaurar', [AnimalController::class, 'restore']);
+        Route::match(['post', 'patch'], 'animales/{id}/archivar', [AnimalController::class, 'archive']);
+        Route::match(['post', 'patch'], 'animales/{id}/desarchivar', [AnimalController::class, 'unarchive']);
         Route::apiResource('animales', AnimalController::class);
         Route::apiResource('inventarios-bufalo', InventarioBufaloController::class);
         Route::apiResource('tipos-animal', TipoAnimalController::class);

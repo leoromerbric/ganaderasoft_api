@@ -111,7 +111,7 @@ class RebanoLegacyTest extends TestCase
             ->assertJsonPath('data.Nombre', 'New Name Legacy');
     }
 
-    public function test_cannot_delete_rebano_with_animals_legacy()
+    public function test_can_delete_rebano_with_animals_legacy()
     {
         $admin = $this->createAdmin();
         $finca = $this->createFinca();
@@ -123,7 +123,7 @@ class RebanoLegacyTest extends TestCase
             'updated_at' => now(),
         ]);
 
-        Animal::create([
+        $animal = Animal::create([
             'rebano_id' => $rebano->id,
             'nombre' => 'Animal',
             'codigo_animal' => '123',
@@ -135,7 +135,10 @@ class RebanoLegacyTest extends TestCase
 
         $response = $this->actingAs($admin)->deleteJson("/api/rebanos/{$rebano->id}");
 
-        $response->assertStatus(409)
-            ->assertJsonPath('message', 'No se puede eliminar el rebaño, tiene animales asociados');
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true);
+
+        $this->assertDatabaseMissing('rebanos', ['id' => $rebano->id]);
+        $this->assertDatabaseMissing('animals', ['id' => $animal->id]);
     }
 }

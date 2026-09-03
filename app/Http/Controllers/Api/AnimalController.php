@@ -223,7 +223,7 @@ class AnimalController extends Controller
     }
 
     /**
-     * Elimina lógicamente (archiva) un animal específico.
+     * Elimina definitivamente un animal de la base de datos.
      *
      * @param Request $request
      * @param mixed $id
@@ -232,7 +232,7 @@ class AnimalController extends Controller
     public function destroy(Request $request, $id)
     {
         try {
-            $this->animalService->archiveAnimal((int) $id, $request->user());
+            $this->animalService->deleteAnimal((int) $id, $request->user());
 
             return response()->json([
                 'success' => true,
@@ -252,20 +252,50 @@ class AnimalController extends Controller
     }
 
     /**
-     * Restaura un animal previamente archivado.
+     * Archiva un animal específico.
      *
      * @param Request $request
      * @param mixed $id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function restore(Request $request, $id)
+    public function archive(Request $request, $id)
     {
         try {
-            $animal = $this->animalService->restoreAnimal((int) $id, $request->user());
+            $animal = $this->animalService->archiveAnimal((int) $id, $request->user());
 
             return response()->json([
                 'success' => true,
-                'message' => 'Animal restaurado exitosamente',
+                'message' => 'Animal archivado exitosamente',
+                'data' => $this->formatResource(AnimalResource::class, $animal)
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Animal no encontrado'
+            ], Response::HTTP_NOT_FOUND);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
+        }
+    }
+
+    /**
+     * Desarchiva un animal previamente archivado.
+     *
+     * @param Request $request
+     * @param mixed $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function unarchive(Request $request, $id)
+    {
+        try {
+            $animal = $this->animalService->unarchiveAnimal((int) $id, $request->user());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Animal desarchivado exitosamente',
                 'data' => $this->formatResource(AnimalResource::class, $animal)
             ], Response::HTTP_OK);
         } catch (ModelNotFoundException $e) {
