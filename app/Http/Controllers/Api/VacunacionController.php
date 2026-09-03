@@ -36,6 +36,7 @@ class VacunacionController extends Controller
                 'sexo',
                 'etapa_id',
                 'archivado',
+                'incluir_archivados',
                 'fecha_inicio',
                 'fecha_fin',
                 'nopaginate',
