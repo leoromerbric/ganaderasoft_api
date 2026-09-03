@@ -13,7 +13,7 @@ class PersonalFincaResource extends JsonResource
             'id' => $this->id,
             'finca_id' => $this->finca_id,
             'finca' => new FincaResource($this->whenLoaded('finca')),
-            'status' => (bool) $this->status,
+            'status' => $this->status,
             'fecha_ingreso' => $this->fecha_ingreso,
             'persona' => [
                 'id' => $this->persona->id ?? null,

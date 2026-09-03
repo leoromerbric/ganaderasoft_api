@@ -136,6 +136,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('tipos-trabajador', TipoTrabajadorController::class);
 
         // Nuevas rutas CRUD de entidades
+        Route::match(['POST', 'PATCH'], 'personal-finca/{personal_finca}/enable', [PersonalFincaController::class, 'enable']);
+        Route::match(['POST', 'PATCH'], 'personal-finca/{personal_finca}/disable', [PersonalFincaController::class, 'disable']);
         Route::post('personal-finca/{personal_finca}/create-user', [PersonalFincaController::class, 'convertToUser']);
         Route::apiResource('personal-finca', PersonalFincaController::class);
         Route::apiResource('peso-corporal', PesoCorporalController::class);

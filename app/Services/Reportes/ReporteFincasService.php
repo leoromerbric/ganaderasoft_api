@@ -95,16 +95,18 @@ class ReporteFincasService extends BaseService
             ->groupBy('rebanos.finca_id')
             ->pluck('cantidad_animales', 'finca_id');
 
-        // 4. Personal
-        $totalPersonal = PersonalFinca::whereIn('finca_id', $fincaIds)->count();
+        // 4. Personal (solo personal activo)
+        $totalPersonal = PersonalFinca::whereIn('finca_id', $fincaIds)->where('status', 'activo')->count();
 
         $personalPorTipo = PersonalFinca::whereIn('finca_id', $fincaIds)
+            ->where('status', 'activo')
             ->select('tipo_trabajador_id', DB::raw('COUNT(*) as cantidad'))
             ->groupBy('tipo_trabajador_id')
             ->pluck('cantidad', 'tipo_trabajador_id')
             ->toArray();
 
         $personalPorFinca = PersonalFinca::whereIn('finca_id', $fincaIds)
+            ->where('status', 'activo')
             ->select('finca_id', DB::raw('COUNT(*) as cantidad_personal'))
             ->groupBy('finca_id')
             ->pluck('cantidad_personal', 'finca_id');

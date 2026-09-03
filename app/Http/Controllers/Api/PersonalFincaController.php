@@ -31,7 +31,7 @@ class PersonalFincaController extends Controller
     public function index(Request $request)
     {
         try {
-            $filters = $request->only(['finca_id', 'tipo_trabajador_id', 'nombre', 'nopaginate']);
+            $filters = $request->only(['finca_id', 'tipo_trabajador_id', 'nombre', 'status', 'nopaginate', 'incluir_inactivos']);
             $personal = $this->personalFincaService->listPersonal($filters, $request->user());
 
             return response()->json([
@@ -58,8 +58,8 @@ class PersonalFincaController extends Controller
             'correo' => 'required|email|max:40',
             'fecha_nacimiento' => 'nullable|date',
             'tipo_trabajador_id' => 'required|exists:tipo_trabajadors,id',
-            'status' => 'boolean',
-            'fecha_ingreso' => 'date',
+            'status' => 'nullable|in:activo,inactivo,1,0,true,false,True,False',
+            'fecha_ingreso' => 'nullable|date',
         ]);
 
         if ($validator->fails()) {
@@ -120,8 +120,8 @@ class PersonalFincaController extends Controller
             'correo' => 'sometimes|email|max:40',
             'fecha_nacimiento' => 'nullable|date',
             'tipo_trabajador_id' => 'sometimes|exists:tipo_trabajadors,id',
-            'status' => 'sometimes|boolean',
-            'fecha_ingreso' => 'sometimes|date',
+            'status' => 'sometimes|nullable|in:activo,inactivo,1,0,true,false,True,False',
+            'fecha_ingreso' => 'sometimes|nullable|date',
         ]);
 
         if ($validator->fails()) {
@@ -161,6 +161,52 @@ class PersonalFincaController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Personal de finca eliminado exitosamente'
+            ], Response::HTTP_OK);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Personal de finca no encontrado'
+            ], Response::HTTP_NOT_FOUND);
+        }
+    }
+
+    public function enable(Request $request, $id)
+    {
+        try {
+            $personal = $this->personalFincaService->enable($id, $request->user());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Personal de finca activado exitosamente',
+                'data' => new PersonalFincaResource($personal)
+            ], Response::HTTP_OK);
+        } catch (AuthorizationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], Response::HTTP_FORBIDDEN);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Personal de finca no encontrado'
+            ], Response::HTTP_NOT_FOUND);
+        }
+    }
+
+    public function disable(Request $request, $id)
+    {
+        try {
+            $personal = $this->personalFincaService->disable($id, $request->user());
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Personal de finca desactivado exitosamente',
+                'data' => new PersonalFincaResource($personal)
             ], Response::HTTP_OK);
         } catch (AuthorizationException $e) {
             return response()->json([

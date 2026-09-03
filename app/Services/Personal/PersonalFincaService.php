@@ -38,6 +38,14 @@ class PersonalFincaService extends BaseService
             $query->byName($filters['nombre']);
         }
 
+        $incluirInactivos = filter_var($filters['incluir_inactivos'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        if (!$incluirInactivos) {
+            $status = strtolower(trim((string)($filters['status'] ?? 'activo')));
+            $statusVal = in_array($status, ['inactivo', 'inactive', '0', 'false'], true) ? 'inactivo' : 'activo';
+            $query->where('status', $statusVal);
+        }
+
         if (!empty($filters['nopaginate'])) {
             return $query->get();
         }
@@ -77,11 +85,16 @@ class PersonalFincaService extends BaseService
                 $persona->update(array_filter($personaData, fn($val) => !is_null($val)));
             }
 
+            $statusStr = 'activo';
+            if (isset($data['status'])) {
+                $statusStr = in_array(strtolower((string)$data['status']), ['0', 'false', 'inactivo'], true) ? 'inactivo' : 'activo';
+            }
+
             $personalFinca = PersonalFinca::create([
                 'finca_id' => $data['finca_id'],
                 'persona_id' => $persona->id,
                 'tipo_trabajador_id' => $data['tipo_trabajador_id'],
-                'status' => $data['status'] ?? true,
+                'status' => $statusStr,
                 'fecha_ingreso' => $data['fecha_ingreso'] ?? now()->toDateString(),
             ]);
 
@@ -123,7 +136,9 @@ class PersonalFincaService extends BaseService
         return DB::transaction(function () use ($personal, $data) {
             if (isset($data['finca_id'])) $personal->finca_id = $data['finca_id'];
             if (isset($data['tipo_trabajador_id'])) $personal->tipo_trabajador_id = $data['tipo_trabajador_id'];
-            if (isset($data['status'])) $personal->status = $data['status'];
+            if (isset($data['status'])) {
+                $personal->status = in_array(strtolower((string)$data['status']), ['0', 'false', 'inactivo'], true) ? 'inactivo' : 'activo';
+            }
             if (isset($data['fecha_ingreso'])) $personal->fecha_ingreso = $data['fecha_ingreso'];
             
             $personal->save();
@@ -162,6 +177,40 @@ class PersonalFincaService extends BaseService
         $personal->delete();
         
         return true;
+    }
+
+    /**
+     * Enable personal de finca (status = 'activo').
+     */
+    public function enable(int $id, User $user): PersonalFinca
+    {
+        $personal = PersonalFinca::findOrFail($id);
+
+        if ($user->cannot('update', $personal)) {
+            throw new AuthorizationException('No tiene permisos para activar este personal');
+        }
+
+        $personal->status = 'activo';
+        $personal->save();
+
+        return $personal->load(['finca', 'persona', 'tipoTrabajador']);
+    }
+
+    /**
+     * Disable personal de finca (status = 'inactivo').
+     */
+    public function disable(int $id, User $user): PersonalFinca
+    {
+        $personal = PersonalFinca::findOrFail($id);
+
+        if ($user->cannot('update', $personal)) {
+            throw new AuthorizationException('No tiene permisos para desactivar este personal');
+        }
+
+        $personal->status = 'inactivo';
+        $personal->save();
+
+        return $personal->load(['finca', 'persona', 'tipoTrabajador']);
     }
 
     /**
