@@ -32,12 +32,10 @@ class FincaService extends BaseService
 
         $query = Finca::with(['propietario.persona.users', 'terreno']);
 
-        // Filtro de archivado:
-        // - 'true' / 1: Solo archivadas (archivado = true)
-        // - 'todos' / 'all': Activas y archivadas (sin filtro de archivado)
-        // - 'false' / 0 / omitido: Solo activas por defecto (archivado = false)
+        $incluirArchivados = filter_var($filters['incluir_archivados'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $archivado = $filters['archivado'] ?? false;
-        if (!in_array($archivado, ['todos', 'all'], true)) {
+
+        if (!$incluirArchivados && !in_array($archivado, ['todos', 'all'], true)) {
             $query->where('archivado', filter_var($archivado, FILTER_VALIDATE_BOOLEAN));
         }
 

@@ -26,12 +26,10 @@ class RebanoService extends BaseService
 
         $query = Rebano::with(['finca.propietario', 'animales'])->withCount('animales');
 
-        // Filtro de archivado:
-        // - 'true' / 1: Solo archivados (archivado = true)
-        // - 'todos' / 'all': Activos y archivados (sin filtro de archivado)
-        // - 'false' / 0 / omitido: Solo activos por defecto (archivado = false)
+        $incluirArchivados = filter_var($filters['incluir_archivados'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $archivado = $filters['archivado'] ?? false;
-        if (!in_array($archivado, ['todos', 'all'], true)) {
+
+        if (!$incluirArchivados && !in_array($archivado, ['todos', 'all'], true)) {
             $query->where('archivado', filter_var($archivado, FILTER_VALIDATE_BOOLEAN));
         }
 
