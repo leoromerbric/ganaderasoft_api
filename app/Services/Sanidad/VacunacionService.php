@@ -69,15 +69,15 @@ class VacunacionService extends BaseService
             });
         }
 
-        // Filtro de archivado (idéntico a AnimalService):
-        // - 'incluir_archivados' => true o 'archivado' => 'todos' / 'all' => activos + archivados (sin filtro)
-        // - 'archivado' => true / 1 / '1' => solo vacunaciones de animales archivados
-        // - por defecto => solo vacunaciones de animales activos
+        // Filtro de archivado:
+        // - 'incluir_archivados' => true (activos + archivados, sin filtro)
+        // - 'archivado' => true / 1 => solo de animales archivados
+        // - por defecto => solo de animales activos
         $incluirArchivados = filter_var($filters['incluir_archivados'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        $archivado = $filters['archivado'] ?? false;
 
-        if (!$incluirArchivados && !in_array($archivado, ['todos', 'all'], true)) {
-            $query->whereHas('animal', fn($q) => $q->where('archivado', filter_var($archivado, FILTER_VALIDATE_BOOLEAN)));
+        if (!$incluirArchivados) {
+            $archivado = filter_var($filters['archivado'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $query->whereHas('animal', fn($q) => $q->where('archivado', $archivado));
         }
 
         // Filtro por rango de fechas

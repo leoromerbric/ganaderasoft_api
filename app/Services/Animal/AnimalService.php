@@ -48,10 +48,10 @@ class AnimalService extends BaseService
         ]);
 
         $incluirArchivados = filter_var($filters['incluir_archivados'] ?? false, FILTER_VALIDATE_BOOLEAN);
-        $archivado = $filters['archivado'] ?? false;
 
-        if (!$incluirArchivados && !in_array($archivado, ['todos', 'all'], true)) {
-            $query->where('archivado', filter_var($archivado, FILTER_VALIDATE_BOOLEAN));
+        if (!$incluirArchivados) {
+            $archivado = filter_var($filters['archivado'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $query->where('archivado', $archivado);
         }
 
         // Aplicamos los filtros básicos si existen en la petición
