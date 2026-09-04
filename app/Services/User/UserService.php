@@ -7,6 +7,7 @@ use App\Models\Persona;
 use App\Models\Role;
 use App\Models\Propietario;
 use App\Models\Administrador;
+use App\Models\Transcriptor;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -224,28 +225,65 @@ class UserService
             throw new AuthorizationException('No tienes permisos para eliminar usuarios.');
         }
 
-        // Aquí podríamos validar si es el último superadmin antes de borrar
+        // Proteger contra la eliminación del último administrador global
         if ($user->hasRole('global_admin') && User::whereHas('roles', function($q) {
             $q->where('code', 'global_admin');
         })->count() <= 1) {
             throw new \Exception('No puedes eliminar al último administrador global.');
         }
 
-        // Proteger fincas huérfanas
         $persona = $user->personas()->first();
-        if ($persona) {
-            $propietario = Propietario::where('persona_id', $persona->id)->first();
-            if ($propietario && $propietario->fincas()->exists()) {
-                throw new \Exception("No puedes eliminar este usuario porque es propietario de fincas. Desactiva la cuenta o transfiere las fincas primero.");
-            }
-        }
 
-        return DB::transaction(function () use ($user) {
-            // Eliminar dependencias suaves o forzadas según el caso
-            $user->personas()->detach();
-            $user->roles()->detach();
+        return DB::transaction(function () use ($user, $persona) {
+            // Si el usuario tiene perfil de propietario, eliminar en cascada sus fincas y registros relacionados
+            if ($persona) {
+                $propietario = Propietario::where('persona_id', $persona->id)->first();
+                if ($propietario) {
+                    // Eliminar cada finca del propietario con todas sus dependencias (terreno, rebaños, animales, etc.)
+                    foreach ($propietario->fincas as $finca) {
+                        if ($finca->terreno) {
+                            $finca->terreno->delete();
+                        }
+                        $finca->users()->detach();
+                        $finca->afiliaciones()->delete();
+                        $finca->hierros()->delete();
+                        $finca->personalFinca()->delete();
+                        $finca->inventariosBufalo()->delete();
+                        $finca->rebanos()->delete();
+                        $finca->delete();
+                    }
+
+                    // Limpiar hierros y afiliaciones restantes del propietario y eliminar el registro de propietario
+                    $propietario->hierros()->delete();
+                    $propietario->afiliaciones()->delete();
+                    $propietario->delete();
+                }
+
+                $administrador = Administrador::where('persona_id', $persona->id)->first();
+                if ($administrador) {
+                    $administrador->delete();
+                }
+
+                $transcriptor = Transcriptor::where('persona_id', $persona->id)->first();
+                if ($transcriptor) {
+                    $transcriptor->afiliaciones()->delete();
+                    $transcriptor->delete();
+                }
+            }
+
+            // Revocar tokens de sesión activos
+            $user->tokens()->delete();
+
+            // Desvincular usuario de todas las fincas asignadas (pivot finca_user, aplica a cualquier rol o trabajador)
             $user->fincas()->detach();
+
+            // Desvincular de la persona (la persona física permanece registrada en la BD)
+            $user->personas()->detach();
+
+            // Desvincular roles y eliminar la cuenta de usuario
+            $user->roles()->detach();
             $user->delete();
+
             return true;
         });
     }
