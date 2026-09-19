@@ -4,6 +4,8 @@ namespace App\Services\Animal;
 
 use App\Models\CambiosAnimal;
 use App\Models\Animal;
+use App\Models\Etapa;
+use App\Models\EtapaAnimal;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -70,7 +72,7 @@ class CambiosAnimalService extends BaseService
     public function createCambio(array $data, $user): CambiosAnimal
     {
         // Obtener el animal a través de la etapa seleccionada para verificar permisos
-        $animal = Animal::whereHas('etapaAnimales', function ($q) use ($data) {
+        $animal = Animal::with('composicionRaza')->whereHas('etapaAnimales', function ($q) use ($data) {
             $q->where('id', $data['animal_etapa_id']);
         })->firstOrFail();
 
@@ -78,9 +80,54 @@ class CambiosAnimalService extends BaseService
             throw new AuthorizationException('No tiene permisos para registrar cambios a este animal.');
         }
 
+        $animalEtapaId = $data['animal_etapa_id'];
+        $fechaCambio = $data['fecha_cambio'] ?? now()->toDateString();
+
+        // Si se especificó una nueva etapa_cambio, sincronizar la etapa activa del animal
+        if (!empty($data['etapa_cambio'])) {
+            $nombreEtapa = strtolower(trim($data['etapa_cambio']));
+            $targetEtapa = Etapa::whereRaw('LOWER(TRIM(nombre)) = ?', [$nombreEtapa])
+                ->when($animal->composicionRaza?->tipo_animal_id, fn($q, $tid) => $q->where('tipo_animal_id', $tid))
+                ->when($animal->sexo, fn($q, $sex) => $q->where(fn($sq) => $sq->where('sexo', $sex)->orWhereNull('sexo')))
+                ->first();
+
+            if (!$targetEtapa) {
+                $targetEtapa = Etapa::whereRaw('LOWER(TRIM(nombre)) = ?', [$nombreEtapa])->first();
+            }
+
+            if ($targetEtapa) {
+                // Cerrar etapas activas previas
+                EtapaAnimal::where('animal_id', $animal->id)
+                    ->where(function ($q) use ($fechaCambio) {
+                        $q->whereNull('fecha_fin')
+                            ->orWhere('fecha_fin', '>', $fechaCambio);
+                    })
+                    ->update(['fecha_fin' => $fechaCambio]);
+
+                // Activar o crear registro de la nueva etapa
+                $etapaAnimal = EtapaAnimal::where('animal_id', $animal->id)
+                    ->where('etapa_id', $targetEtapa->id)
+                    ->where('fecha_ini', $fechaCambio)
+                    ->first();
+
+                if (!$etapaAnimal) {
+                    $etapaAnimal = EtapaAnimal::create([
+                        'animal_id' => $animal->id,
+                        'etapa_id'  => $targetEtapa->id,
+                        'fecha_ini' => $fechaCambio,
+                        'fecha_fin' => null,
+                    ]);
+                } else {
+                    $etapaAnimal->update(['fecha_fin' => null]);
+                }
+
+                $animalEtapaId = $etapaAnimal->id;
+            }
+        }
+
         return CambiosAnimal::create([
-            'animal_etapa_id' => $data['animal_etapa_id'],
-            'fecha_cambio'    => $data['fecha_cambio'] ?? now()->toDateString(),
+            'animal_etapa_id' => $animalEtapaId,
+            'fecha_cambio'    => $fechaCambio,
             'etapa_cambio'    => $data['etapa_cambio'] ?? null,
             'peso'            => $data['peso'],
             'altura'          => $data['altura'],
@@ -113,6 +160,46 @@ class CambiosAnimalService extends BaseService
         if (array_key_exists('peso', $data)) $payload['peso'] = $data['peso'];
         if (array_key_exists('altura', $data)) $payload['altura'] = $data['altura'];
         if (array_key_exists('comentario', $data)) $payload['comentario'] = $data['comentario'];
+
+        if (!empty($payload['etapa_cambio']) && $animal) {
+            $nombreEtapa = strtolower(trim($payload['etapa_cambio']));
+            $targetEtapa = Etapa::whereRaw('LOWER(TRIM(nombre)) = ?', [$nombreEtapa])
+                ->when($animal->composicionRaza?->tipo_animal_id, fn($q, $tid) => $q->where('tipo_animal_id', $tid))
+                ->when($animal->sexo, fn($q, $sex) => $q->where(fn($sq) => $sq->where('sexo', $sex)->orWhereNull('sexo')))
+                ->first();
+
+            if (!$targetEtapa) {
+                $targetEtapa = Etapa::whereRaw('LOWER(TRIM(nombre)) = ?', [$nombreEtapa])->first();
+            }
+
+            if ($targetEtapa) {
+                $fechaCambio = $payload['fecha_cambio'] ?? $cambio->fecha_cambio ?? now()->toDateString();
+                EtapaAnimal::where('animal_id', $animal->id)
+                    ->where(function ($q) use ($fechaCambio) {
+                        $q->whereNull('fecha_fin')
+                            ->orWhere('fecha_fin', '>', $fechaCambio);
+                    })
+                    ->update(['fecha_fin' => $fechaCambio]);
+
+                $etapaAnimal = EtapaAnimal::where('animal_id', $animal->id)
+                    ->where('etapa_id', $targetEtapa->id)
+                    ->where('fecha_ini', $fechaCambio)
+                    ->first();
+
+                if (!$etapaAnimal) {
+                    $etapaAnimal = EtapaAnimal::create([
+                        'animal_id' => $animal->id,
+                        'etapa_id'  => $targetEtapa->id,
+                        'fecha_ini' => $fechaCambio,
+                        'fecha_fin' => null,
+                    ]);
+                } else {
+                    $etapaAnimal->update(['fecha_fin' => null]);
+                }
+
+                $payload['animal_etapa_id'] = $etapaAnimal->id;
+            }
+        }
 
         $cambio->update($payload);
 
