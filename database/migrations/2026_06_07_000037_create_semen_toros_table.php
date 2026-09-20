@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('animal_id')->constrained('animals')->onDelete('cascade');
             $table->boolean('estado')->default(true);
             $table->date('fecha')->nullable();
+            $table->unsignedInteger('cantidad_pajuelas')->default(1);
             $table->timestamps();
         });
     }
