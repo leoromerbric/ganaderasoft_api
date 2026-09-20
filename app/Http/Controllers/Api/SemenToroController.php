@@ -42,9 +42,10 @@ class SemenToroController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'animal_id' => 'required|exists:animals,id',
-            'estado'    => 'nullable|boolean',
-            'fecha'     => 'nullable|date',
+            'animal_id'         => 'required|exists:animals,id',
+            'estado'            => 'nullable|boolean',
+            'fecha'             => 'nullable|date',
+            'cantidad_pajuelas' => 'nullable|integer|min:0|max:100000',
         ]);
 
         if ($validator->fails()) {
@@ -59,13 +60,13 @@ class SemenToroController extends Controller
             $semen = $this->semenService->createSemen($request->all(), request()->user());
 
             return response()->json([
-                'success' => true,
+                'success' => true, 
                 'message' => 'Semen registrado exitosamente',
                 'data'    => $this->formatResource(SemenToroResource::class, $semen),
             ], Response::HTTP_CREATED);
         } catch (ValidationException $e) {
             return response()->json([
-                'success' => false,
+                'success' => false, 
                 'message' => 'Error de validación',
                 'errors'  => $e->errors()
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
@@ -93,9 +94,10 @@ class SemenToroController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'animal_id' => 'sometimes|exists:animals,id',
-            'estado'    => 'nullable|boolean',
-            'fecha'     => 'nullable|date',
+            'animal_id'         => 'sometimes|exists:animals,id',
+            'estado'            => 'nullable|boolean',
+            'fecha'             => 'nullable|date',
+            'cantidad_pajuelas' => 'nullable|integer|min:0|max:100000',
         ]);
 
         if ($validator->fails()) {

@@ -86,9 +86,10 @@ class SemenToroService extends BaseService
         }
 
         $semen = SemenToro::create([
-            'animal_id' => $data['animal_id'],
-            'estado'    => $data['estado'] ?? true,
-            'fecha'     => $data['fecha'] ?? null,
+            'animal_id'         => $data['animal_id'],
+            'estado'            => $data['estado'] ?? true,
+            'fecha'             => $data['fecha'] ?? null,
+            'cantidad_pajuelas' => isset($data['cantidad_pajuelas']) ? (int) $data['cantidad_pajuelas'] : 1,
         ]);
 
         return $semen->load([
@@ -143,6 +144,9 @@ class SemenToroService extends BaseService
         }
         if (array_key_exists('fecha', $data)) {
             $updatePayload['fecha'] = $data['fecha'];
+        }
+        if (array_key_exists('cantidad_pajuelas', $data)) {
+            $updatePayload['cantidad_pajuelas'] = $data['cantidad_pajuelas'] !== null ? (int) $data['cantidad_pajuelas'] : null;
         }
 
         $semen->update($updatePayload);

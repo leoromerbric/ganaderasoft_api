@@ -22,9 +22,10 @@ class SemenToroResource extends JsonResource
         return [
             'id'         => $this->id,
             'animal_id'  => $this->animal_id,
-            'estado'     => (bool) $this->estado,
-            'fecha'      => $this->fecha ? $this->fecha->format('Y-m-d') : null,
-            'created_at' => $this->created_at,
+            'estado'            => (bool) $this->estado,
+            'fecha'             => $this->fecha ? $this->fecha->format('Y-m-d') : null,
+            'cantidad_pajuelas' => $this->cantidad_pajuelas !== null ? (int) $this->cantidad_pajuelas : null,
+            'created_at'        => $this->created_at,
             'updated_at' => $this->updated_at,
 
             // Relaciones

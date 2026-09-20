@@ -43,14 +43,15 @@ class NormalizeIndexSemenToro
     private function mapToLegacy(array $item): array
     {
         $legacy = [
-            'semen_id'     => $item['id'] ?? null,
-            'id_Toro'      => $item['animal_id'] ?? ($item['toro']['id'] ?? null),
-            'semen_estado' => $item['estado'] ?? null,
-            'semen_fecha'  => $item['fecha'] ?? null,
-            'created_at'   => $item['created_at'] ?? null,
-            'updated_at'   => $item['updated_at'] ?? null,
-            'toro'         => $item['toro'] ?? null,
-            'servicios'    => $item['servicios'] ?? null,
+            'semen_id'          => $item['id'] ?? null,
+            'id_Toro'           => $item['animal_id'] ?? ($item['toro']['id'] ?? null),
+            'semen_estado'      => $item['estado'] ?? null,
+            'semen_fecha'       => $item['fecha'] ?? null,
+            'cantidad_pajuelas' => $item['cantidad_pajuelas'] ?? null,
+            'created_at'        => $item['created_at'] ?? null,
+            'updated_at'        => $item['updated_at'] ?? null,
+            'toro'              => $item['toro'] ?? null,
+            'servicios'         => $item['servicios'] ?? null,
         ];
 
         return array_filter($legacy, function($value) {

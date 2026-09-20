@@ -24,6 +24,8 @@ class NormalizeUpdateSemenToro
             if (array_key_exists('semen_fecha', $input)) $payload['fecha'] = $input['semen_fecha'];
             elseif (array_key_exists('fecha', $input)) $payload['fecha'] = $input['fecha'];
 
+            if (array_key_exists('cantidad_pajuelas', $input)) $payload['cantidad_pajuelas'] = $input['cantidad_pajuelas'];
+
             $request->replace($payload);
         }
 
@@ -59,14 +61,15 @@ class NormalizeUpdateSemenToro
             if (isset($data['data']) && is_array($data['data'])) {
                 $item = $data['data'];
                 $legacy = [
-                    'semen_id'     => $item['id'] ?? null,
-                    'id_Toro'      => $item['animal_id'] ?? ($item['toro']['id'] ?? null),
-                    'semen_estado' => $item['estado'] ?? null,
-                    'semen_fecha'  => $item['fecha'] ?? null,
-                    'created_at'   => $item['created_at'] ?? null,
-                    'updated_at'   => $item['updated_at'] ?? null,
-                    'toro'         => $item['toro'] ?? null,
-                    'servicios'    => $item['servicios'] ?? null,
+                    'semen_id'          => $item['id'] ?? null,
+                    'id_Toro'           => $item['animal_id'] ?? ($item['toro']['id'] ?? null),
+                    'semen_estado'      => $item['estado'] ?? null,
+                    'semen_fecha'       => $item['fecha'] ?? null,
+                    'cantidad_pajuelas' => $item['cantidad_pajuelas'] ?? null,
+                    'created_at'        => $item['created_at'] ?? null,
+                    'updated_at'        => $item['updated_at'] ?? null,
+                    'toro'              => $item['toro'] ?? null,
+                    'servicios'         => $item['servicios'] ?? null,
                 ];
                 $data['data'] = array_filter($legacy, function($value) { return $value !== null; });
                 $response->setContent(json_encode($data));

@@ -13,11 +13,13 @@ class SemenToro extends Model
         'animal_id',
         'estado',
         'fecha',
+        'cantidad_pajuelas',
     ];
 
     protected $casts = [
         'estado' => 'boolean',
         'fecha' => 'date',
+        'cantidad_pajuelas' => 'integer',
     ];
 
     /**
